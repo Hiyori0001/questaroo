@@ -10,7 +10,8 @@ import LocationQuests from "./pages/LocationQuests";
 import MiniGames from "./pages/MiniGames";
 import ProfilePage from "./pages/ProfilePage";
 import LeaderboardPage from "./pages/LeaderboardPage";
-import CreateQuestPage from "./pages/CreateQuestPage"; // Import the new CreateQuestPage
+import CreateQuestPage from "./pages/CreateQuestPage";
+import TeamsPage from "./pages/TeamsPage"; // Import the new TeamsPage
 import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
@@ -29,7 +30,8 @@ const App = () => (
           <Route path="/mini-games" element={<MiniGames />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/create-quest" element={<CreateQuestPage />} /> {/* Add the new CreateQuestPage route */}
+          <Route path="/create-quest" element={<CreateQuestPage />} />
+          <Route path="/teams" element={<TeamsPage />} /> {/* Add the new TeamsPage route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
