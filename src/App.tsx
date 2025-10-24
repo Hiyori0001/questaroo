@@ -11,7 +11,8 @@ import MiniGames from "./pages/MiniGames";
 import ProfilePage from "./pages/ProfilePage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import CreateQuestPage from "./pages/CreateQuestPage";
-import TeamsPage from "./pages/TeamsPage"; // Import the new TeamsPage
+import TeamsPage from "./pages/TeamsPage";
+import SocialPage from "./pages/SocialPage"; // Import the new SocialPage
 import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
@@ -31,7 +32,8 @@ const App = () => (
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/create-quest" element={<CreateQuestPage />} />
-          <Route path="/teams" element={<TeamsPage />} /> {/* Add the new TeamsPage route */}
+          <Route path="/teams" element={<TeamsPage />} />
+          <Route path="/social" element={<SocialPage />} /> {/* Add the new SocialPage route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
