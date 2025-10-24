@@ -63,6 +63,56 @@ const allTriviaQuestions: Question[] = [
     options: ["Tiger", "Lion", "Elephant", "Bear"],
     correctAnswer: "Lion",
   },
+  {
+    question: "What is the chemical symbol for water?",
+    options: ["O2", "H2O", "CO2", "NaCl"],
+    correctAnswer: "H2O",
+  },
+  {
+    question: "What is the capital of Japan?",
+    options: ["Beijing", "Seoul", "Tokyo", "Bangkok"],
+    correctAnswer: "Tokyo",
+  },
+  {
+    question: "Which gas do plants absorb from the atmosphere?",
+    options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
+    correctAnswer: "Carbon Dioxide",
+  },
+  {
+    question: "What is the largest mammal in the world?",
+    options: ["Elephant", "Blue Whale", "Giraffe", "Polar Bear"],
+    correctAnswer: "Blue Whale",
+  },
+  {
+    question: "How many sides does a triangle have?",
+    options: ["2", "3", "4", "5"],
+    correctAnswer: "3",
+  },
+  {
+    question: "Which country is famous for the Great Wall?",
+    options: ["India", "China", "Japan", "Egypt"],
+    correctAnswer: "China",
+  },
+  {
+    question: "What is the main ingredient in guacamole?",
+    options: ["Tomato", "Onion", "Avocado", "Chili"],
+    correctAnswer: "Avocado",
+  },
+  {
+    question: "What is the currency of the United States?",
+    options: ["Euro", "Yen", "Dollar", "Pound"],
+    correctAnswer: "Dollar",
+  },
+  {
+    question: "Which famous scientist developed the theory of relativity?",
+    options: ["Isaac Newton", "Galileo Galilei", "Albert Einstein", "Stephen Hawking"],
+    correctAnswer: "Albert Einstein",
+  },
+  {
+    question: "What is the highest number on a standard roulette wheel?",
+    options: ["32", "36", "38", "40"],
+    correctAnswer: "36",
+  },
 ];
 
 // Utility function to shuffle an array
@@ -84,7 +134,8 @@ const TriviaGame = () => {
   const [gameOver, setGameOver] = useState(false);
 
   const initializeGame = useCallback(() => {
-    setShuffledQuestions(shuffleArray(allTriviaQuestions).slice(0, 5)); // Take 5 random questions
+    // Always pick a new set of 5 random questions from the larger pool
+    setShuffledQuestions(shuffleArray(allTriviaQuestions).slice(0, 5));
     setCurrentQuestionIndex(0);
     setScore(0);
     setSelectedAnswer(null);
