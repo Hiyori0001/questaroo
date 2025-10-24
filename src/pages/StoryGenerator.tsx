@@ -15,7 +15,7 @@ const StoryGenerator: React.FC = () => {
   const generateMockStoryByMood = (snippet: string, mood: string): string => {
     switch (mood) {
       case "Mystery":
-        return `Your day began with "${snippet}". What seemed like an ordinary event quickly turned into a perplexing mystery. A subtle detail, perhaps a misplaced item or an unusual sound, hinted at a hidden truth. You find yourself drawn into a web of secrets, where every clue leads to more questions, and the line between coincidence and conspiracy blurs. The real twist? The very thing you wrote about is the key to unlocking a long-forgotten enigma, and someone doesn't want it found.`;
+        return `A seemingly ordinary event, like "${snippet}", was actually the first thread in a perplexing mystery. A subtle detail, perhaps a misplaced item or an unusual sound, hinted at a hidden truth. You find yourself drawn into a web of secrets, where every clue leads to more questions, and the line between coincidence and conspiracy blurs. The real twist? The very thing you wrote about is the key to unlocking a long-forgotten enigma, and someone doesn't want it found.`;
       case "Fantasy":
         return `The mundane moment of "${snippet}" was actually a whisper from another realm. The air shimmered, and the world around you subtly shifted. You discover that your everyday life is merely a thin veil over a land of ancient magic, mythical creatures, and forgotten prophecies. Your snippet wasn't just a description; it was an unwitting incantation, opening a portal or awakening a dormant power within you. Now, you must embrace your destiny in a world far grander and more perilous than you ever imagined.`;
       case "Sci-Fi":
@@ -31,7 +31,7 @@ const StoryGenerator: React.FC = () => {
       case "Adventure":
         return `Your day, marked by "${snippet}", was actually the first step on an extraordinary adventure. A hidden map, a cryptic message, or a call to action emerged from the mundane. You discover that the world is far vaster and more exciting than you ever knew, filled with ancient ruins, daring quests, and untold treasures. The twist? Your snippet was the catalyst, revealing a path to a grand expedition, and you are the hero destined to embark upon it.`;
       default:
-        return `Your day began with "${snippet}". What seemed like an ordinary moment quickly revealed itself to be the first domino in a chain of extraordinary events. A subtle shift in your perception, an unexpected discovery, or a strange coincidence hinted at a deeper narrative unfolding around you. You find yourself at the precipice of an unknown journey, where every turn reveals a new twist, and your initial snippet was merely the opening line to a story far grander than you could have imagined.`;
+        return `A seemingly ordinary moment, like "${snippet}", quickly revealed itself to be the first domino in a chain of extraordinary events. A subtle shift in your perception, an unexpected discovery, or a strange coincidence hinted at a deeper narrative unfolding around you. You find yourself at the precipice of an unknown journey, where every turn reveals a new twist, and your initial snippet was merely the opening line to a story far grander than you could have imagined.`;
     }
   };
 
