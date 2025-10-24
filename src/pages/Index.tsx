@@ -16,7 +16,6 @@ const Index = () => {
           </Button>
         </Link>
       </div>
-      <MadeWithDyad />
     </div>
   );
 };
