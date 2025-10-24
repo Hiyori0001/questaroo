@@ -12,7 +12,8 @@ import ProfilePage from "./pages/ProfilePage";
 import LeaderboardPage from "./pages/LeaderboardPage";
 import CreateQuestPage from "./pages/CreateQuestPage";
 import TeamsPage from "./pages/TeamsPage";
-import SocialPage from "./pages/SocialPage"; // Import the new SocialPage
+import SocialPage from "./pages/SocialPage";
+import EventModePage from "./pages/EventModePage"; // Import the new EventModePage
 import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
@@ -33,7 +34,8 @@ const App = () => (
           <Route path="/leaderboard" element={<LeaderboardPage />} />
           <Route path="/create-quest" element={<CreateQuestPage />} />
           <Route path="/teams" element={<TeamsPage />} />
-          <Route path="/social" element={<SocialPage />} /> {/* Add the new SocialPage route */}
+          <Route path="/social" element={<SocialPage />} />
+          <Route path="/events" element={<EventModePage />} /> {/* Add the new EventModePage route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
