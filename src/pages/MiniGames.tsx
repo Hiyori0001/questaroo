@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import TriviaGame from "@/components/TriviaGame";
+import GuessTheNumberGame from "@/components/GuessTheNumberGame";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Gamepad2 } from "lucide-react";
+import { Gamepad2, Brain, Lightbulb } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MiniGames = () => {
   return (
@@ -20,12 +22,27 @@ const MiniGames = () => {
         </CardHeader>
         <CardContent>
           <p className="text-md text-gray-800 dark:text-gray-200 leading-relaxed">
-            Here you'll find a variety of mini-games to play. Start with our trivia challenge!
+            Here you'll find a variety of mini-games to play. Choose your challenge!
           </p>
         </CardContent>
       </Card>
 
-      <TriviaGame />
+      <Tabs defaultValue="trivia" className="w-full max-w-md">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="trivia">
+            <Brain className="h-4 w-4 mr-2" /> Trivia
+          </TabsTrigger>
+          <TabsTrigger value="guess-number">
+            <Lightbulb className="h-4 w-4 mr-2" /> Guess the Number
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="trivia">
+          <TriviaGame />
+        </TabsContent>
+        <TabsContent value="guess-number">
+          <GuessTheNumberGame />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
