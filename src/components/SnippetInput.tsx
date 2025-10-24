@@ -6,16 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface SnippetInputProps {
-  onGenerateStory: (snippet: string) => void;
+  onGenerateStory: (snippet: string, mood: string) => void;
   isLoading: boolean;
+  selectedMood: string;
 }
 
-const SnippetInput: React.FC<SnippetInputProps> = ({ onGenerateStory, isLoading }) => {
+const SnippetInput: React.FC<SnippetInputProps> = ({ onGenerateStory, isLoading, selectedMood }) => {
   const [snippet, setSnippet] = useState("");
 
   const handleSubmit = () => {
     if (snippet.trim()) {
-      onGenerateStory(snippet);
+      onGenerateStory(snippet, selectedMood);
     }
   };
 
