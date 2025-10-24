@@ -7,7 +7,8 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import About from "./pages/About";
 import LocationQuests from "./pages/LocationQuests";
-import MiniGames from "./pages/MiniGames"; // Import the new MiniGames page
+import MiniGames from "./pages/MiniGames";
+import ProfilePage from "./pages/ProfilePage"; // Import the new ProfilePage
 import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
@@ -23,7 +24,8 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/location-quests" element={<LocationQuests />} />
-          <Route path="/mini-games" element={<MiniGames />} /> {/* Add the new MiniGames route */}
+          <Route path="/mini-games" element={<MiniGames />} />
+          <Route path="/profile" element={<ProfilePage />} /> {/* Add the new ProfilePage route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
