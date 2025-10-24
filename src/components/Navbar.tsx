@@ -3,7 +3,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, User, Crown } from "lucide-react"; // Import Crown icon
+import { MapPin, Info, Gamepad2, User, Crown, PlusCircle } from "lucide-react"; // Import PlusCircle icon
 
 const Navbar = () => {
   return (
@@ -36,6 +36,11 @@ const Navbar = () => {
           <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <Link to="/leaderboard">
               <Crown className="h-4 w-4 mr-2" /> Leaderboard
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Link to="/create-quest">
+              <PlusCircle className="h-4 w-4 mr-2" /> Create Quest
             </Link>
           </Button>
         </div>
