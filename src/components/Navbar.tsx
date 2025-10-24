@@ -3,7 +3,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info } from "lucide-react";
+import { MapPin, Info, Gamepad2 } from "lucide-react"; // Import Gamepad2 icon
 
 const Navbar = () => {
   return (
@@ -21,6 +21,11 @@ const Navbar = () => {
           <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <Link to="/location-quests">
               <MapPin className="h-4 w-4 mr-2" /> Quests
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Link to="/mini-games">
+              <Gamepad2 className="h-4 w-4 mr-2" /> Mini-Games
             </Link>
           </Button>
         </div>
