@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useState } from "react"; // Import useState
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu } from "lucide-react";
+import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu, LogIn, LogOut } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 
 // Define navigation items as an array of objects
 const navItems = [
   { to: "/about", icon: Info, label: "About" },
   { to: "/location-quests", icon: MapPin, label: "Quests" },
   { to: "/mini-games", icon: Gamepad2, label: "Mini-Games" },
-  { to: "/profile", icon: User, label: "Profile" },
   { to: "/leaderboard", icon: Crown, label: "Leaderboard" },
   { to: "/create-quest", icon: PlusCircle, label: "Create Quest" },
   { to: "/teams", icon: Users, label: "Teams" },
@@ -25,6 +25,14 @@ const navItems = [
 const Navbar = () => {
   const isMobile = useIsMobile();
   const [isSheetOpen, setIsSheetOpen] = useState(false); // State to control sheet open/close
+  const { user, signOut } = useAuth(); // Get user and signOut from AuthContext
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsSheetOpen(false); // Close sheet after signing out
+    navigate("/"); // Redirect to home after logout
+  };
 
   const renderNavLinks = () => (
     <>
@@ -41,6 +49,38 @@ const Navbar = () => {
           </Link>
         </Button>
       ))}
+      {user ? (
+        <>
+          <Button
+            asChild
+            variant="ghost"
+            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={() => isMobile && setIsSheetOpen(false)}
+          >
+            <Link to="/profile">
+              <User className="h-4 w-4 mr-2" /> Profile
+            </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4 mr-2" /> Logout
+          </Button>
+        </>
+      ) : (
+        <Button
+          asChild
+          variant="ghost"
+          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          onClick={() => isMobile && setIsSheetOpen(false)}
+        >
+          <Link to="/auth">
+            <LogIn className="h-4 w-4 mr-2" /> Login
+          </Link>
+        </Button>
+      )}
     </>
   );
 
