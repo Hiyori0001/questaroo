@@ -2,8 +2,33 @@
 
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CalendarDays, Trophy, Users } from "lucide-react";
+import { CalendarDays, Trophy, Users, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+const upcomingEvents = [
+  {
+    id: "e1",
+    name: "Spring Scavenger Hunt",
+    date: "April 15 - April 22",
+    type: "Location Quest",
+    reward: "Exclusive Badge",
+  },
+  {
+    id: "e2",
+    name: "Weekly Trivia Challenge",
+    date: "Every Friday",
+    type: "Mini-Game",
+    reward: "Bonus XP",
+  },
+  {
+    id: "e3",
+    name: "Community Photo Contest",
+    date: "May 1 - May 15",
+    type: "Creative Challenge",
+    reward: "Rare Item",
+  },
+];
 
 const EventModePage = () => {
   return (
@@ -31,8 +56,29 @@ const EventModePage = () => {
               <Users className="h-5 w-5 mr-2" /> Community Challenges
             </Button>
           </div>
+
+          <div className="mt-8 text-left">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">Upcoming Events</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {upcomingEvents.map((event) => (
+                <Card key={event.id} className="bg-gray-50 dark:bg-gray-800 p-4">
+                  <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{event.name}</CardTitle>
+                  <CardDescription className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-1">
+                    <CalendarDays className="h-4 w-4" /> {event.date}
+                  </CardDescription>
+                  <CardDescription className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-2">
+                    <Clock className="h-4 w-4" /> Type: {event.type}
+                  </CardDescription>
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                    Reward: {event.reward}
+                  </Badge>
+                </Card>
+              ))}
+            </div>
+          </div>
+
           <p className="text-sm text-muted-foreground mt-4">
-            (Event schedule and details coming soon!)
+            (Event schedule and details will be dynamically loaded in future updates.)
           </p>
         </CardContent>
       </Card>
