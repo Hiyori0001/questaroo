@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react"; // Import useState
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu } from "lucide-react";
@@ -8,61 +8,39 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Define navigation items as an array of objects
+const navItems = [
+  { to: "/about", icon: Info, label: "About" },
+  { to: "/location-quests", icon: MapPin, label: "Quests" },
+  { to: "/mini-games", icon: Gamepad2, label: "Mini-Games" },
+  { to: "/profile", icon: User, label: "Profile" },
+  { to: "/leaderboard", icon: Crown, label: "Leaderboard" },
+  { to: "/create-quest", icon: PlusCircle, label: "Create Quest" },
+  { to: "/teams", icon: Users, label: "Teams" },
+  { to: "/social", icon: Share2, label: "Social" },
+  { to: "/events", icon: CalendarDays, label: "Events" },
+  { to: "/accessibility", icon: Accessibility, label: "Accessibility" },
+];
+
 const Navbar = () => {
   const isMobile = useIsMobile();
+  const [isSheetOpen, setIsSheetOpen] = useState(false); // State to control sheet open/close
 
-  const navLinks = (
+  const renderNavLinks = () => (
     <>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/about">
-          <Info className="h-4 w-4 mr-2" /> About
-        </Link>
-      </Button>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/location-quests">
-          <MapPin className="h-4 w-4 mr-2" /> Quests
-        </Link>
-      </Button>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/mini-games">
-          <Gamepad2 className="h-4 w-4 mr-2" /> Mini-Games
-        </Link>
-      </Button>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/profile">
-          <User className="h-4 w-4 mr-2" /> Profile
-        </Link>
-      </Button>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/leaderboard">
-          <Crown className="h-4 w-4 mr-2" /> Leaderboard
-        </Link>
-      </Button>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/create-quest">
-          <PlusCircle className="h-4 w-4 mr-2" /> Create Quest
-        </Link>
-      </Button>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/teams">
-          <Users className="h-4 w-4 mr-2" /> Teams
-        </Link>
-      </Button>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/social">
-          <Share2 className="h-4 w-4 mr-2" /> Social
-        </Link>
-      </Button>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/events">
-          <CalendarDays className="h-4 w-4 mr-2" /> Events
-        </Link>
-      </Button>
-      <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-        <Link to="/accessibility">
-          <Accessibility className="h-4 w-4 mr-2" /> Accessibility
-        </Link>
-      </Button>
+      {navItems.map((item) => (
+        <Button
+          key={item.to}
+          asChild
+          variant="ghost"
+          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          onClick={() => isMobile && setIsSheetOpen(false)} // Close sheet on link click in mobile
+        >
+          <Link to={item.to}>
+            <item.icon className="h-4 w-4 mr-2" /> {item.label}
+          </Link>
+        </Button>
+      ))}
     </>
   );
 
@@ -74,7 +52,7 @@ const Navbar = () => {
         </Link>
 
         {isMobile ? (
-          <Sheet>
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}> {/* Control sheet state */}
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <Menu className="h-6 w-6" />
@@ -83,17 +61,17 @@ const Navbar = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
               <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Navigation</h2>
-              <div className="flex flex-col gap-2 flex-grow"> {/* Added flex-grow to push ThemeToggle to bottom */}
-                {navLinks}
+              <div className="flex flex-col gap-2 flex-grow">
+                {renderNavLinks()}
               </div>
-              <div className="mt-auto p-4 border-t dark:border-gray-700"> {/* Added a div for ThemeToggle at the bottom */}
+              <div className="mt-auto p-4 border-t dark:border-gray-700">
                 <ThemeToggle />
               </div>
             </SheetContent>
           </Sheet>
         ) : (
           <div className="flex items-center space-x-4">
-            {navLinks}
+            {renderNavLinks()}
             <ThemeToggle />
           </div>
         )}
