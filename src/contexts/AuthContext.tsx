@@ -49,7 +49,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin + "/auth", // Explicitly set redirect to current origin
+      },
+    });
     setLoading(false);
     if (error) {
       toast.error(error.message);
@@ -60,7 +65,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string) => {
     setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({ email }); // Supabase uses the same method for sign-up and sign-in with email OTP
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: window.location.origin + "/auth", // Explicitly set redirect to current origin
+      },
+    });
     setLoading(false);
     if (error) {
       toast.error(error.message);
