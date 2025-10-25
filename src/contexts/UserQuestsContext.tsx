@@ -9,6 +9,7 @@ interface UserQuestsContextType {
   userQuests: Quest[];
   loadingUserQuests: boolean;
   addQuest: (newQuest: Quest) => void;
+  removeQuest: (questId: string) => void; // Add removeQuest function
 }
 
 const UserQuestsContext = createContext<UserQuestsContextType | undefined>(undefined);
@@ -56,8 +57,16 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     });
   }, []);
 
+  const removeQuest = useCallback((questId: string) => {
+    setUserQuests((prevQuests) => {
+      const updatedQuests = prevQuests.filter(quest => quest.id !== questId);
+      toast.info("Quest deleted successfully.");
+      return updatedQuests;
+    });
+  }, []);
+
   return (
-    <UserQuestsContext.Provider value={{ userQuests, loadingUserQuests, addQuest }}>
+    <UserQuestsContext.Provider value={{ userQuests, loadingUserQuests, addQuest, removeQuest }}>
       {children}
     </UserQuestsContext.Provider>
   );

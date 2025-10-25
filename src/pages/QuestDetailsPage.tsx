@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode } from "lucide-react";
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -12,14 +12,25 @@ import { allDummyQuests, Quest } from "@/data/quests";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
-import { useUserQuests } from "@/contexts/UserQuestsContext"; // Import useUserQuests
+import { useUserQuests } from "@/contexts/UserQuestsContext";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"; // Import AlertDialog components
 
 const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
   const { addExperience, addAchievement, profile, loadingProfile } = useUserProfile();
-  const { userQuests, loadingUserQuests } = useUserQuests(); // Get user-created quests
+  const { userQuests, loadingUserQuests, removeQuest } = useUserQuests(); // Get removeQuest
 
   const [quest, setQuest] = useState<Quest | null>(null);
   const [questStarted, setQuestStarted] = useState(false);
@@ -27,15 +38,18 @@ const QuestDetailsPage = () => {
   const [completionAnswer, setCompletionAnswer] = useState("");
   const [showCompletionInput, setShowCompletionInput] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
+  const [isUserCreatedQuest, setIsUserCreatedQuest] = useState(false); // New state to track if quest is user-created
 
   useEffect(() => {
     if (id) {
-      // Combine dummy quests and user-created quests to find the quest
       const allAvailableQuests = [...allDummyQuests, ...userQuests];
       const foundQuest = allAvailableQuests.find((q) => q.id === id);
 
       if (foundQuest) {
         setQuest(foundQuest);
+        // Check if the found quest is in the user's created quests
+        setIsUserCreatedQuest(userQuests.some(uq => uq.id === foundQuest.id));
+
         if (profile && profile.achievements.some(a => a.name === `Completed: ${foundQuest.title}`)) {
           setQuestCompleted(true);
         }
@@ -44,7 +58,7 @@ const QuestDetailsPage = () => {
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile, userQuests]); // Added userQuests to dependencies
+  }, [id, navigate, profile, userQuests]);
 
   if (loadingAuth || loadingProfile || loadingUserQuests || !quest) {
     return (
@@ -112,7 +126,6 @@ const QuestDetailsPage = () => {
     } else if (quest.completionTask) {
       setShowCompletionInput(true);
     } else {
-      // Fallback for quests without specific completion tasks (shouldn't happen with current data)
       toast.info("No specific completion task for this quest. Completing now!");
       completeQuestLogic();
     }
@@ -134,17 +147,47 @@ const QuestDetailsPage = () => {
     }
   };
 
+  const handleDeleteQuest = () => {
+    if (quest) {
+      removeQuest(quest.id);
+      navigate("/location-quests"); // Redirect after deletion
+    }
+  };
+
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
       <Card className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6">
         <CardHeader className="pb-4">
-          <Button
-            variant="ghost"
-            onClick={() => navigate("/location-quests")}
-            className="self-start mb-4 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Quests
-          </Button>
+          <div className="flex justify-between items-center mb-4">
+            <Button
+              variant="ghost"
+              onClick={() => navigate("/location-quests")}
+              className="self-start text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Quests
+            </Button>
+            {isUserCreatedQuest && user && ( // Only show delete button for user-created quests by logged-in user
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete Quest
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-white dark:bg-gray-800">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-gray-900 dark:text-white">Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
+                      This action cannot be undone. This will permanently delete your quest.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteQuest} className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
           <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2">
             <MapPin className="h-7 w-7 text-green-600 dark:text-green-400" />
             {quest.title}
@@ -167,7 +210,7 @@ const QuestDetailsPage = () => {
             <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
               <Clock className="h-4 w-4" /> Time Estimate: {quest.timeEstimate}
             </Badge>
-            {quest.timeLimit && ( // Display time limit if it exists
+            {quest.timeLimit && (
               <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
                 <Clock className="h-4 w-4" /> Time Limit: {quest.timeLimit}
               </Badge>
