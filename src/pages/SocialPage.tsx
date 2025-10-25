@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Share2, MessageSquareText, Twitter, Facebook, Instagram, Send } from "lucide-react";
+import { Share2, MessageSquareText, Twitter, Facebook, Instagram, Send, Link as LinkIcon } from "lucide-react"; // Import LinkIcon
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea"; // Import Textarea
+import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 
@@ -36,6 +36,21 @@ const SocialPage = () => {
     setMessages((prevMessages) => [...prevMessages, newMsg]);
     setNewMessage("");
     toast.success("Message sent!");
+  };
+
+  const handleShare = (platform: string) => {
+    toast.info(`Sharing your adventure on ${platform}! (Feature under development)`);
+  };
+
+  const handleCopyLink = async () => {
+    const shareLink = "https://questaroo.app/share/my-adventure-id"; // Placeholder link
+    try {
+      await navigator.clipboard.writeText(shareLink);
+      toast.success("Adventure link copied to clipboard!");
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+      toast.error("Failed to copy link. Please try again.");
+    }
   };
 
   return (
@@ -94,7 +109,7 @@ const SocialPage = () => {
 
           <Separator className="my-6" />
 
-          {/* Social Sharing Placeholder */}
+          {/* Social Sharing Section */}
           <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Share2 className="h-7 w-7 text-green-600 dark:text-green-400" />
@@ -104,16 +119,21 @@ const SocialPage = () => {
               Share your latest quest achievements and game progress with friends on social media.
             </p>
             <div className="flex justify-center gap-4">
-              <Button variant="outline" size="icon" disabled>
+              <Button variant="outline" size="icon" onClick={() => handleShare("Twitter")}>
                 <Twitter className="h-5 w-5" />
+                <span className="sr-only">Share on Twitter</span>
               </Button>
-              <Button variant="outline" size="icon" disabled>
+              <Button variant="outline" size="icon" onClick={() => handleShare("Facebook")}>
                 <Facebook className="h-5 w-5" />
+                <span className="sr-only">Share on Facebook</span>
               </Button>
-              <Button variant="outline" size="icon" disabled>
+              <Button variant="outline" size="icon" onClick={() => handleShare("Instagram")}>
                 <Instagram className="h-5 w-5" />
+                <span className="sr-only">Share on Instagram</span>
               </Button>
-              <Button disabled>Copy Link</Button>
+              <Button onClick={handleCopyLink} className="bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">
+                <LinkIcon className="h-4 w-4 mr-2" /> Copy Link
+              </Button>
             </div>
           </div>
 
