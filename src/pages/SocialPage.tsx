@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Share2, MessageSquareText, Twitter, Facebook, Instagram, Send, Link as LinkIcon } from "lucide-react"; // Import LinkIcon
+import { Share2, MessageSquareText, Twitter, Facebook, Instagram, Send, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,7 +39,31 @@ const SocialPage = () => {
   };
 
   const handleShare = (platform: string) => {
-    toast.info(`Sharing your adventure on ${platform}! (Feature under development)`);
+    const shareText = "Just completed an awesome quest on Questaroo! Come join the adventure!";
+    const shareUrl = "https://questaroo.app"; // Placeholder for the app's main URL
+
+    let url = "";
+    switch (platform) {
+      case "Twitter":
+        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+        break;
+      case "Facebook":
+        url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(shareText)}`;
+        break;
+      case "Instagram":
+        // Instagram sharing is more complex and usually requires their API or a mobile app.
+        // For a web demo, we'll just show a toast.
+        toast.info("Instagram sharing typically requires the mobile app. (Feature under development)");
+        return;
+      default:
+        toast.error("Unknown sharing platform.");
+        return;
+    }
+
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer");
+      toast.success(`Opening ${platform} to share your adventure!`);
+    }
   };
 
   const handleCopyLink = async () => {
