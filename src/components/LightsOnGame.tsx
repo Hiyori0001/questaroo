@@ -41,7 +41,7 @@ const LightsOnGame: React.FC = () => {
     // Each "click" toggles the cell and its neighbors, creating a random pattern
     for (let i = 0; i < GRID_SIZE; i++) {
       for (let j = 0; j < GRID_SIZE; j++) {
-        if (Math.random() < 0.5) { // Roughly 50% chance to "click" a cell
+        if (Math.random() < 0.25) { // Reduced probability to 25% for fewer initial lights
           currentBoard = toggleLights(i, j, currentBoard); // Correctly update the board
         }
       }
