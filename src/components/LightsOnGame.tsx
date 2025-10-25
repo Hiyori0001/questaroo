@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const GRID_SIZE = 5; // 5x5 grid
 
-const LightsOnGame = () => {
+const LightsOnGame: React.FC = () => {
   const [board, setBoard] = useState<boolean[][]>([]); // true for on, false for off
   const [moves, setMoves] = useState(0);
   const [gameOver, setGameOver] = useState(false);
@@ -34,7 +34,7 @@ const LightsOnGame = () => {
     setBoard(createSolvableBoard());
     setMoves(0);
     setGameOver(false);
-    toast.info("Lights On game started! Turn all lights on."); // Updated toast
+    toast.info("Lights On game started! Turn all lights on.");
   }, [createSolvableBoard]);
 
   useEffect(() => {
@@ -68,29 +68,29 @@ const LightsOnGame = () => {
     setMoves((prevMoves) => prevMoves + 1);
 
     // Check for win condition: all lights are ON
-    const allLightsOn = newBoard.every((r) => r.every((light) => light)); // Updated win condition
+    const allLightsOn = newBoard.every((r) => r.every((light) => light));
     if (allLightsOn) {
       setGameOver(true);
-      toast.success(`Congratulations! You turned on all lights in ${moves + 1} moves!`); // Updated toast
+      toast.success(`Congratulations! You turned on all lights in ${moves + 1} moves!`);
     }
   };
 
   return (
     <Card className="w-full max-w-md mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
       <CardHeader>
-        <Lightbulb className="h-16 w-16 text-yellow-500 dark:text-yellow-400 mx-auto mb-4" /> {/* Updated icon */}
+        <Lightbulb className="h-16 w-16 text-yellow-500 dark:text-yellow-400 mx-auto mb-4" />
         <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
           Lights On!
-        </CardTitle> {/* Updated title */}
+        </CardTitle>
         <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
-          Turn on all the lights on the grid. Clicking a light toggles it and its neighbors. {/* Updated description */}
+          Turn on all the lights on the grid. Clicking a light toggles it and its neighbors.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex justify-around items-center text-xl font-semibold text-gray-800 dark:text-gray-200">
           <p>Moves: {moves}</p>
           {gameOver && (
-            <p className="text-green-600 dark:text-green-400">All Lights On!</p> {/* Updated win message */}
+            <p className="text-green-600 dark:text-green-400">All Lights On!</p>
           )}
         </div>
 
