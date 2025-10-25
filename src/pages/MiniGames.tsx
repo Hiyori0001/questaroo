@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import TriviaGame from "@/components/TriviaGame";
 import GuessTheNumberGame from "@/components/GuessTheNumberGame";
+import ClickerChallengeGame from "@/components/ClickerChallengeGame"; // Import the new game
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Gamepad2, Brain, Lightbulb } from "lucide-react";
+import { Gamepad2, Brain, Lightbulb, HandClick } from "lucide-react"; // Import HandClick icon
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MiniGames = () => {
@@ -28,12 +29,15 @@ const MiniGames = () => {
       </Card>
 
       <Tabs defaultValue="trivia" className="w-full max-w-md">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+        <TabsList className="grid w-full grid-cols-3 mb-6"> {/* Adjusted grid-cols to 3 */}
           <TabsTrigger value="trivia">
             <Brain className="h-4 w-4 mr-2" /> Trivia
           </TabsTrigger>
           <TabsTrigger value="guess-number">
             <Lightbulb className="h-4 w-4 mr-2" /> Guess the Number
+          </TabsTrigger>
+          <TabsTrigger value="clicker-challenge"> {/* New tab trigger */}
+            <HandClick className="h-4 w-4 mr-2" /> Clicker
           </TabsTrigger>
         </TabsList>
         <TabsContent value="trivia">
@@ -41,6 +45,9 @@ const MiniGames = () => {
         </TabsContent>
         <TabsContent value="guess-number">
           <GuessTheNumberGame />
+        </TabsContent>
+        <TabsContent value="clicker-challenge"> {/* New tab content */}
+          <ClickerChallengeGame />
         </TabsContent>
       </Tabs>
     </div>
