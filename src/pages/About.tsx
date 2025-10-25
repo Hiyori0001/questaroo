@@ -54,7 +54,7 @@ const About = () => {
         <Card className="bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 sm:p-10 mb-12">
           <CardHeader className="text-center">
             <CardTitle className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
-              Welcome to Plot Twist!
+              Welcome to Questaroo!
             </CardTitle>
             <CardDescription className="text-xl text-gray-700 dark:text-gray-300">
               Your ultimate mobile/web app that combines real-world exploration with digital games and fun challenges.

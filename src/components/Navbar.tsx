@@ -10,7 +10,7 @@ const Navbar = () => {
     <nav className="bg-white dark:bg-gray-800 shadow-md p-4 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
         <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white">
-          Plot Twist
+          Questaroo
         </Link>
         <div className="space-x-4">
           <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">

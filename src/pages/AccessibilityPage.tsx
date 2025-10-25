@@ -14,12 +14,12 @@ const AccessibilityPage = () => {
             Accessibility Options
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
-            Ensuring Plot Twist is enjoyable and accessible for everyone.
+            Ensuring Questaroo is enjoyable and accessible for everyone.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 mt-6">
           <p className="text-md text-gray-800 dark:text-gray-200 leading-relaxed">
-            We are committed to making Plot Twist accessible to all players. Our goal is to provide a flexible and inclusive experience.
+            We are committed to making Questaroo accessible to all players. Our goal is to provide a flexible and inclusive experience.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex items-start gap-4 text-left">

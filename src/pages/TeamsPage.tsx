@@ -33,7 +33,7 @@ const TeamsPage = () => {
             Teams & Community
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
-            Join forces with other players and conquer challenges together!
+            Join forces with other players and conquer challenges together in Questaroo!
           </CardDescription>
         </CardHeader>
         <CardContent className="mt-6">

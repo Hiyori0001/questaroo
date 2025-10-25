@@ -36,7 +36,7 @@ const LeaderboardPage = () => {
             Global Leaderboard
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
-            See who's at the top of the Plot Twist world!
+            See who's at the top of the Questaroo world!
           </CardDescription>
         </CardHeader>
         <CardContent className="mt-6">

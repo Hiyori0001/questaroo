@@ -17,7 +17,7 @@ const SocialPage = () => {
             Connect & Share
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
-            Your hub for social interaction and sharing your Plot Twist adventures!
+            Your hub for social interaction and sharing your Questaroo adventures!
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8 mt-6">
