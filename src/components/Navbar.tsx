@@ -3,7 +3,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility } from "lucide-react"; // Import Accessibility icon
+import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle"; // Import ThemeToggle
 
 const Navbar = () => {
   return (
@@ -12,7 +13,7 @@ const Navbar = () => {
         <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white">
           Questaroo
         </Link>
-        <div className="space-x-4">
+        <div className="flex items-center space-x-4"> {/* Use flex and items-center for alignment */}
           <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <Link to="/about">
               <Info className="h-4 w-4 mr-2" /> About
@@ -63,6 +64,7 @@ const Navbar = () => {
               <Accessibility className="h-4 w-4 mr-2" /> Accessibility
             </Link>
           </Button>
+          <ThemeToggle /> {/* Add the ThemeToggle here */}
         </div>
       </div>
     </nav>
