@@ -28,7 +28,7 @@ const App = () => (
       <BrowserRouter>
         <div className="flex flex-col min-h-screen"> {/* Main app container */}
           <Navbar />
-          <main className="flex-grow overflow-y-auto"> {/* Main content area, allows scrolling */}
+          <main className="flex-grow overflow-y-auto pt-16"> {/* Main content area, allows scrolling, with top padding for navbar */}
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
