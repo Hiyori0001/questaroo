@@ -4,13 +4,21 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Trophy, Star, Edit } from "lucide-react";
+import { User, Trophy, Star, Edit, LucideIcon } from "lucide-react"; // Import LucideIcon type
+
 import { Button } from "@/components/ui/button";
 import ProfileEditForm from "@/components/ProfileEditForm"; // Import the new form component
 
+// Map icon names to their actual Lucide React components
+const LucideIconMap: { [key: string]: LucideIcon } = {
+  Trophy: Trophy,
+  Star: Star,
+  // Add other icons here if they are used in achievements
+};
+
 interface Achievement {
   name: string;
-  icon: React.ReactNode;
+  iconName: string; // Changed from icon: React.ReactNode to iconName: string
   color: string;
 }
 
@@ -32,8 +40,8 @@ const ProfilePage = () => {
     level: 5,
     experience: 1250,
     achievements: [
-      { name: "First Quest Complete", icon: <Trophy className="h-4 w-4" />, color: "bg-yellow-500" },
-      { name: "Trivia Master", icon: <Star className="h-4 w-4" />, color: "bg-blue-500" },
+      { name: "First Quest Complete", iconName: "Trophy", color: "bg-yellow-500" }, // Use iconName
+      { name: "Trivia Master", iconName: "Star", color: "bg-blue-500" }, // Use iconName
     ],
   };
 
@@ -115,11 +123,14 @@ const ProfilePage = () => {
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Achievements</h3>
                 {user.achievements.length > 0 ? (
                   <div className="flex flex-wrap justify-center gap-3">
-                    {user.achievements.map((achievement, index) => (
-                      <Badge key={index} className={`px-4 py-2 text-base ${achievement.color} text-white flex items-center gap-2`}>
-                        {achievement.icon} {achievement.name}
-                      </Badge>
-                    ))}
+                    {user.achievements.map((achievement, index) => {
+                      const IconComponent = LucideIconMap[achievement.iconName];
+                      return (
+                        <Badge key={index} className={`px-4 py-2 text-base ${achievement.color} text-white flex items-center gap-2`}>
+                          {IconComponent && <IconComponent className="h-4 w-4" />} {achievement.name}
+                        </Badge>
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-md text-gray-700 dark:text-gray-300">No achievements yet. Keep playing!</p>
