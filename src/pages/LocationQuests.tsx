@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MapPin, Compass, Search, List, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // Import Input
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Import Select components
 import QuestList from "@/components/QuestList";
-import QuestMapPlaceholder from "@/components/QuestMapPlaceholder"; // Import the new map placeholder
+import QuestMapPlaceholder from "@/components/QuestMapPlaceholder";
+import { toast } from "sonner"; // Import toast
 
 // Dummy quests data (moved here for filtering logic)
 interface Quest {
@@ -79,12 +81,20 @@ const allDummyQuests: Quest[] = [
 
 const LocationQuests = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All"); // New state for difficulty filter
   const [viewMode, setViewMode] = useState<"list" | "map">("list"); // 'list' or 'map'
+
+  const handleFindNearbyQuests = () => {
+    // Simulate finding nearby quests by filtering for 'Easy' difficulty
+    setSelectedDifficulty("Easy");
+    toast.info("Searching for nearby quests... showing easy quests for now!");
+  };
 
   const filteredQuests = allDummyQuests.filter(
     (quest) =>
-      quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quest.location.toLowerCase().includes(searchTerm.toLowerCase())
+      (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quest.location.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (selectedDifficulty === "All" || quest.difficulty === selectedDifficulty)
   );
 
   return (
@@ -104,7 +114,11 @@ const LocationQuests = () => {
             Explore the quests available near you or browse through exciting challenges.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" className="px-8 py-4 text-lg font-semibold bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
+            <Button
+              size="lg"
+              className="px-8 py-4 text-lg font-semibold bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+              onClick={handleFindNearbyQuests} // Add onClick handler
+            >
               <Compass className="h-5 w-5 mr-2" /> Find Nearby Quests
             </Button>
             <Button size="lg" variant="outline" className="px-8 py-4 text-lg font-semibold border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-gray-600">
@@ -122,14 +136,25 @@ const LocationQuests = () => {
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center sm:text-left">
             {viewMode === "list" ? "Available Quests" : "Quests Map View"}
           </h2>
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Input
               type="text"
               placeholder="Search quests by title or location..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-xs"
+              className="flex-grow sm:max-w-xs"
             />
+            <Select onValueChange={setSelectedDifficulty} value={selectedDifficulty}>
+              <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectValue placeholder="Filter by Difficulty" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="All">All Difficulties</SelectItem>
+                <SelectItem value="Easy">Easy</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="Hard">Hard</SelectItem>
+              </SelectContent>
+            </Select>
             <Button
               variant="outline"
               size="icon"
