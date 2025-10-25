@@ -4,8 +4,9 @@ import React, { useState } from "react";
 import TriviaGame from "@/components/TriviaGame";
 import GuessTheNumberGame from "@/components/GuessTheNumberGame";
 import ClickerChallengeGame from "@/components/ClickerChallengeGame";
+import MemoryMatchGame from "@/components/MemoryMatchGame"; // Import the new game
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Gamepad2, Brain, Lightbulb, MousePointerClick } from "lucide-react"; // Changed HandClick to MousePointerClick
+import { Gamepad2, Brain, Lightbulb, MousePointerClick, Puzzle } from "lucide-react"; // Import Puzzle icon
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MiniGames = () => {
@@ -29,7 +30,7 @@ const MiniGames = () => {
       </Card>
 
       <Tabs defaultValue="trivia" className="w-full max-w-md">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-4 mb-6"> {/* Adjusted grid-cols to 4 */}
           <TabsTrigger value="trivia">
             <Brain className="h-4 w-4 mr-2" /> Trivia
           </TabsTrigger>
@@ -37,7 +38,10 @@ const MiniGames = () => {
             <Lightbulb className="h-4 w-4 mr-2" /> Guess the Number
           </TabsTrigger>
           <TabsTrigger value="clicker-challenge">
-            <MousePointerClick className="h-4 w-4 mr-2" /> Clicker {/* Changed icon */}
+            <MousePointerClick className="h-4 w-4 mr-2" /> Clicker
+          </TabsTrigger>
+          <TabsTrigger value="memory-match"> {/* New tab trigger */}
+            <Puzzle className="h-4 w-4 mr-2" /> Memory
           </TabsTrigger>
         </TabsList>
         <TabsContent value="trivia">
@@ -48,6 +52,9 @@ const MiniGames = () => {
         </TabsContent>
         <TabsContent value="clicker-challenge">
           <ClickerChallengeGame />
+        </TabsContent>
+        <TabsContent value="memory-match"> {/* New tab content */}
+          <MemoryMatchGame />
         </TabsContent>
       </Tabs>
     </div>
