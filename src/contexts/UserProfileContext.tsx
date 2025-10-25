@@ -31,10 +31,22 @@ interface UserProfile {
   isAdmin: boolean; // Add isAdmin to the profile interface
 }
 
+// Define XP thresholds for unlocking content
+export const XP_THRESHOLDS = {
+  QUEST_MEDIUM: 500,
+  QUEST_HARD: 1500,
+  MINIGAME_GUESS_NUMBER: 100,
+  MINIGAME_CLICKER_CHALLENGE: 200,
+  MINIGAME_MEMORY_MATCH: 300,
+  MINIGAME_REACTION_TIME: 400,
+  MINIGAME_LIGHTS_ON: 500,
+};
+
 interface UserProfileContextType {
   profile: UserProfile | null;
   loadingProfile: boolean;
   addExperience: (xp: number) => Promise<void>;
+  deductExperience: (xp: number) => Promise<boolean>; // New function to deduct XP
   addAchievement: (achievement: Achievement) => Promise<void>;
   updateProfileDetails: (name: string, email: string) => Promise<void>;
   getAchievementIcon: (iconName: string) => LucideIcon | undefined;
@@ -155,6 +167,35 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [profile, user]);
 
+  const deductExperience = useCallback(async (xp: number): Promise<boolean> => {
+    if (!profile || !user) {
+      toast.error("You must be logged in to spend XP.");
+      return false;
+    }
+    if (profile.experience < xp) {
+      toast.error("Not enough XP to unlock this item.");
+      return false;
+    }
+
+    const newExperience = profile.experience - xp;
+    const newLevel = calculateLevel(newExperience);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ experience: newExperience })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error("Error deducting experience:", error);
+      toast.error("Failed to deduct XP.");
+      return false;
+    } else {
+      setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel } : null);
+      toast.success(`-${xp} XP spent.`);
+      return true;
+    }
+  }, [profile, user]);
+
   const addAchievement = useCallback(async (newAchievement: Achievement) => {
     if (!profile || !user) return;
 
@@ -225,7 +266,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, addAchievement, updateProfileDetails, getAchievementIcon }}>
+    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, getAchievementIcon }}>
       {children}
     </UserProfileContext.Provider>
   );

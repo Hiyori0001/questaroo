@@ -4,12 +4,12 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2 } from "lucide-react";
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock } from "lucide-react"; // Import Lock icon
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
-import { useUserProfile } from "@/contexts/UserProfileContext";
+import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext"; // Import XP_THRESHOLDS
 import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
@@ -29,8 +29,8 @@ const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
-  const { addExperience, addAchievement, profile, loadingProfile } = useUserProfile();
-  const { userQuests, loadingUserQuests, removeQuest } = useUserQuests(); // Get removeQuest
+  const { profile, loadingProfile, addExperience, deductExperience, addAchievement } = useUserProfile(); // Add deductExperience
+  const { userQuests, loadingUserQuests, removeQuest } = useUserQuests();
 
   const [quest, setQuest] = useState<Quest | null>(null);
   const [questStarted, setQuestStarted] = useState(false);
@@ -38,7 +38,21 @@ const QuestDetailsPage = () => {
   const [completionAnswer, setCompletionAnswer] = useState("");
   const [showCompletionInput, setShowCompletionInput] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
-  const [isUserCreatedQuest, setIsUserCreatedQuest] = useState(false); // New state to track if quest is user-created
+  const [isUserCreatedQuest, setIsUserCreatedQuest] = useState(false);
+  const [isQuestUnlocked, setIsQuestUnlocked] = useState(false); // New state for quest unlock status
+
+  const getRequiredXp = (difficulty: Quest["difficulty"]) => {
+    switch (difficulty) {
+      case "Easy":
+        return XP_THRESHOLDS.EASY;
+      case "Medium":
+        return XP_THRESHOLDS.QUEST_MEDIUM;
+      case "Hard":
+        return XP_THRESHOLDS.QUEST_HARD;
+      default:
+        return 0;
+    }
+  };
 
   useEffect(() => {
     if (id) {
@@ -47,11 +61,17 @@ const QuestDetailsPage = () => {
 
       if (foundQuest) {
         setQuest(foundQuest);
-        // Check if the found quest is in the user's created quests
         setIsUserCreatedQuest(userQuests.some(uq => uq.id === foundQuest.id));
 
-        if (profile && profile.achievements.some(a => a.name === `Completed: ${foundQuest.title}`)) {
-          setQuestCompleted(true);
+        if (profile) {
+          // Check if quest is already completed
+          if (profile.achievements.some(a => a.name === `Completed: ${foundQuest.title}`)) {
+            setQuestCompleted(true);
+          }
+
+          // Determine if quest is unlocked based on user's XP
+          const requiredXp = getRequiredXp(foundQuest.difficulty);
+          setIsQuestUnlocked(profile.experience >= requiredXp);
         }
       } else {
         toast.error("Quest not found!");
@@ -68,22 +88,11 @@ const QuestDetailsPage = () => {
     );
   }
 
-  const getXpForDifficulty = (difficulty: Quest["difficulty"]): number => {
-    switch (difficulty) {
-      case "Easy":
-        return 100;
-      case "Medium":
-        return 250;
-      case "Hard":
-        return 500;
-      default:
-        return 0;
-    }
-  };
+  const xpForDifficulty = getXpForDifficulty(quest.difficulty);
+  const requiredXpToUnlock = getRequiredXp(quest.difficulty);
 
   const completeQuestLogic = () => {
-    const xpEarned = getXpForDifficulty(quest.difficulty);
-    addExperience(xpEarned);
+    addExperience(xpForDifficulty);
     addAchievement({
       name: `Completed: ${quest.title}`,
       iconName: "Trophy",
@@ -94,7 +103,7 @@ const QuestDetailsPage = () => {
     setShowCompletionInput(false);
     setShowQrScanner(false);
     setCompletionAnswer("");
-    toast.success(`Quest "${quest.title}" completed! You earned ${xpEarned} XP!`);
+    toast.success(`Quest "${quest.title}" completed! You earned ${xpForDifficulty} XP!`);
   };
 
   const handleStartQuest = () => {
@@ -103,11 +112,33 @@ const QuestDetailsPage = () => {
       navigate("/auth");
       return;
     }
+    if (!isQuestUnlocked) {
+      toast.error(`You need ${requiredXpToUnlock} XP to start this quest.`);
+      return;
+    }
     setQuestStarted(true);
     setShowCompletionInput(false);
     setShowQrScanner(false);
     setCompletionAnswer("");
     toast.success(`Starting quest: ${quest.title}! Good luck!`);
+  };
+
+  const handleUnlockQuest = async () => {
+    if (!user || !profile) {
+      toast.error("You must be logged in to unlock quests.");
+      navigate("/auth");
+      return;
+    }
+    if (profile.experience < requiredXpToUnlock) {
+      toast.error("Not enough XP to unlock this quest.");
+      return;
+    }
+
+    const success = await deductExperience(requiredXpToUnlock);
+    if (success) {
+      setIsQuestUnlocked(true);
+      toast.success(`Quest "${quest.title}" unlocked for ${requiredXpToUnlock} XP!`);
+    }
   };
 
   const handleAttemptCompletion = () => {
@@ -218,6 +249,11 @@ const QuestDetailsPage = () => {
                 <Clock className="h-4 w-4" /> Time Limit: {quest.timeLimit}
               </Badge>
             )}
+            {quest.difficulty !== "Easy" && !isQuestUnlocked && (
+              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+                <Lock className="h-4 w-4" /> Locked: {requiredXpToUnlock} XP
+              </Badge>
+            )}
           </div>
 
           {!user && (
@@ -226,7 +262,17 @@ const QuestDetailsPage = () => {
             </p>
           )}
 
-          {!questStarted && !questCompleted && (
+          {user && !isQuestUnlocked && quest.difficulty !== "Easy" && (
+            <Button
+              onClick={handleUnlockQuest}
+              className="w-full mt-6 bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600 text-lg py-3"
+              disabled={loadingProfile || (profile && profile.experience < requiredXpToUnlock)}
+            >
+              <Lock className="h-5 w-5 mr-2" /> Unlock Quest for {requiredXpToUnlock} XP
+            </Button>
+          )}
+
+          {user && isQuestUnlocked && !questStarted && !questCompleted && (
             <Button
               onClick={handleStartQuest}
               className="w-full mt-6 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-lg py-3"
