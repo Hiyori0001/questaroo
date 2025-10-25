@@ -14,33 +14,6 @@ const LightsOnGame: React.FC = () => {
   const [moves, setMoves] = useState(0);
   const [gameOver, setGameOver] = useState(false);
 
-  // Function to create a random solvable board
-  const createSolvableBoard = useCallback(() => {
-    let newBoard: boolean[][] = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(false));
-    const tempBoard: boolean[][] = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(false));
-
-    // Apply random clicks to ensure solvability
-    for (let i = 0; i < GRID_SIZE; i++) {
-      for (let j = 0; j < GRID_SIZE; j++) {
-        if (Math.random() < 0.5) { // Roughly 50% chance to "click" a cell
-          toggleLights(i, j, tempBoard);
-        }
-      }
-    }
-    return tempBoard;
-  }, []);
-
-  const initializeGame = useCallback(() => {
-    setBoard(createSolvableBoard());
-    setMoves(0);
-    setGameOver(false);
-    toast.info("Lights On game started! Turn all lights on.");
-  }, [createSolvableBoard]);
-
-  useEffect(() => {
-    initializeGame();
-  }, [initializeGame]);
-
   // Helper to toggle lights on a given board (used for both game logic and board generation)
   const toggleLights = (row: number, col: number, currentBoard: boolean[][]) => {
     const newBoard = currentBoard.map(arr => [...arr]); // Deep copy
@@ -59,6 +32,33 @@ const LightsOnGame: React.FC = () => {
 
     return newBoard;
   };
+
+  // Function to create a random solvable board
+  const createSolvableBoard = useCallback(() => {
+    let currentBoard: boolean[][] = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(false));
+
+    // Apply random clicks to ensure solvability
+    // Each "click" toggles the cell and its neighbors, creating a random pattern
+    for (let i = 0; i < GRID_SIZE; i++) {
+      for (let j = 0; j < GRID_SIZE; j++) {
+        if (Math.random() < 0.5) { // Roughly 50% chance to "click" a cell
+          currentBoard = toggleLights(i, j, currentBoard); // Correctly update the board
+        }
+      }
+    }
+    return currentBoard;
+  }, []);
+
+  const initializeGame = useCallback(() => {
+    setBoard(createSolvableBoard());
+    setMoves(0);
+    setGameOver(false);
+    toast.info("Lights On game started! Turn all lights on.");
+  }, [createSolvableBoard]);
+
+  useEffect(() => {
+    initializeGame();
+  }, [initializeGame]);
 
   const handleLightClick = (row: number, col: number) => {
     if (gameOver) return;
