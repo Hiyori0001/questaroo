@@ -1,12 +1,92 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { MapPin, Compass, Search } from "lucide-react";
+import { MapPin, Compass, Search, List, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import QuestList from "@/components/QuestList"; // Import the new QuestList component
+import { Input } from "@/components/ui/input"; // Import Input
+import QuestList from "@/components/QuestList";
+import QuestMapPlaceholder from "@/components/QuestMapPlaceholder"; // Import the new map placeholder
+
+// Dummy quests data (moved here for filtering logic)
+interface Quest {
+  id: string;
+  title: string;
+  description: string;
+  location: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  reward: string;
+  timeEstimate: string;
+}
+
+const allDummyQuests: Quest[] = [
+  {
+    id: "q1",
+    title: "The Whispering Woods Mystery",
+    description: "Explore the old Whispering Woods and uncover the secret of the ancient tree. Requires keen observation!",
+    location: "Central Park, New York",
+    difficulty: "Medium",
+    reward: "500 XP, 'Forest Explorer' Badge",
+    timeEstimate: "30-45 min",
+  },
+  {
+    id: "q2",
+    title: "Downtown Scavenger Hunt",
+    description: "Follow clues across the city center to find hidden landmarks and solve riddles.",
+    location: "Downtown City Center",
+    difficulty: "Hard",
+    reward: "800 XP, 'Urban Pathfinder' Title",
+    timeEstimate: "60-90 min",
+  },
+  {
+    id: "q3",
+    title: "Riverside Riddle Challenge",
+    description: "A series of easy riddles located along the scenic riverside path. Perfect for a casual stroll.",
+    location: "Riverside Promenade",
+    difficulty: "Easy",
+    reward: "250 XP, 'Riddle Solver' Badge",
+    timeEstimate: "20-30 min",
+  },
+  {
+    id: "q4",
+    title: "Historic District Photo Op",
+    description: "Visit historical sites and capture specific photos to complete this visual quest.",
+    location: "Old Town Historic District",
+    difficulty: "Medium",
+    reward: "400 XP, 'History Buff' Achievement",
+    timeEstimate: "45-60 min",
+  },
+  {
+    id: "q5",
+    title: "Museum Marvels Tour",
+    description: "A quest through the city's finest museums, solving art and history puzzles.",
+    location: "Museum Quarter, Cityville",
+    difficulty: "Medium",
+    reward: "600 XP, 'Culture Enthusiast' Badge",
+    timeEstimate: "90-120 min",
+  },
+  {
+    id: "q6",
+    title: "Parkland Puzzle Pursuit",
+    description: "Navigate through various parks, finding clues and completing nature-themed challenges.",
+    location: "Green Valley Park",
+    difficulty: "Easy",
+    reward: "300 XP, 'Nature Lover' Achievement",
+    timeEstimate: "40-50 min",
+  },
+];
+
 
 const LocationQuests = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [viewMode, setViewMode] = useState<"list" | "map">("list"); // 'list' or 'map'
+
+  const filteredQuests = allDummyQuests.filter(
+    (quest) =>
+      quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quest.location.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4">
       <Card className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center mb-8">
@@ -37,9 +117,45 @@ const LocationQuests = () => {
         </CardContent>
       </Card>
 
-      <div className="w-full max-w-4xl mx-auto">
-        <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-6">Available Quests</h2>
-        <QuestList />
+      <div className="w-full max-w-4xl mx-auto mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center sm:text-left">
+            {viewMode === "list" ? "Available Quests" : "Quests Map View"}
+          </h2>
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Search quests by title or location..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-xs"
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setViewMode(viewMode === "list" ? "map" : "list")}
+              className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            >
+              {viewMode === "list" ? (
+                <>
+                  <Map className="h-5 w-5" />
+                  <span className="sr-only">Switch to Map View</span>
+                </>
+              ) : (
+                <>
+                  <List className="h-5 w-5" />
+                  <span className="sr-only">Switch to List View</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {viewMode === "list" ? (
+          <QuestList quests={filteredQuests} />
+        ) : (
+          <QuestMapPlaceholder />
+        )}
       </div>
     </div>
   );

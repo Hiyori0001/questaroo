@@ -16,49 +16,22 @@ interface Quest {
   timeEstimate: string;
 }
 
-const dummyQuests: Quest[] = [
-  {
-    id: "q1",
-    title: "The Whispering Woods Mystery",
-    description: "Explore the old Whispering Woods and uncover the secret of the ancient tree. Requires keen observation!",
-    location: "Central Park, New York",
-    difficulty: "Medium",
-    reward: "500 XP, 'Forest Explorer' Badge",
-    timeEstimate: "30-45 min",
-  },
-  {
-    id: "q2",
-    title: "Downtown Scavenger Hunt",
-    description: "Follow clues across the city center to find hidden landmarks and solve riddles.",
-    location: "Downtown City Center",
-    difficulty: "Hard",
-    reward: "800 XP, 'Urban Pathfinder' Title",
-    timeEstimate: "60-90 min",
-  },
-  {
-    id: "q3",
-    title: "Riverside Riddle Challenge",
-    description: "A series of easy riddles located along the scenic riverside path. Perfect for a casual stroll.",
-    location: "Riverside Promenade",
-    difficulty: "Easy",
-    reward: "250 XP, 'Riddle Solver' Badge",
-    timeEstimate: "20-30 min",
-  },
-  {
-    id: "q4",
-    title: "Historic District Photo Op",
-    description: "Visit historical sites and capture specific photos to complete this visual quest.",
-    location: "Old Town Historic District",
-    difficulty: "Medium",
-    reward: "400 XP, 'History Buff' Achievement",
-    timeEstimate: "45-60 min",
-  },
-];
+interface QuestListProps {
+  quests: Quest[]; // Accept quests as a prop
+}
 
-const QuestList = () => {
+const QuestList: React.FC<QuestListProps> = ({ quests }) => {
+  if (quests.length === 0) {
+    return (
+      <p className="text-center text-lg text-gray-500 dark:text-gray-400 mt-8">
+        No quests found matching your criteria.
+      </p>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {dummyQuests.map((quest) => (
+      {quests.map((quest) => (
         <Card key={quest.id} className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 flex flex-col">
           <CardHeader className="pb-2">
             <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
