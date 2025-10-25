@@ -4,11 +4,12 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MapPin, Compass, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import QuestList from "@/components/QuestList"; // Import the new QuestList component
 
 const LocationQuests = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4">
-      <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
+      <Card className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center mb-8">
         <CardHeader>
           <MapPin className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-4" />
           <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -20,8 +21,7 @@ const LocationQuests = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <p className="text-md text-gray-800 dark:text-gray-200 leading-relaxed">
-            This is where your journey begins. Soon, you'll be able to see available quests based on your current location,
-            navigate to landmarks, and complete exciting challenges.
+            Explore the quests available near you or browse through exciting challenges.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button size="lg" className="px-8 py-4 text-lg font-semibold bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
@@ -36,6 +36,11 @@ const LocationQuests = () => {
           </p>
         </CardContent>
       </Card>
+
+      <div className="w-full max-w-4xl mx-auto">
+        <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-6">Available Quests</h2>
+        <QuestList />
+      </div>
     </div>
   );
 };
