@@ -5,9 +5,10 @@ import TriviaGame from "@/components/TriviaGame";
 import GuessTheNumberGame from "@/components/GuessTheNumberGame";
 import ClickerChallengeGame from "@/components/ClickerChallengeGame";
 import MemoryMatchGame from "@/components/MemoryMatchGame";
-import ReactionTimeGame from "@/components/ReactionTimeGame"; // Import the new game
+import ReactionTimeGame from "@/components/ReactionTimeGame";
+import LightsOffGame from "@/components/LightsOffGame"; // Import the new game
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Gamepad2, Brain, Lightbulb, MousePointerClick, Puzzle, Zap } from "lucide-react"; // Import Zap icon for Reaction Time
+import { Gamepad2, Brain, Lightbulb, MousePointerClick, Puzzle, Zap, Grid } from "lucide-react"; // Import Grid icon for Lights Off
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MiniGames = () => {
@@ -31,7 +32,7 @@ const MiniGames = () => {
       </Card>
 
       <Tabs defaultValue="trivia" className="w-full max-w-md">
-        <TabsList className="grid w-full grid-cols-5 mb-6"> {/* Adjusted grid-cols to 5 */}
+        <TabsList className="grid w-full grid-cols-6 mb-6"> {/* Adjusted grid-cols to 6 */}
           <TabsTrigger value="trivia">
             <Brain className="h-4 w-4 mr-2" /> Trivia
           </TabsTrigger>
@@ -44,8 +45,11 @@ const MiniGames = () => {
           <TabsTrigger value="memory-match">
             <Puzzle className="h-4 w-4 mr-2" /> Memory
           </TabsTrigger>
-          <TabsTrigger value="reaction-time"> {/* New tab trigger */}
+          <TabsTrigger value="reaction-time">
             <Zap className="h-4 w-4 mr-2" /> Reaction
+          </TabsTrigger>
+          <TabsTrigger value="lights-off"> {/* New tab trigger */}
+            <Grid className="h-4 w-4 mr-2" /> Lights Off
           </TabsTrigger>
         </TabsList>
         <TabsContent value="trivia">
@@ -60,8 +64,11 @@ const MiniGames = () => {
         <TabsContent value="memory-match">
           <MemoryMatchGame />
         </TabsContent>
-        <TabsContent value="reaction-time"> {/* New tab content */}
+        <TabsContent value="reaction-time">
           <ReactionTimeGame />
+        </TabsContent>
+        <TabsContent value="lights-off"> {/* New tab content */}
+          <LightsOffGame />
         </TabsContent>
       </Tabs>
     </div>
