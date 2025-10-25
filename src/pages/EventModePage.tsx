@@ -1,12 +1,21 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CalendarDays, Trophy, Users, Clock } from "lucide-react";
+import { CalendarDays, Trophy, Users, Clock, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const upcomingEvents = [
+interface Event {
+  id: string;
+  name: string;
+  date: string;
+  type: string;
+  reward: string;
+}
+
+// Dummy data for events
+const dummyEvents: Event[] = [
   {
     id: "e1",
     name: "Spring Scavenger Hunt",
@@ -28,12 +37,53 @@ const upcomingEvents = [
     type: "Creative Challenge",
     reward: "Rare Item",
   },
+  {
+    id: "e4",
+    name: "Summer Festival Quest",
+    date: "July 1 - July 15",
+    type: "Location Quest",
+    reward: "Summer Crown",
+  },
+  {
+    id: "e5",
+    name: "Autumn Puzzle Marathon",
+    date: "October 1 - October 7",
+    type: "Mini-Game",
+    reward: "Puzzle Master Title",
+  },
 ];
 
 const EventModePage = () => {
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchEvents = useCallback(() => {
+    setIsLoading(true);
+    setError(null);
+    // Simulate API call
+    setTimeout(() => {
+      try {
+        // Simulate a random error for demonstration
+        if (Math.random() < 0.1) { // 10% chance of error
+          throw new Error("Failed to load events. Please try again.");
+        }
+        setUpcomingEvents(dummyEvents);
+        setIsLoading(false);
+      } catch (err) {
+        setError((err as Error).message);
+        setIsLoading(false);
+      }
+    }, 1500); // Simulate network delay
+  }, []);
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-orange-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
-      <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
+      <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center mb-8">
         <CardHeader className="flex flex-col items-center">
           <CalendarDays className="h-16 w-16 text-orange-600 dark:text-orange-400 mx-auto mb-4" />
           <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -59,27 +109,40 @@ const EventModePage = () => {
 
           <div className="mt-8 text-left">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">Upcoming Events</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {upcomingEvents.map((event) => (
-                <Card key={event.id} className="bg-gray-50 dark:bg-gray-800 p-4">
-                  <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{event.name}</CardTitle>
-                  <CardDescription className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-1">
-                    <CalendarDays className="h-4 w-4" /> {event.date}
-                  </CardDescription>
-                  <CardDescription className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-2">
-                    <Clock className="h-4 w-4" /> Type: {event.type}
-                  </CardDescription>
-                  <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-                    Reward: {event.reward}
-                  </Badge>
-                </Card>
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="flex justify-center items-center h-32">
+                <Loader2 className="h-8 w-8 animate-spin text-orange-600 dark:text-orange-400" />
+                <p className="ml-3 text-lg text-gray-600 dark:text-gray-300">Loading events...</p>
+              </div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center h-32 text-red-600 dark:text-red-400">
+                <AlertCircle className="h-8 w-8 mb-2" />
+                <p className="text-lg text-center">{error}</p>
+                <Button onClick={fetchEvents} variant="link" className="mt-2 text-red-600 dark:text-red-400">
+                  Retry
+                </Button>
+              </div>
+            ) : upcomingEvents.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {upcomingEvents.map((event) => (
+                  <Card key={event.id} className="bg-gray-50 dark:bg-gray-800 p-4">
+                    <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{event.name}</CardTitle>
+                    <CardDescription className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-1">
+                      <CalendarDays className="h-4 w-4" /> {event.date}
+                    </CardDescription>
+                    <CardDescription className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-2">
+                      <Clock className="h-4 w-4" /> Type: {event.type}
+                    </CardDescription>
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                      Reward: {event.reward}
+                    </Badge>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <p className="text-lg text-gray-500 dark:text-gray-400 text-center mt-8">No upcoming events found.</p>
+            )}
           </div>
-
-          <p className="text-sm text-muted-foreground mt-4">
-            (Event schedule and details will be dynamically loaded in future updates.)
-          </p>
         </CardContent>
       </Card>
     </div>
