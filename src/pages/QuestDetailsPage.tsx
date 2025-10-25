@@ -4,39 +4,90 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft } from "lucide-react";
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { allDummyQuests, Quest } from "@/data/quests"; // Import from new data file
+import { allDummyQuests, Quest } from "@/data/quests";
+import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 
 const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, loading: loadingAuth } = useAuth();
+  const { addExperience, addAchievement, profile, loadingProfile } = useUserProfile();
   const [quest, setQuest] = useState<Quest | null>(null);
+  const [questStarted, setQuestStarted] = useState(false);
+  const [questCompleted, setQuestCompleted] = useState(false);
 
   useEffect(() => {
     if (id) {
       const foundQuest = allDummyQuests.find((q) => q.id === id);
       if (foundQuest) {
         setQuest(foundQuest);
+        // Check if this quest was already completed by the current user
+        if (profile && profile.achievements.some(a => a.name === `Completed: ${foundQuest.title}`)) {
+          setQuestCompleted(true);
+        }
       } else {
         toast.error("Quest not found!");
         navigate("/location-quests"); // Redirect if quest not found
       }
     }
-  }, [id, navigate]);
+  }, [id, navigate, profile]); // Added profile to dependencies to check completion status
 
-  if (!quest) {
+  if (loadingAuth || loadingProfile || !quest) {
     return (
-      <div className="flex items-center justify-center bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 flex-grow">
+      <div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 flex-grow">
         <p className="text-lg text-gray-500 dark:text-gray-400">Loading quest details...</p>
       </div>
     );
   }
 
+  const getXpForDifficulty = (difficulty: Quest["difficulty"]): number => {
+    switch (difficulty) {
+      case "Easy":
+        return 100;
+      case "Medium":
+        return 250;
+      case "Hard":
+        return 500;
+      default:
+        return 0;
+    }
+  };
+
   const handleStartQuest = () => {
+    if (!user) {
+      toast.error("Please log in to start a quest.");
+      navigate("/auth");
+      return;
+    }
+    setQuestStarted(true);
     toast.success(`Starting quest: ${quest.title}! Good luck!`);
-    // In a real app, this would initiate the quest logic
+  };
+
+  const handleCompleteQuest = () => {
+    if (!user) {
+      toast.error("You must be logged in to complete a quest.");
+      navigate("/auth");
+      return;
+    }
+    if (questCompleted) {
+      toast.info("You've already completed this quest!");
+      return;
+    }
+
+    const xpEarned = getXpForDifficulty(quest.difficulty);
+    addExperience(xpEarned);
+    addAchievement({
+      name: `Completed: ${quest.title}`,
+      iconName: "Trophy",
+      color: "bg-green-500",
+    });
+    setQuestCompleted(true);
+    setQuestStarted(false); // Reset started state after completion
+    toast.success(`Quest "${quest.title}" completed! You earned ${xpEarned} XP!`);
   };
 
   return (
@@ -73,12 +124,36 @@ const QuestDetailsPage = () => {
               <Clock className="h-4 w-4" /> Time Estimate: {quest.timeEstimate}
             </Badge>
           </div>
-          <Button
-            onClick={handleStartQuest}
-            className="w-full mt-6 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-lg py-3"
-          >
-            Start Quest
-          </Button>
+          {!questStarted && !questCompleted && (
+            <Button
+              onClick={handleStartQuest}
+              className="w-full mt-6 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-lg py-3"
+              disabled={!user}
+            >
+              Start Quest
+            </Button>
+          )}
+          {questStarted && !questCompleted && (
+            <Button
+              onClick={handleCompleteQuest}
+              className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
+            >
+              <CheckCircle2 className="h-5 w-5 mr-2" /> Complete Quest (Simulated)
+            </Button>
+          )}
+          {questCompleted && (
+            <Button
+              className="w-full mt-6 bg-gray-400 dark:bg-gray-600 text-lg py-3 cursor-not-allowed"
+              disabled
+            >
+              <CheckCircle2 className="h-5 w-5 mr-2" /> Quest Completed!
+            </Button>
+          )}
+          {!user && (
+            <p className="text-sm text-red-500 dark:text-red-400 mt-2">
+              You must be logged in to start or complete quests.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>
