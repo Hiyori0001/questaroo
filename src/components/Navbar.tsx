@@ -3,7 +3,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays } from "lucide-react"; // Import CalendarDays icon
+import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility } from "lucide-react"; // Import Accessibility icon
 
 const Navbar = () => {
   return (
@@ -56,6 +56,11 @@ const Navbar = () => {
           <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
             <Link to="/events">
               <CalendarDays className="h-4 w-4 mr-2" /> Events
+            </Link>
+          </Button>
+          <Button asChild variant="ghost" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <Link to="/accessibility">
+              <Accessibility className="h-4 w-4 mr-2" /> Accessibility
             </Link>
           </Button>
         </div>

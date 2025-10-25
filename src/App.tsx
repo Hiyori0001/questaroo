@@ -13,7 +13,8 @@ import LeaderboardPage from "./pages/LeaderboardPage";
 import CreateQuestPage from "./pages/CreateQuestPage";
 import TeamsPage from "./pages/TeamsPage";
 import SocialPage from "./pages/SocialPage";
-import EventModePage from "./pages/EventModePage"; // Import the new EventModePage
+import EventModePage from "./pages/EventModePage";
+import AccessibilityPage from "./pages/AccessibilityPage"; // Import the new AccessibilityPage
 import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
@@ -35,7 +36,8 @@ const App = () => (
           <Route path="/create-quest" element={<CreateQuestPage />} />
           <Route path="/teams" element={<TeamsPage />} />
           <Route path="/social" element={<SocialPage />} />
-          <Route path="/events" element={<EventModePage />} /> {/* Add the new EventModePage route */}
+          <Route path="/events" element={<EventModePage />} />
+          <Route path="/accessibility" element={<AccessibilityPage />} /> {/* Add the new AccessibilityPage route */}
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
