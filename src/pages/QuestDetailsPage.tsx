@@ -4,13 +4,14 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle } from "lucide-react";
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input"; // Import Input component
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
+import QuestQrScanner from "@/components/QuestQrScanner"; // Import the new QR scanner component
 
 const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,6 +23,7 @@ const QuestDetailsPage = () => {
   const [questCompleted, setQuestCompleted] = useState(false);
   const [completionAnswer, setCompletionAnswer] = useState("");
   const [showCompletionInput, setShowCompletionInput] = useState(false);
+  const [showQrScanner, setShowQrScanner] = useState(false); // State for QR scanner modal
 
   useEffect(() => {
     if (id) {
@@ -59,6 +61,22 @@ const QuestDetailsPage = () => {
     }
   };
 
+  const completeQuestLogic = () => {
+    const xpEarned = getXpForDifficulty(quest.difficulty);
+    addExperience(xpEarned);
+    addAchievement({
+      name: `Completed: ${quest.title}`,
+      iconName: "Trophy",
+      color: "bg-green-500",
+    });
+    setQuestCompleted(true);
+    setQuestStarted(false);
+    setShowCompletionInput(false);
+    setShowQrScanner(false);
+    setCompletionAnswer("");
+    toast.success(`Quest "${quest.title}" completed! You earned ${xpEarned} XP!`);
+  };
+
   const handleStartQuest = () => {
     if (!user) {
       toast.error("Please log in to start a quest.");
@@ -66,8 +84,9 @@ const QuestDetailsPage = () => {
       return;
     }
     setQuestStarted(true);
-    setShowCompletionInput(false); // Hide input if restarting
-    setCompletionAnswer(""); // Clear answer if restarting
+    setShowCompletionInput(false);
+    setShowQrScanner(false);
+    setCompletionAnswer("");
     toast.success(`Starting quest: ${quest.title}! Good luck!`);
   };
 
@@ -81,26 +100,31 @@ const QuestDetailsPage = () => {
       toast.info("You've already completed this quest!");
       return;
     }
-    setShowCompletionInput(true);
-    toast.info("Answer the question to complete the quest!");
+
+    if (quest.qrCode) {
+      setShowQrScanner(true);
+    } else if (quest.completionTask) {
+      setShowCompletionInput(true);
+    } else {
+      // Fallback for quests without specific completion tasks (shouldn't happen with current data)
+      toast.info("No specific completion task for this quest. Completing now!");
+      completeQuestLogic();
+    }
   };
 
-  const handleCompleteQuest = () => {
-    if (completionAnswer.toLowerCase().trim() === quest.completionTask.answer.toLowerCase().trim()) {
-      const xpEarned = getXpForDifficulty(quest.difficulty);
-      addExperience(xpEarned);
-      addAchievement({
-        name: `Completed: ${quest.title}`,
-        iconName: "Trophy",
-        color: "bg-green-500",
-      });
-      setQuestCompleted(true);
-      setQuestStarted(false);
-      setShowCompletionInput(false);
-      setCompletionAnswer("");
-      toast.success(`Quest "${quest.title}" completed! You earned ${xpEarned} XP!`);
+  const handleQuestionAnswerSubmit = () => {
+    if (quest.completionTask && completionAnswer.toLowerCase().trim() === quest.completionTask.answer.toLowerCase().trim()) {
+      completeQuestLogic();
     } else {
       toast.error("Incorrect answer. Try again!");
+    }
+  };
+
+  const handleQrScanSubmit = (scannedCode: string) => {
+    if (quest.qrCode && scannedCode.toUpperCase() === quest.qrCode.toUpperCase()) {
+      completeQuestLogic();
+    } else {
+      toast.error("Incorrect QR code. Please try again!");
     }
   };
 
@@ -155,16 +179,24 @@ const QuestDetailsPage = () => {
             </Button>
           )}
 
-          {questStarted && !questCompleted && !showCompletionInput && (
+          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && (
             <Button
               onClick={handleAttemptCompletion}
               className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
             >
-              <HelpCircle className="h-5 w-5 mr-2" /> Ready to Complete?
+              {quest.qrCode ? (
+                <>
+                  <QrCode className="h-5 w-5 mr-2" /> Scan QR Code to Complete
+                </>
+              ) : (
+                <>
+                  <HelpCircle className="h-5 w-5 mr-2" /> Ready to Complete?
+                </>
+              )}
             </Button>
           )}
 
-          {questStarted && !questCompleted && showCompletionInput && (
+          {questStarted && !questCompleted && showCompletionInput && quest.completionTask && (
             <div className="mt-6 space-y-4">
               <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 Completion Task: {quest.completionTask.question}
@@ -177,12 +209,12 @@ const QuestDetailsPage = () => {
                 className="text-center text-lg"
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') {
-                    handleCompleteQuest();
+                    handleQuestionAnswerSubmit();
                   }
                 }}
               />
               <Button
-                onClick={handleCompleteQuest}
+                onClick={handleQuestionAnswerSubmit}
                 className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-lg py-3"
                 disabled={completionAnswer.trim() === ""}
               >
@@ -201,6 +233,15 @@ const QuestDetailsPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {quest.qrCode && (
+        <QuestQrScanner
+          isOpen={showQrScanner}
+          onClose={() => setShowQrScanner(false)}
+          onScanComplete={handleQrScanSubmit}
+          expectedQrCode={quest.qrCode}
+        />
+      )}
     </div>
   );
 };

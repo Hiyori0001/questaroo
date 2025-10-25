@@ -8,10 +8,11 @@ export interface Quest {
   difficulty: "Easy" | "Medium" | "Hard";
   reward: string;
   timeEstimate: string;
-  completionTask: {
+  completionTask?: { // Make completionTask optional
     question: string;
     answer: string;
   };
+  qrCode?: string; // Add optional qrCode field
 }
 
 export const allDummyQuests: Quest[] = [
@@ -36,10 +37,7 @@ export const allDummyQuests: Quest[] = [
     difficulty: "Hard",
     reward: "800 XP, 'Urban Pathfinder' Title",
     timeEstimate: "60-90 min",
-    completionTask: {
-      question: "What is the name of the statue in the main square?",
-      answer: "freedom",
-    },
+    qrCode: "QUESTAROO-DT-789", // This will be the "QR code" to scan
   },
   {
     id: "q3",
