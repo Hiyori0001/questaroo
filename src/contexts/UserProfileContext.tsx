@@ -33,6 +33,7 @@ interface UserProfile {
 
 // Define XP thresholds for unlocking content
 export const XP_THRESHOLDS = {
+  EASY: 0, // Added this for consistency, Easy quests require 0 XP to unlock
   QUEST_MEDIUM: 500,
   QUEST_HARD: 1500,
   MINIGAME_GUESS_NUMBER: 100,
@@ -170,15 +171,19 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const deductExperience = useCallback(async (xp: number): Promise<boolean> => {
     if (!profile || !user) {
       toast.error("You must be logged in to spend XP.");
+      console.log("Deduct XP: Not logged in or no profile.");
       return false;
     }
     if (profile.experience < xp) {
       toast.error("Not enough XP to unlock this item.");
+      console.log(`Deduct XP: Not enough XP. Current: ${profile.experience}, Needed: ${xp}`);
       return false;
     }
 
     const newExperience = profile.experience - xp;
     const newLevel = calculateLevel(newExperience);
+
+    console.log(`Attempting to deduct ${xp} XP. New experience: ${newExperience}`);
 
     const { error } = await supabase
       .from('profiles')
@@ -192,6 +197,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } else {
       setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel } : null);
       toast.success(`-${xp} XP spent.`);
+      console.log(`Successfully deducted ${xp} XP. New profile experience: ${newExperience}`);
       return true;
     }
   }, [profile, user]);

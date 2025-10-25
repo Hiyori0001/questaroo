@@ -64,18 +64,26 @@ const MiniGames = () => {
   const handleUnlockGame = async (gameValue: string, xpCost: number) => {
     if (!profile) {
       toast.error("You must be logged in to unlock games.");
+      console.log("handleUnlockGame: Not logged in or no profile.");
       return;
     }
     if (profile.experience < xpCost) {
       toast.error("Not enough XP to unlock this game.");
+      console.log(`handleUnlockGame: Not enough XP. Current: ${profile.experience}, Needed: ${xpCost}`);
       return;
     }
 
+    console.log(`handleUnlockGame: Attempting to unlock ${gameValue} for ${xpCost} XP.`);
     const success = await deductExperience(xpCost);
+    console.log(`handleUnlockGame: deductExperience returned: ${success}`);
+
     if (success) {
       setUnlockedGames((prev) => new Set(prev).add(gameValue));
       setActiveTab(gameValue);
       toast.success(`"${miniGamesConfig.find(g => g.value === gameValue)?.label}" unlocked for ${xpCost} XP!`);
+      console.log(`handleUnlockGame: Successfully unlocked ${gameValue}.`);
+    } else {
+      console.log(`handleUnlockGame: Failed to unlock ${gameValue}.`);
     }
   };
 

@@ -25,6 +25,20 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"; // Import AlertDialog components
 
+// Helper function to get XP reward for completing a quest based on difficulty
+const getXpForDifficulty = (difficulty: Quest["difficulty"]) => {
+  switch (difficulty) {
+    case "Easy":
+      return 100; // Example XP reward for Easy
+    case "Medium":
+      return 250; // Example XP reward for Medium
+    case "Hard":
+      return 500; // Example XP reward for Hard
+    default:
+      return 0;
+  }
+};
+
 const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
