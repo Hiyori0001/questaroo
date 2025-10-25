@@ -20,6 +20,7 @@ const formSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters." }).max(100, { message: "Title must not exceed 100 characters." }),
   description: z.string().min(20, { message: "Description must be at least 20 characters." }).max(500, { message: "Description must not exceed 500 characters." }),
   location: z.string().min(3, { message: "Location must be at least 3 characters." }).max(100, { message: "Location must not exceed 100 characters." }),
+  timeLimit: z.string().optional(), // New: Optional time limit field
   completionMethod: z.enum(["question", "qrCode"], {
     required_error: "Please select a completion method.",
   }),
@@ -61,6 +62,7 @@ const CreateQuestPage = () => {
       title: "",
       description: "",
       location: "",
+      timeLimit: "", // Default value for new field
       completionMethod: "question", // Default to question
       completionQuestion: "",
       completionAnswer: "",
@@ -79,6 +81,7 @@ const CreateQuestPage = () => {
       difficulty: "Medium", // Default difficulty for user-created quests
       reward: "User-Created XP", // Default reward
       timeEstimate: "Variable", // Default time estimate
+      timeLimit: values.timeLimit || undefined, // Add timeLimit
     };
 
     if (values.completionMethod === "question" && values.completionQuestion && values.completionAnswer) {
@@ -148,6 +151,24 @@ const CreateQuestPage = () => {
                     <FormControl>
                       <Input placeholder="e.g., Central Park, New York" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* New Time Limit Field */}
+              <FormField
+                control={form.control}
+                name="timeLimit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-800 dark:text-gray-200">Time Limit (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., 30 minutes, 1 hour" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      Specify a strict time limit for completing this quest.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

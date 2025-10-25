@@ -15,6 +15,7 @@ interface Quest {
   difficulty: "Easy" | "Medium" | "Hard";
   reward: string;
   timeEstimate: string;
+  timeLimit?: string; // New: Optional strict time limit
 }
 
 interface QuestListProps {
@@ -55,6 +56,11 @@ const QuestList: React.FC<QuestListProps> = ({ quests }) => {
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Clock className="h-3 w-3" /> {quest.timeEstimate}
               </Badge>
+              {quest.timeLimit && ( // Display time limit if it exists
+                <Badge variant="secondary" className="flex items-center gap-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
+                  <Clock className="h-3 w-3" /> Limit: {quest.timeLimit}
+                </Badge>
+              )}
             </div>
             <Button asChild className="w-full mt-4 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
               <Link to={`/location-quests/${quest.id}`}>Start Quest</Link>

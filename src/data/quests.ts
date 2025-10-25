@@ -8,11 +8,12 @@ export interface Quest {
   difficulty: "Easy" | "Medium" | "Hard";
   reward: string;
   timeEstimate: string;
-  completionTask?: { // Make completionTask optional
+  timeLimit?: string; // Add optional timeLimit field
+  completionTask?: {
     question: string;
     answer: string;
   };
-  qrCode?: string; // Add optional qrCode field
+  qrCode?: string;
 }
 
 export const allDummyQuests: Quest[] = [
