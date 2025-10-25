@@ -4,12 +4,13 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input"; // Import Input component
 import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
-import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { useUserProfile } from "@/contexts/UserProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,22 +20,23 @@ const QuestDetailsPage = () => {
   const [quest, setQuest] = useState<Quest | null>(null);
   const [questStarted, setQuestStarted] = useState(false);
   const [questCompleted, setQuestCompleted] = useState(false);
+  const [completionAnswer, setCompletionAnswer] = useState("");
+  const [showCompletionInput, setShowCompletionInput] = useState(false);
 
   useEffect(() => {
     if (id) {
       const foundQuest = allDummyQuests.find((q) => q.id === id);
       if (foundQuest) {
         setQuest(foundQuest);
-        // Check if this quest was already completed by the current user
         if (profile && profile.achievements.some(a => a.name === `Completed: ${foundQuest.title}`)) {
           setQuestCompleted(true);
         }
       } else {
         toast.error("Quest not found!");
-        navigate("/location-quests"); // Redirect if quest not found
+        navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile]); // Added profile to dependencies to check completion status
+  }, [id, navigate, profile]);
 
   if (loadingAuth || loadingProfile || !quest) {
     return (
@@ -64,10 +66,12 @@ const QuestDetailsPage = () => {
       return;
     }
     setQuestStarted(true);
+    setShowCompletionInput(false); // Hide input if restarting
+    setCompletionAnswer(""); // Clear answer if restarting
     toast.success(`Starting quest: ${quest.title}! Good luck!`);
   };
 
-  const handleCompleteQuest = () => {
+  const handleAttemptCompletion = () => {
     if (!user) {
       toast.error("You must be logged in to complete a quest.");
       navigate("/auth");
@@ -77,17 +81,27 @@ const QuestDetailsPage = () => {
       toast.info("You've already completed this quest!");
       return;
     }
+    setShowCompletionInput(true);
+    toast.info("Answer the question to complete the quest!");
+  };
 
-    const xpEarned = getXpForDifficulty(quest.difficulty);
-    addExperience(xpEarned);
-    addAchievement({
-      name: `Completed: ${quest.title}`,
-      iconName: "Trophy",
-      color: "bg-green-500",
-    });
-    setQuestCompleted(true);
-    setQuestStarted(false); // Reset started state after completion
-    toast.success(`Quest "${quest.title}" completed! You earned ${xpEarned} XP!`);
+  const handleCompleteQuest = () => {
+    if (completionAnswer.toLowerCase().trim() === quest.completionTask.answer.toLowerCase().trim()) {
+      const xpEarned = getXpForDifficulty(quest.difficulty);
+      addExperience(xpEarned);
+      addAchievement({
+        name: `Completed: ${quest.title}`,
+        iconName: "Trophy",
+        color: "bg-green-500",
+      });
+      setQuestCompleted(true);
+      setQuestStarted(false);
+      setShowCompletionInput(false);
+      setCompletionAnswer("");
+      toast.success(`Quest "${quest.title}" completed! You earned ${xpEarned} XP!`);
+    } else {
+      toast.error("Incorrect answer. Try again!");
+    }
   };
 
   return (
@@ -124,6 +138,13 @@ const QuestDetailsPage = () => {
               <Clock className="h-4 w-4" /> Time Estimate: {quest.timeEstimate}
             </Badge>
           </div>
+
+          {!user && (
+            <p className="text-sm text-red-500 dark:text-red-400 mt-2">
+              You must be logged in to start or complete quests.
+            </p>
+          )}
+
           {!questStarted && !questCompleted && (
             <Button
               onClick={handleStartQuest}
@@ -133,14 +154,43 @@ const QuestDetailsPage = () => {
               Start Quest
             </Button>
           )}
-          {questStarted && !questCompleted && (
+
+          {questStarted && !questCompleted && !showCompletionInput && (
             <Button
-              onClick={handleCompleteQuest}
+              onClick={handleAttemptCompletion}
               className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
             >
-              <CheckCircle2 className="h-5 w-5 mr-2" /> Complete Quest (Simulated)
+              <HelpCircle className="h-5 w-5 mr-2" /> Ready to Complete?
             </Button>
           )}
+
+          {questStarted && !questCompleted && showCompletionInput && (
+            <div className="mt-6 space-y-4">
+              <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                Completion Task: {quest.completionTask.question}
+              </p>
+              <Input
+                type="text"
+                placeholder="Enter your answer here"
+                value={completionAnswer}
+                onChange={(e) => setCompletionAnswer(e.target.value)}
+                className="text-center text-lg"
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    handleCompleteQuest();
+                  }
+                }}
+              />
+              <Button
+                onClick={handleCompleteQuest}
+                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-lg py-3"
+                disabled={completionAnswer.trim() === ""}
+              >
+                <CheckCircle2 className="h-5 w-5 mr-2" /> Submit Answer & Complete Quest
+              </Button>
+            </div>
+          )}
+
           {questCompleted && (
             <Button
               className="w-full mt-6 bg-gray-400 dark:bg-gray-600 text-lg py-3 cursor-not-allowed"
@@ -148,11 +198,6 @@ const QuestDetailsPage = () => {
             >
               <CheckCircle2 className="h-5 w-5 mr-2" /> Quest Completed!
             </Button>
-          )}
-          {!user && (
-            <p className="text-sm text-red-500 dark:text-red-400 mt-2">
-              You must be logged in to start or complete quests.
-            </p>
           )}
         </CardContent>
       </Card>

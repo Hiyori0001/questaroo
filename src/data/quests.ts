@@ -8,6 +8,10 @@ export interface Quest {
   difficulty: "Easy" | "Medium" | "Hard";
   reward: string;
   timeEstimate: string;
+  completionTask: {
+    question: string;
+    answer: string;
+  };
 }
 
 export const allDummyQuests: Quest[] = [
@@ -19,6 +23,10 @@ export const allDummyQuests: Quest[] = [
     difficulty: "Medium",
     reward: "500 XP, 'Forest Explorer' Badge",
     timeEstimate: "30-45 min",
+    completionTask: {
+      question: "What color are the leaves of the ancient tree?",
+      answer: "green",
+    },
   },
   {
     id: "q2",
@@ -28,6 +36,10 @@ export const allDummyQuests: Quest[] = [
     difficulty: "Hard",
     reward: "800 XP, 'Urban Pathfinder' Title",
     timeEstimate: "60-90 min",
+    completionTask: {
+      question: "What is the name of the statue in the main square?",
+      answer: "freedom",
+    },
   },
   {
     id: "q3",
@@ -37,6 +49,10 @@ export const allDummyQuests: Quest[] = [
     difficulty: "Easy",
     reward: "250 XP, 'Riddle Solver' Badge",
     timeEstimate: "20-30 min",
+    completionTask: {
+      question: "How many bridges cross the river in this section?",
+      answer: "3",
+    },
   },
   {
     id: "q4",
@@ -46,6 +62,10 @@ export const allDummyQuests: Quest[] = [
     difficulty: "Medium",
     reward: "400 XP, 'History Buff' Achievement",
     timeEstimate: "45-60 min",
+    completionTask: {
+      question: "What year was the Old Clock Tower built?",
+      answer: "1888",
+    },
   },
   {
     id: "q5",
@@ -55,6 +75,10 @@ export const allDummyQuests: Quest[] = [
     difficulty: "Medium",
     reward: "600 XP, 'Culture Enthusiast' Badge",
     timeEstimate: "90-120 min",
+    completionTask: {
+      question: "What is the title of the famous painting in Gallery A?",
+      answer: "starry night",
+    },
   },
   {
     id: "q6",
@@ -64,5 +88,9 @@ export const allDummyQuests: Quest[] = [
     difficulty: "Easy",
     reward: "300 XP, 'Nature Lover' Achievement",
     timeEstimate: "40-50 min",
+    completionTask: {
+      question: "How many benches are around the central fountain?",
+      answer: "5",
+    },
   },
 ];
