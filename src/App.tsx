@@ -15,7 +15,7 @@ import TeamsPage from "./pages/TeamsPage";
 import SocialPage from "./pages/SocialPage";
 import EventModePage from "./pages/EventModePage";
 import AccessibilityPage from "./pages/AccessibilityPage";
-import QuestDetailsPage from "./pages/QuestDetailsPage"; // Import the new QuestDetailsPage
+import QuestDetailsPage from "./pages/QuestDetailsPage";
 import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
@@ -26,23 +26,27 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/location-quests" element={<LocationQuests />} />
-          <Route path="/location-quests/:id" element={<QuestDetailsPage />} /> {/* Add the new QuestDetailsPage route */}
-          <Route path="/mini-games" element={<MiniGames />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/create-quest" element={<CreateQuestPage />} />
-          <Route path="/teams" element={<TeamsPage />} />
-          <Route path="/social" element={<SocialPage />} />
-          <Route path="/events" element={<EventModePage />} />
-          <Route path="/accessibility" element={<AccessibilityPage />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <div className="flex flex-col min-h-screen"> {/* Main app container */}
+          <Navbar />
+          <main className="flex-grow overflow-y-auto"> {/* Main content area, allows scrolling */}
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/location-quests" element={<LocationQuests />} />
+              <Route path="/location-quests/:id" element={<QuestDetailsPage />} />
+              <Route path="/mini-games" element={<MiniGames />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
+              <Route path="/create-quest" element={<CreateQuestPage />} />
+              <Route path="/teams" element={<TeamsPage />} />
+              <Route path="/social" element={<SocialPage />} />
+              <Route path="/events" element={<EventModePage />} />
+              <Route path="/accessibility" element={<AccessibilityPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

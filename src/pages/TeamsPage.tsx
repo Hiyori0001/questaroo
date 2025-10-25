@@ -25,7 +25,7 @@ const teamsData: Team[] = [
 
 const TeamsPage = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
+    <div className="flex flex-col items-center bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
       <Card className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
         <CardHeader className="flex flex-col items-center">
           <Users className="h-16 w-16 text-blue-600 dark:text-blue-400 mx-auto mb-4" />

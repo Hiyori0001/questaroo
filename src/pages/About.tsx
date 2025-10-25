@@ -49,7 +49,7 @@ const features = [
 
 const About = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
       <div className="max-w-6xl mx-auto py-12">
         <Card className="bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 sm:p-10 mb-12">
           <CardHeader className="text-center">

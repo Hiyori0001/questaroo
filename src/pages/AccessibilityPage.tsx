@@ -31,7 +31,7 @@ const AccessibilityPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-teal-50 to-cyan-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
+    <div className="flex flex-col items-center bg-gradient-to-br from-teal-50 to-cyan-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
       <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
         <CardHeader className="flex flex-col items-center">
           <Accessibility className="h-16 w-16 text-teal-600 dark:text-teal-400 mx-auto mb-4" />

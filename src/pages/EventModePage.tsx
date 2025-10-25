@@ -79,7 +79,7 @@ const EventModePage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-orange-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
+    <div className="flex flex-col items-center bg-gradient-to-br from-red-50 to-orange-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
       <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center mb-8">
         <CardHeader className="flex flex-col items-center">
           <CalendarDays className="h-16 w-16 text-orange-600 dark:text-orange-400 mx-auto mb-4" />
@@ -103,7 +103,7 @@ const EventModePage = () => {
               size="lg"
               variant="outline"
               className="px-8 py-4 text-lg font-semibold border-orange-600 text-orange-600 hover:bg-orange-50 dark:border-orange-500 dark:text-orange-500 dark:hover:bg-gray-600"
-              onClick={handleCommunityChallengesClick} // Added onClick handler
+              onClick={handleCommunityChallengesClick}
             >
               <Users className="h-5 w-5 mr-2" /> Community Challenges
             </Button>
