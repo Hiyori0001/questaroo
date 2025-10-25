@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -8,9 +8,24 @@ import { User, Trophy, Star, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ProfileEditForm from "@/components/ProfileEditForm"; // Import the new form component
 
+interface Achievement {
+  name: string;
+  icon: React.ReactNode;
+  color: string;
+}
+
+interface UserProfile {
+  name: string;
+  email: string;
+  avatarUrl: string;
+  level: number;
+  experience: number;
+  achievements: Achievement[];
+}
+
 const ProfilePage = () => {
   // Initial placeholder user data
-  const initialUser = {
+  const defaultUser: UserProfile = {
     name: "Adventure Seeker",
     email: "seeker@example.com",
     avatarUrl: "https://api.dicebear.com/7.x/lorelei/svg?seed=AdventureSeeker", // A fun placeholder avatar
@@ -22,8 +37,22 @@ const ProfilePage = () => {
     ],
   };
 
-  const [user, setUser] = useState(initialUser);
+  const [user, setUser] = useState<UserProfile>(() => {
+    // Load user data from local storage on initial render
+    if (typeof window !== 'undefined') {
+      const savedUser = localStorage.getItem("questarooUserProfile");
+      return savedUser ? JSON.parse(savedUser) : defaultUser;
+    }
+    return defaultUser;
+  });
   const [isEditing, setIsEditing] = useState(false);
+
+  // Save user data to local storage whenever the user state changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("questarooUserProfile", JSON.stringify(user));
+    }
+  }, [user]);
 
   const handleSaveProfile = (updatedData: { name: string; email: string }) => {
     setUser((prevUser) => ({
