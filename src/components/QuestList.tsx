@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { MapPin, Award, Zap, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom"; // Import Link
 
 interface Quest {
   id: string;
@@ -55,8 +56,8 @@ const QuestList: React.FC<QuestListProps> = ({ quests }) => {
                 <Clock className="h-3 w-3" /> {quest.timeEstimate}
               </Badge>
             </div>
-            <Button className="w-full mt-4 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
-              Start Quest
+            <Button asChild className="w-full mt-4 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
+              <Link to={`/location-quests/${quest.id}`}>Start Quest</Link>
             </Button>
           </CardContent>
         </Card>

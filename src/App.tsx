@@ -14,7 +14,8 @@ import CreateQuestPage from "./pages/CreateQuestPage";
 import TeamsPage from "./pages/TeamsPage";
 import SocialPage from "./pages/SocialPage";
 import EventModePage from "./pages/EventModePage";
-import AccessibilityPage from "./pages/AccessibilityPage"; // Import the new AccessibilityPage
+import AccessibilityPage from "./pages/AccessibilityPage";
+import QuestDetailsPage from "./pages/QuestDetailsPage"; // Import the new QuestDetailsPage
 import Navbar from "./components/Navbar";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/location-quests" element={<LocationQuests />} />
+          <Route path="/location-quests/:id" element={<QuestDetailsPage />} /> {/* Add the new QuestDetailsPage route */}
           <Route path="/mini-games" element={<MiniGames />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
@@ -37,7 +39,7 @@ const App = () => (
           <Route path="/teams" element={<TeamsPage />} />
           <Route path="/social" element={<SocialPage />} />
           <Route path="/events" element={<EventModePage />} />
-          <Route path="/accessibility" element={<AccessibilityPage />} /> {/* Add the new AccessibilityPage route */}
+          <Route path="/accessibility" element={<AccessibilityPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
