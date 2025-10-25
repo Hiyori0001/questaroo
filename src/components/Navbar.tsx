@@ -64,8 +64,8 @@ const Navbar = () => {
               <Accessibility className="h-4 w-4 mr-2" /> Accessibility
             </Link>
           </Button>
-          <ThemeToggle /> {/* Add the ThemeToggle here */}
         </div>
+        <ThemeToggle /> {/* Moved ThemeToggle here to ensure visibility */}
       </div>
     </nav>
   );
