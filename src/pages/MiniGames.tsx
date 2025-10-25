@@ -6,9 +6,9 @@ import GuessTheNumberGame from "@/components/GuessTheNumberGame";
 import ClickerChallengeGame from "@/components/ClickerChallengeGame";
 import MemoryMatchGame from "@/components/MemoryMatchGame";
 import ReactionTimeGame from "@/components/ReactionTimeGame";
-import LightsOffGame from "@/components/LightsOffGame"; // Import the new game
+import LightsOnGame from "@/components/LightsOnGame"; // Import the renamed game
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Gamepad2, Brain, Lightbulb, MousePointerClick, Puzzle, Zap, Grid } from "lucide-react"; // Import Grid icon for Lights Off
+import { Gamepad2, Brain, Lightbulb, MousePointerClick, Puzzle, Zap } from "lucide-react"; // Import Lightbulb icon for Lights On
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const MiniGames = () => {
@@ -32,7 +32,7 @@ const MiniGames = () => {
       </Card>
 
       <Tabs defaultValue="trivia" className="w-full max-w-md">
-        <TabsList className="grid w-full grid-cols-6 mb-6"> {/* Adjusted grid-cols to 6 */}
+        <TabsList className="grid w-full grid-cols-6 mb-6">
           <TabsTrigger value="trivia">
             <Brain className="h-4 w-4 mr-2" /> Trivia
           </TabsTrigger>
@@ -48,8 +48,8 @@ const MiniGames = () => {
           <TabsTrigger value="reaction-time">
             <Zap className="h-4 w-4 mr-2" /> Reaction
           </TabsTrigger>
-          <TabsTrigger value="lights-off"> {/* New tab trigger */}
-            <Grid className="h-4 w-4 mr-2" /> Lights Off
+          <TabsTrigger value="lights-on"> {/* Updated tab trigger */}
+            <Lightbulb className="h-4 w-4 mr-2" /> Lights On
           </TabsTrigger>
         </TabsList>
         <TabsContent value="trivia">
@@ -67,8 +67,8 @@ const MiniGames = () => {
         <TabsContent value="reaction-time">
           <ReactionTimeGame />
         </TabsContent>
-        <TabsContent value="lights-off"> {/* New tab content */}
-          <LightsOffGame />
+        <TabsContent value="lights-on"> {/* Updated tab content */}
+          <LightsOnGame />
         </TabsContent>
       </Tabs>
     </div>

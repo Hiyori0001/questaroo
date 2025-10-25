@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 
 const GRID_SIZE = 5; // 5x5 grid
 
-const LightsOffGame = () => {
+const LightsOnGame = () => {
   const [board, setBoard] = useState<boolean[][]>([]); // true for on, false for off
   const [moves, setMoves] = useState(0);
   const [gameOver, setGameOver] = useState(false);
@@ -34,7 +34,7 @@ const LightsOffGame = () => {
     setBoard(createSolvableBoard());
     setMoves(0);
     setGameOver(false);
-    toast.info("Lights Off game started! Turn all lights off.");
+    toast.info("Lights On game started! Turn all lights on."); // Updated toast
   }, [createSolvableBoard]);
 
   useEffect(() => {
@@ -67,30 +67,30 @@ const LightsOffGame = () => {
     setBoard(newBoard);
     setMoves((prevMoves) => prevMoves + 1);
 
-    // Check for win condition
-    const allLightsOff = newBoard.every((r) => r.every((light) => !light));
-    if (allLightsOff) {
+    // Check for win condition: all lights are ON
+    const allLightsOn = newBoard.every((r) => r.every((light) => light)); // Updated win condition
+    if (allLightsOn) {
       setGameOver(true);
-      toast.success(`Congratulations! You turned off all lights in ${moves + 1} moves!`);
+      toast.success(`Congratulations! You turned on all lights in ${moves + 1} moves!`); // Updated toast
     }
   };
 
   return (
     <Card className="w-full max-w-md mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
       <CardHeader>
-        <LightbulbOff className="h-16 w-16 text-yellow-500 dark:text-yellow-400 mx-auto mb-4" />
+        <Lightbulb className="h-16 w-16 text-yellow-500 dark:text-yellow-400 mx-auto mb-4" /> {/* Updated icon */}
         <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Lights Off!
-        </CardTitle>
+          Lights On!
+        </CardTitle> {/* Updated title */}
         <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
-          Turn off all the lights on the grid. Clicking a light toggles it and its neighbors.
+          Turn on all the lights on the grid. Clicking a light toggles it and its neighbors. {/* Updated description */}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex justify-around items-center text-xl font-semibold text-gray-800 dark:text-gray-200">
           <p>Moves: {moves}</p>
           {gameOver && (
-            <p className="text-green-600 dark:text-green-400">You Won!</p>
+            <p className="text-green-600 dark:text-green-400">All Lights On!</p> {/* Updated win message */}
           )}
         </div>
 
@@ -136,4 +136,4 @@ const LightsOffGame = () => {
   );
 };
 
-export default LightsOffGame;
+export default LightsOnGame;
