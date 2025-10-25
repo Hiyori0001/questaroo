@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,29 +8,89 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { PlusCircle, MapPin } from "lucide-react";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
+import { PlusCircle, MapPin, QrCode, HelpCircle } from "lucide-react";
 import { toast } from "sonner";
+import { useUserQuests } from "@/contexts/UserQuestsContext"; // Import useUserQuests
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Quest } from "@/data/quests"; // Import Quest interface
 
+// Define the schema for quest creation
 const formSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters." }).max(100, { message: "Title must not exceed 100 characters." }),
   description: z.string().min(20, { message: "Description must be at least 20 characters." }).max(500, { message: "Description must not exceed 500 characters." }),
   location: z.string().min(3, { message: "Location must be at least 3 characters." }).max(100, { message: "Location must not exceed 100 characters." }),
+  completionMethod: z.enum(["question", "qrCode"], {
+    required_error: "Please select a completion method.",
+  }),
+  completionQuestion: z.string().optional(),
+  completionAnswer: z.string().optional(),
+  qrCode: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.completionMethod === "question") {
+    if (!data.completionQuestion || data.completionQuestion.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Completion question is required for 'Question' method.",
+        path: ["completionQuestion"],
+      });
+    }
+    if (!data.completionAnswer || data.completionAnswer.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Completion answer is required for 'Question' method.",
+        path: ["completionAnswer"],
+      });
+    }
+  } else if (data.completionMethod === "qrCode") {
+    if (!data.qrCode || data.qrCode.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "QR Code is required for 'QR Code' method.",
+        path: ["qrCode"],
+      });
+    }
+  }
 });
 
 const CreateQuestPage = () => {
+  const { addQuest } = useUserQuests();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
       location: "",
+      completionMethod: "question", // Default to question
+      completionQuestion: "",
+      completionAnswer: "",
+      qrCode: "",
     },
   });
 
+  const selectedCompletionMethod = form.watch("completionMethod");
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log("Quest submitted:", values);
-    toast.success("Quest submitted successfully! It will be reviewed.");
+    const newQuest: Quest = {
+      id: `user-quest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, // Unique ID
+      title: values.title,
+      description: values.description,
+      location: values.location,
+      difficulty: "Medium", // Default difficulty for user-created quests
+      reward: "User-Created XP", // Default reward
+      timeEstimate: "Variable", // Default time estimate
+    };
+
+    if (values.completionMethod === "question" && values.completionQuestion && values.completionAnswer) {
+      newQuest.completionTask = {
+        question: values.completionQuestion,
+        answer: values.completionAnswer,
+      };
+    } else if (values.completionMethod === "qrCode" && values.qrCode) {
+      newQuest.qrCode = values.qrCode;
+    }
+
+    addQuest(newQuest);
     form.reset();
   };
 
@@ -92,6 +152,92 @@ const CreateQuestPage = () => {
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="completionMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-gray-800 dark:text-gray-200">Quest Completion Method</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select how users complete this quest" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="question">Question & Answer</SelectItem>
+                        <SelectItem value="qrCode">QR Code Scan</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Choose how players will verify completion of your quest.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {selectedCompletionMethod === "question" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="completionQuestion"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                          <HelpCircle className="h-4 w-4" /> Completion Question
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., What color is the statue's hat?" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          A question whose answer can only be found at the quest location.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="completionAnswer"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-800 dark:text-gray-200">Correct Answer</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Red" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          The exact answer players must provide (case-insensitive).
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )}
+
+              {selectedCompletionMethod === "qrCode" && (
+                <FormField
+                  control={form.control}
+                  name="qrCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                        <QrCode className="h-4 w-4" /> QR Code for Verification
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., QUEST-CODE-XYZ" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        This code will be used to verify quest completion. It will NOT be visible to other players.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
                 <PlusCircle className="h-4 w-4 mr-2" /> Submit Quest
               </Button>

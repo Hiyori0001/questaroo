@@ -11,23 +11,29 @@ import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
-import QuestQrScanner from "@/components/QuestQrScanner"; // Import the new QR scanner component
+import QuestQrScanner from "@/components/QuestQrScanner";
+import { useUserQuests } from "@/contexts/UserQuestsContext"; // Import useUserQuests
 
 const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
   const { addExperience, addAchievement, profile, loadingProfile } = useUserProfile();
+  const { userQuests, loadingUserQuests } = useUserQuests(); // Get user-created quests
+
   const [quest, setQuest] = useState<Quest | null>(null);
   const [questStarted, setQuestStarted] = useState(false);
   const [questCompleted, setQuestCompleted] = useState(false);
   const [completionAnswer, setCompletionAnswer] = useState("");
   const [showCompletionInput, setShowCompletionInput] = useState(false);
-  const [showQrScanner, setShowQrScanner] = useState(false); // State for QR scanner modal
+  const [showQrScanner, setShowQrScanner] = useState(false);
 
   useEffect(() => {
     if (id) {
-      const foundQuest = allDummyQuests.find((q) => q.id === id);
+      // Combine dummy quests and user-created quests to find the quest
+      const allAvailableQuests = [...allDummyQuests, ...userQuests];
+      const foundQuest = allAvailableQuests.find((q) => q.id === id);
+
       if (foundQuest) {
         setQuest(foundQuest);
         if (profile && profile.achievements.some(a => a.name === `Completed: ${foundQuest.title}`)) {
@@ -38,9 +44,9 @@ const QuestDetailsPage = () => {
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile]);
+  }, [id, navigate, profile, userQuests]); // Added userQuests to dependencies
 
-  if (loadingAuth || loadingProfile || !quest) {
+  if (loadingAuth || loadingProfile || loadingUserQuests || !quest) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 flex-grow">
         <p className="text-lg text-gray-500 dark:text-gray-400">Loading quest details...</p>

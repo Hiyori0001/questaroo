@@ -9,9 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import QuestList from "@/components/QuestList";
 import QuestMapPlaceholder from "@/components/QuestMapPlaceholder";
 import { toast } from "sonner";
-import { allDummyQuests, Quest } from "@/data/quests"; // Import from new data file
+import { allDummyQuests, Quest } from "@/data/quests";
+import { useUserQuests } from "@/contexts/UserQuestsContext"; // Import useUserQuests
 
 const LocationQuests = () => {
+  const { userQuests, loadingUserQuests } = useUserQuests(); // Get user-created quests
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
@@ -21,12 +23,23 @@ const LocationQuests = () => {
     toast.info("Searching for nearby quests... showing easy quests for now!");
   };
 
-  const filteredQuests = allDummyQuests.filter(
+  // Combine dummy quests and user-created quests
+  const allAvailableQuests = [...allDummyQuests, ...userQuests];
+
+  const filteredQuests = allAvailableQuests.filter(
     (quest) =>
       (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       quest.location.toLowerCase().includes(searchTerm.toLowerCase())) &&
       (selectedDifficulty === "All" || quest.difficulty === selectedDifficulty)
   );
+
+  if (loadingUserQuests) {
+    return (
+      <div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 flex-grow">
+        <p className="text-lg text-gray-500 dark:text-gray-400">Loading quests...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4">
