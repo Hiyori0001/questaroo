@@ -28,6 +28,7 @@ interface UserProfile {
   level: number;
   experience: number;
   achievements: Achievement[];
+  isAdmin: boolean; // Add isAdmin to the profile interface
 }
 
 interface UserProfileContextType {
@@ -56,7 +57,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setLoadingProfile(true);
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, avatar_url, experience, achievements') // Select relevant fields
+      .select('id, first_name, last_name, avatar_url, experience, achievements, is_admin') // Select is_admin
       .eq('id', userId)
       .single();
 
@@ -74,6 +75,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         experience: data.experience || 0,
         level: calculateLevel(data.experience || 0),
         achievements: data.achievements || [],
+        isAdmin: data.is_admin || false, // Set isAdmin
       };
       setProfile(fetchedProfile);
     } else {
@@ -85,6 +87,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         avatar_url: `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(userId)}`,
         experience: 0,
         achievements: [],
+        is_admin: false, // Default to not admin
       };
       const { data: newProfile, error: insertError } = await supabase
         .from('profiles')
@@ -105,6 +108,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           experience: newProfile.experience,
           level: calculateLevel(newProfile.experience),
           achievements: newProfile.achievements,
+          isAdmin: newProfile.is_admin,
         };
         setProfile(createdProfile);
       }

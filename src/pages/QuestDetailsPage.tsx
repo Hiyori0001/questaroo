@@ -154,6 +154,9 @@ const QuestDetailsPage = () => {
     }
   };
 
+  // Determine if the delete button should be shown
+  const canDeleteQuest = user && (isUserCreatedQuest || profile?.isAdmin);
+
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
       <Card className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6">
@@ -166,7 +169,7 @@ const QuestDetailsPage = () => {
             >
               <ArrowLeft className="h-4 w-4 mr-2" /> Back to Quests
             </Button>
-            {isUserCreatedQuest && user && ( // Only show delete button for user-created quests by logged-in user
+            {canDeleteQuest && ( // Only show delete button if user can delete
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
