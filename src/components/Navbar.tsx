@@ -5,8 +5,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; // Import Sheet components
-import { useIsMobile } from "@/hooks/use-mobile"; // Import the useIsMobile hook
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Navbar = () => {
   const isMobile = useIsMobile();
@@ -74,23 +74,23 @@ const Navbar = () => {
         </Link>
 
         {isMobile ? (
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
-                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Navigation</h2>
-                <div className="flex flex-col gap-2">
-                  {navLinks}
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
+              <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Navigation</h2>
+              <div className="flex flex-col gap-2 flex-grow"> {/* Added flex-grow to push ThemeToggle to bottom */}
+                {navLinks}
+              </div>
+              <div className="mt-auto p-4 border-t dark:border-gray-700"> {/* Added a div for ThemeToggle at the bottom */}
+                <ThemeToggle />
+              </div>
+            </SheetContent>
+          </Sheet>
         ) : (
           <div className="flex items-center space-x-4">
             {navLinks}
