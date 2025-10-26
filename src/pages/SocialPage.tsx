@@ -68,7 +68,8 @@ const SocialPage = () => {
         const formattedMessages: ChatMessage[] = data.map((msg: any) => ({
           id: msg.id,
           sender_id: msg.user_id,
-          sender_name: `${msg.profiles?.first_name || 'Adventure'} ${msg.profiles?.last_name || 'Seeker'}`.trim(),
+          // Corrected: Only use 'Adventure' if first_name is null/empty, and don't default last_name to 'Seeker' if it's empty.
+          sender_name: `${msg.profiles?.first_name || 'Adventure'} ${msg.profiles?.last_name || ''}`.trim(),
           text: msg.content,
           timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         }));
@@ -98,7 +99,8 @@ const SocialPage = () => {
                 {
                   id: newMsg.id,
                   sender_id: newMsg.user_id,
-                  sender_name: `${profileData?.first_name || 'Adventure'} ${profileData?.last_name || 'Seeker'}`.trim(),
+                  // Corrected: Only use 'Adventure' if first_name is null/empty, and don't default last_name to 'Seeker' if it's empty.
+                  sender_name: `${profileData?.first_name || 'Adventure'} ${profileData?.last_name || ''}`.trim(),
                   text: newMsg.content,
                   timestamp: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 },
