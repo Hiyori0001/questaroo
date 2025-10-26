@@ -20,6 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth to get current user ID
 
 interface AdminProfile {
   id: string;
@@ -33,7 +34,12 @@ interface AdminProfile {
   team_name: string | null; // To display team name directly
 }
 
+// IMPORTANT: Replace this with the actual Supabase user ID (UUID) of your developer account.
+// You can find this ID in your Supabase auth.users table.
+const DEVELOPER_USER_ID = "$$DEVELOPER_USER_ID$$"; 
+
 const AdminUserManagement = () => {
+  const { user: currentUser } = useAuth(); // Get the currently logged-in user
   const [users, setUsers] = useState<AdminProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +48,7 @@ const AdminUserManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch all profiles
+      // 1. Fetch all profiles without embedding teams
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -88,7 +94,7 @@ const AdminUserManagement = () => {
         first_name: profile.first_name,
         last_name: profile.last_name,
         avatar_url: profile.avatar_url,
-        email: authUsersMap.get(profile.id) || "N/A", // Get email from auth.users
+        email: authUsersMap.get(profile.id) || "N/A",
         experience: profile.experience || 0,
         is_admin: profile.is_admin || false,
         team_id: profile.team_id,
@@ -109,6 +115,12 @@ const AdminUserManagement = () => {
   }, [fetchUsers]);
 
   const handleToggleAdmin = async (userId: string, currentAdminStatus: boolean) => {
+    // Prevent other admins from toggling off the developer's admin status
+    if (userId === DEVELOPER_USER_ID && currentUser?.id !== DEVELOPER_USER_ID) {
+      toast.error("You cannot change the admin status of the developer account.");
+      return;
+    }
+
     setLoading(true);
     const { error } = await supabase
       .from('profiles')
@@ -126,13 +138,15 @@ const AdminUserManagement = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
+    // Prevent other admins from deleting the developer's account
+    if (userId === DEVELOPER_USER_ID && currentUser?.id !== DEVELOPER_USER_ID) {
+      toast.error("You cannot delete the developer account.");
+      return;
+    }
+
     setLoading(true);
     try {
       // Delete user from auth.users, which should cascade to profiles table
-      // This operation also needs to be done via an Edge Function if the client doesn't have service_role
-      // For now, we'll assume the admin user has the necessary RLS for profiles table,
-      // but deleting from auth.users directly from client is still an issue.
-      // A dedicated Edge Function for admin user deletion would be ideal here too.
       const { error: authError } = await supabase.auth.admin.deleteUser(userId);
 
       if (authError) {
@@ -208,7 +222,8 @@ const AdminUserManagement = () => {
                     id={`admin-switch-${userEntry.id}`}
                     checked={userEntry.is_admin}
                     onCheckedChange={() => handleToggleAdmin(userEntry.id, userEntry.is_admin)}
-                    disabled={loading}
+                    // Disable switch if it's the developer account and current user is not the developer
+                    disabled={loading || (userEntry.id === DEVELOPER_USER_ID && currentUser?.id !== DEVELOPER_USER_ID)}
                   />
                   <Label htmlFor={`admin-switch-${userEntry.id}`} className="sr-only">Toggle Admin Status</Label>
                 </div>
@@ -216,7 +231,11 @@ const AdminUserManagement = () => {
               <TableCell className="text-center">
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" size="sm" disabled={loading}>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      disabled={loading || (userEntry.id === DEVELOPER_USER_ID && currentUser?.id !== DEVELOPER_USER_ID)} // Disable delete button
+                    >
                       <XCircle className="h-4 w-4" />
                     </Button>
                   </AlertDialogTrigger>
