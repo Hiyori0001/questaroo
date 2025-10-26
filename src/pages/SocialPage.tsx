@@ -11,11 +11,14 @@ import { toast } from "sonner";
 import { useTeams } from "@/contexts/TeamContext"; // Import useTeams
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 import { supabase } from "@/lib/supabase"; // Import supabase client
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Import Avatar components
+import { User } from "lucide-react"; // Import User icon for AvatarFallback
 
 interface ChatMessage {
   id: string;
-  sender_id: string; // Changed to sender_id to link to user
-  sender_name: string; // To display sender's name
+  sender_id: string;
+  sender_name: string;
+  sender_avatar_url: string; // New: Avatar URL for the sender
   text: string;
   timestamp: string;
 }
@@ -54,8 +57,8 @@ const SocialPage = () => {
           content,
           created_at,
           user_id,
-          profiles!user_id(first_name, last_name)
-        `) // Explicitly specify the foreign key relationship
+          profiles!user_id(first_name, last_name, avatar_url)
+        `) // Select avatar_url from profiles
         .eq('team_id', userTeam.id)
         .order('created_at', { ascending: true });
 
@@ -68,8 +71,8 @@ const SocialPage = () => {
         const formattedMessages: ChatMessage[] = data.map((msg: any) => ({
           id: msg.id,
           sender_id: msg.user_id,
-          // Corrected: Only use 'Adventure' if first_name is null/empty, and don't default last_name to 'Seeker' if it's empty.
           sender_name: `${msg.profiles?.first_name || 'Adventure'} ${msg.profiles?.last_name || ''}`.trim(),
+          sender_avatar_url: msg.profiles?.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(msg.user_id)}`,
           text: msg.content,
           timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         }));
@@ -88,8 +91,8 @@ const SocialPage = () => {
         { event: 'INSERT', schema: 'public', table: 'team_messages', filter: `team_id=eq.${userTeam.id}` },
         (payload) => {
           const newMsg: any = payload.new;
-          // Fetch sender's profile to get name
-          supabase.from('profiles').select('first_name, last_name').eq('id', newMsg.user_id).single()
+          // Fetch sender's profile to get name and avatar
+          supabase.from('profiles').select('first_name, last_name, avatar_url').eq('id', newMsg.user_id).single()
             .then(({ data: profileData, error: profileError }) => {
               if (profileError) {
                 console.error("Error fetching profile for new message:", profileError);
@@ -99,8 +102,8 @@ const SocialPage = () => {
                 {
                   id: newMsg.id,
                   sender_id: newMsg.user_id,
-                  // Corrected: Only use 'Adventure' if first_name is null/empty, and don't default last_name to 'Seeker' if it's empty.
                   sender_name: `${profileData?.first_name || 'Adventure'} ${profileData?.last_name || ''}`.trim(),
+                  sender_avatar_url: profileData?.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(newMsg.user_id)}`,
                   text: newMsg.content,
                   timestamp: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 },
@@ -225,10 +228,18 @@ const SocialPage = () => {
                 </p>
               ) : (
                 messages.map((msg) => (
-                  <div key={msg.id} className="mb-2 text-left">
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">{msg.sender_name}: </span>
-                    <span className="text-gray-800 dark:text-gray-200">{msg.text}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{msg.timestamp}</span>
+                  <div key={msg.id} className="mb-2 text-left flex items-start gap-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={msg.sender_avatar_url} alt={msg.sender_name} />
+                      <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+                        <User className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">{msg.sender_name}: </span>
+                      <span className="text-gray-800 dark:text-gray-200">{msg.text}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{msg.timestamp}</span>
+                    </div>
                   </div>
                 ))
               )}
