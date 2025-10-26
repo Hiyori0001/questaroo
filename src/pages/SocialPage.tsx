@@ -1,158 +1,41 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Share2, MessageSquareText, Twitter, Facebook, Instagram, Send, Link as LinkIcon, Loader2, AlertCircle } from "lucide-react";
+import { Share2, MessageSquareText, Twitter, Facebook, Instagram, Send, Link as LinkIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { useTeams } from "@/contexts/TeamContext"; // Import useTeams
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
-import { supabase } from "@/lib/supabase"; // Import supabase client
 
 interface ChatMessage {
   id: string;
-  sender_name: string; // Changed to sender_name
-  content: string; // Changed to content
-  created_at: string; // Changed to created_at
+  sender: string;
+  text: string;
+  timestamp: string;
 }
 
 const SocialPage = () => {
-  const { user, loading: loadingAuth } = useAuth();
-  const { userTeam, loadingUserTeam } = useTeams(); // Get user's team
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
-  const [loadingMessages, setLoadingMessages] = useState(true);
-  const [messagesError, setMessagesError] = useState<string | null>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom of chat when messages update
-  useEffect(() => {
-    if (chatContainerRef.current) {
-      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-    }
-  }, [messages]);
-
-  // Fetch initial messages and set up real-time subscription
-  useEffect(() => {
-    if (loadingAuth || loadingUserTeam) {
-      setLoadingMessages(true);
-      return;
-    }
-
-    if (!user || !userTeam) {
-      setMessages([]);
-      setLoadingMessages(false);
-      setMessagesError("You must be in a team to use team chat.");
-      return;
-    }
-
-    setMessagesError(null);
-    setLoadingMessages(true);
-
-    const fetchMessages = async () => {
-      const { data, error } = await supabase
-        .from('team_messages')
-        .select(`
-          id,
-          content,
-          created_at,
-          profiles (
-            first_name,
-            last_name
-          )
-        `)
-        .eq('team_id', userTeam.id)
-        .order('created_at', { ascending: true });
-
-      if (error) {
-        console.error("Error fetching messages:", error);
-        setMessagesError("Failed to load chat messages.");
-        toast.error("Failed to load chat messages.");
-        setMessages([]);
-      } else {
-        const formattedMessages: ChatMessage[] = data.map((msg: any) => ({
-          id: msg.id,
-          content: msg.content,
-          created_at: msg.created_at,
-          sender_name: `${msg.profiles?.first_name || ''} ${msg.profiles?.last_name || ''}`.trim() || "Anonymous",
-        }));
-        setMessages(formattedMessages);
-      }
-      setLoadingMessages(false);
-    };
-
-    fetchMessages();
-
-    // Set up real-time subscription
-    const channel = supabase
-      .channel(`team_chat:${userTeam.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'team_messages',
-          filter: `team_id=eq.${userTeam.id}`,
-        },
-        (payload) => {
-          const newMsg: any = payload.new;
-          // Fetch sender profile for the new message
-          supabase
-            .from('profiles')
-            .select('first_name, last_name')
-            .eq('id', newMsg.user_id)
-            .single()
-            .then(({ data: profileData, error: profileError }) => {
-              if (profileError) {
-                console.error("Error fetching sender profile for real-time message:", profileError);
-              }
-              setMessages((prevMessages) => [
-                ...prevMessages,
-                {
-                  id: newMsg.id,
-                  content: newMsg.content,
-                  created_at: newMsg.created_at,
-                  sender_name: `${profileData?.first_name || ''} ${profileData?.last_name || ''}`.trim() || "Anonymous",
-                },
-              ]);
-            });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, userTeam, loadingAuth, loadingUserTeam]);
-
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (newMessage.trim() === "") {
       toast.error("Message cannot be empty.");
       return;
     }
-    if (!user || !userTeam) {
-      toast.error("You must be in a team to send messages.");
-      return;
-    }
 
-    const { error } = await supabase
-      .from('team_messages')
-      .insert({
-        team_id: userTeam.id,
-        user_id: user.id,
-        content: newMessage.trim(),
-      });
+    const newMsg: ChatMessage = {
+      id: Date.now().toString(),
+      sender: "You", // For client-side demo, assume "You" are the sender
+      text: newMessage.trim(),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
 
-    if (error) {
-      console.error("Error sending message:", error);
-      toast.error("Failed to send message.");
-    } else {
-      setNewMessage("");
-      // Message will be added to state via real-time subscription
-    }
+    setMessages((prevMessages) => [...prevMessages, newMsg]);
+    setNewMessage("");
+    toast.success("Message sent!");
   };
 
   const handleShare = (platform: string) => {
@@ -194,11 +77,6 @@ const SocialPage = () => {
     }
   };
 
-  const formatTimestamp = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-pink-50 to-red-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
       <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
@@ -218,34 +96,24 @@ const SocialPage = () => {
               <MessageSquareText className="h-7 w-7 text-blue-600 dark:text-blue-400" />
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Team Chat</h3>
             </div>
-            <div ref={chatContainerRef} className="h-48 overflow-y-auto bg-white dark:bg-gray-900 rounded-md p-3 mb-4 border dark:border-gray-700">
-              {loadingMessages ? (
-                <div className="flex justify-center items-center h-full">
-                  <Loader2 className="h-6 w-6 animate-spin text-blue-600 dark:text-blue-400" />
-                  <p className="ml-2 text-gray-600 dark:text-gray-300">Loading messages...</p>
-                </div>
-              ) : messagesError ? (
-                <div className="flex flex-col items-center justify-center h-full text-red-600 dark:text-red-400">
-                  <AlertCircle className="h-6 w-6 mb-2" />
-                  <p className="text-center">{messagesError}</p>
-                </div>
-              ) : messages.length === 0 ? (
+            <div className="h-48 overflow-y-auto bg-white dark:bg-gray-900 rounded-md p-3 mb-4 border dark:border-gray-700">
+              {messages.length === 0 ? (
                 <p className="text-gray-500 dark:text-gray-400 text-sm italic text-center mt-16">
                   No messages yet. Start the conversation!
                 </p>
               ) : (
                 messages.map((msg) => (
                   <div key={msg.id} className="mb-2 text-left">
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">{msg.sender_name}: </span>
-                    <span className="text-gray-800 dark:text-gray-200">{msg.content}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{formatTimestamp(msg.created_at)}</span>
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">{msg.sender}: </span>
+                    <span className="text-gray-800 dark:text-gray-200">{msg.text}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{msg.timestamp}</span>
                   </div>
                 ))
               )}
             </div>
             <div className="flex gap-2">
               <Textarea
-                placeholder={userTeam ? "Type your message..." : "Join a team to chat!"}
+                placeholder="Type your message..."
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyPress={(e) => {
@@ -255,9 +123,8 @@ const SocialPage = () => {
                   }
                 }}
                 className="flex-grow resize-none min-h-[40px] max-h-[100px]"
-                disabled={!userTeam || loadingMessages}
               />
-              <Button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600" disabled={!userTeam || newMessage.trim() === "" || loadingMessages}>
+              <Button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
                 <Send className="h-4 w-4" />
                 <span className="sr-only">Send message</span>
               </Button>
