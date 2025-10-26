@@ -1,16 +1,19 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react"; // Import Suspense
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MapPin, Compass, Search, List, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import QuestList from "@/components/QuestList";
-import QuestMap from "@/components/QuestMap"; // Import the new QuestMap component
+// import QuestMap from "@/components/QuestMap"; // Remove direct import
 import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
+
+// Dynamically import QuestMap
+const QuestMap = React.lazy(() => import("@/components/QuestMap"));
 
 const LocationQuests = () => {
   const { userQuests, loadingUserQuests } = useUserQuests();
@@ -112,12 +115,12 @@ const LocationQuests = () => {
             >
               {viewMode === "list" ? (
                 <>
-                  <Map className="h-5 w-5" />
-                  <span className="sr-only">Switch to Map View</span>
+                  <List className="h-5 w-5" />
+                  <span className="sr-only">Switch to List View</span>
                 </>
               ) : (
                 <>
-                  <List className="h-5 w-5" />
+                  <Map className="h-5 w-5" />
                   <span className="sr-only">Switch to List View</span>
                 </>
               )}
@@ -128,7 +131,9 @@ const LocationQuests = () => {
         {viewMode === "list" ? (
           <QuestList quests={filteredQuests} />
         ) : (
-          <QuestMap quests={filteredQuests} />
+          <Suspense fallback={<div className="flex items-center justify-center h-[500px] text-lg text-gray-500 dark:text-gray-400">Loading map...</div>}>
+            <QuestMap quests={filteredQuests} />
+          </Suspense>
         )}
       </div>
     </div>
