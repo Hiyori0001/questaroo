@@ -51,6 +51,8 @@ interface UserProfileContextType {
   addAchievement: (achievement: Achievement) => Promise<void>;
   updateProfileDetails: (name: string, email: string) => Promise<void>;
   getAchievementIcon: (iconName: string) => LucideIcon | undefined;
+  startQuest: (questId: string) => Promise<void>; // New: Mark quest as started
+  completeQuest: (questId: string) => Promise<void>; // New: Mark quest as completed
 }
 
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
@@ -267,12 +269,53 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [profile, user]);
 
+  const startQuest = useCallback(async (questId: string) => {
+    if (!user) {
+      toast.error("You must be logged in to start a quest.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from('user_quest_progress')
+      .upsert(
+        { user_id: user.id, quest_id: questId, status: 'started', started_at: new Date().toISOString(), last_updated_at: new Date().toISOString() },
+        { onConflict: 'user_id, quest_id' } // Update if already exists
+      );
+
+    if (error) {
+      console.error("Error starting quest:", error);
+      toast.error("Failed to mark quest as started.");
+    } else {
+      toast.info("Quest started!");
+    }
+  }, [user]);
+
+  const completeQuest = useCallback(async (questId: string) => {
+    if (!user) {
+      toast.error("You must be logged in to complete a quest.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from('user_quest_progress')
+      .update({ status: 'completed', completed_at: new Date().toISOString(), last_updated_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .eq('quest_id', questId);
+
+    if (error) {
+      console.error("Error completing quest:", error);
+      toast.error("Failed to mark quest as completed.");
+    } else {
+      toast.info("Quest progress updated to completed!");
+    }
+  }, [user]);
+
   const getAchievementIcon = useCallback((iconName: string) => {
     return LucideIconMap[iconName];
   }, []);
 
   return (
-    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, getAchievementIcon }}>
+    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, getAchievementIcon, startQuest, completeQuest }}>
       {children}
     </UserProfileContext.Provider>
   );

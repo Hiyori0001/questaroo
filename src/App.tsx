@@ -18,6 +18,7 @@ import AccessibilityPage from "./pages/AccessibilityPage";
 import QuestDetailsPage from "./pages/QuestDetailsPage";
 import Navbar from "./components/Navbar";
 import AuthPage from "./pages/AuthPage"; // Import the new AuthPage
+import QuestLogPage from "./pages/QuestLogPage"; // Import the new QuestLogPage
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
               <Route path="/events" element={<EventModePage />} />
               <Route path="/accessibility" element={<AccessibilityPage />} />
               <Route path="/auth" element={<AuthPage />} /> {/* Add the new AuthPage route */}
+              <Route path="/quest-log" element={<QuestLogPage />} /> {/* Add the new QuestLogPage route */}
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

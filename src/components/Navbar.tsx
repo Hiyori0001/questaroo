@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu, LogIn, LogOut } from "lucide-react";
+import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu, LogIn, LogOut, ListTodo } from "lucide-react"; // Added ListTodo icon
 import { ThemeToggle } from "./ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 const navItems = [
   { to: "/about", icon: Info, label: "About" },
   { to: "/location-quests", icon: MapPin, label: "Quests" },
+  { to: "/quest-log", icon: ListTodo, label: "Quest Log" }, // New: Quest Log
   { to: "/mini-games", icon: Gamepad2, label: "Mini-Games" },
   { to: "/leaderboard", icon: Crown, label: "Leaderboard" },
   { to: "/create-quest", icon: PlusCircle, label: "Create Quest" },

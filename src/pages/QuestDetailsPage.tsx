@@ -44,7 +44,7 @@ const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
-  const { profile, loadingProfile, addExperience, deductExperience, addAchievement } = useUserProfile();
+  const { profile, loadingProfile, addExperience, deductExperience, addAchievement, startQuest, completeQuest } = useUserProfile(); // Added startQuest, completeQuest
   const { userQuests, loadingUserQuests, removeQuest } = useUserQuests();
   const { userTeam, addTeamScore } = useTeams();
 
@@ -117,17 +117,18 @@ const QuestDetailsPage = () => {
   const xpForDifficulty = getXpForDifficulty(quest.difficulty);
   const requiredXpToUnlock = getRequiredXp(quest.difficulty);
 
-  const completeQuestLogic = () => {
-    addExperience(xpForDifficulty);
-    addAchievement({
+  const completeQuestLogic = async () => {
+    await addExperience(xpForDifficulty);
+    await addAchievement({
       name: `Completed: ${quest.title}`,
       iconName: "Trophy",
       color: "bg-green-500",
     });
+    await completeQuest(quest.id); // Mark quest as completed in progress log
 
     // If user is part of a team, add score to the team
     if (userTeam) {
-      addTeamScore(userTeam.id, xpForDifficulty);
+      await addTeamScore(userTeam.id, xpForDifficulty);
     }
 
     setQuestCompleted(true);
@@ -138,7 +139,7 @@ const QuestDetailsPage = () => {
     toast.success(`Quest "${quest.title}" completed! You earned ${xpForDifficulty} XP!`);
   };
 
-  const handleStartQuest = () => {
+  const handleStartQuest = async () => {
     if (!user) {
       toast.error("Please log in to start a quest.");
       navigate("/auth");
@@ -152,6 +153,7 @@ const QuestDetailsPage = () => {
       toast.error(`You need ${requiredXpToUnlock} XP to start this quest.`);
       return;
     }
+    await startQuest(quest.id); // Mark quest as started in progress log
     setQuestStarted(true);
     setShowCompletionInput(false);
     setShowQrScanner(false);
@@ -310,16 +312,6 @@ const QuestDetailsPage = () => {
             <p className="text-lg font-semibold text-red-600 dark:text-red-400 mt-4 flex items-center justify-center gap-2">
               <UserX className="h-5 w-5" /> You created this quest and cannot complete it yourself.
             </p>
-          )}
-
-          {user && !isQuestUnlocked && quest.difficulty !== "Easy" && !isCreator && (
-            <Button
-              onClick={handleUnlockQuest}
-              className="w-full mt-6 bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600 text-lg py-3"
-              disabled={loadingProfile || (profile && profile.experience < requiredXpToUnlock)}
-            >
-              <Lock className="h-5 w-5 mr-2" /> Unlock Quest for {requiredXpToUnlock} XP
-            </Button>
           )}
 
           {user && isQuestUnlocked && !questStarted && !questCompleted && !isCreator && (
