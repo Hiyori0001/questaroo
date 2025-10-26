@@ -1,41 +1,147 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Share2, MessageSquareText, Twitter, Facebook, Instagram, Send, Link as LinkIcon } from "lucide-react";
+import { Share2, MessageSquareText, Twitter, Facebook, Instagram, Send, Link as LinkIcon, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { useTeams } from "@/contexts/TeamContext"; // Import useTeams
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { supabase } from "@/lib/supabase"; // Import supabase client
 
 interface ChatMessage {
   id: string;
-  sender: string;
+  sender_id: string; // Changed to sender_id to link to user
+  sender_name: string; // To display sender's name
   text: string;
   timestamp: string;
 }
 
 const SocialPage = () => {
+  const { user, loading: loadingAuth } = useAuth();
+  const { userTeam, loadingUserTeam } = useTeams();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState<string>("");
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSendMessage = () => {
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Fetch messages for the user's team
+  useEffect(() => {
+    if (loadingAuth || loadingUserTeam) return;
+
+    if (!user || !userTeam) {
+      setMessages([]);
+      setLoadingMessages(false);
+      setError("You must be in a team to view chat messages.");
+      return;
+    }
+
+    const fetchMessages = async () => {
+      setLoadingMessages(true);
+      setError(null);
+      const { data, error: fetchError } = await supabase
+        .from('team_messages')
+        .select(`
+          id,
+          content,
+          created_at,
+          user_id,
+          profiles(first_name, last_name)
+        `)
+        .eq('team_id', userTeam.id)
+        .order('created_at', { ascending: true });
+
+      if (fetchError) {
+        console.error("Error fetching team messages:", fetchError);
+        setError("Failed to load team messages.");
+        toast.error("Failed to load team messages.");
+        setMessages([]);
+      } else {
+        const formattedMessages: ChatMessage[] = data.map((msg: any) => ({
+          id: msg.id,
+          sender_id: msg.user_id,
+          sender_name: `${msg.profiles?.first_name || 'Adventure'} ${msg.profiles?.last_name || 'Seeker'}`.trim(),
+          text: msg.content,
+          timestamp: new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }));
+        setMessages(formattedMessages);
+      }
+      setLoadingMessages(false);
+    };
+
+    fetchMessages();
+
+    // Set up real-time subscription for new messages
+    const channel = supabase
+      .channel(`team_chat_${userTeam.id}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'team_messages', filter: `team_id=eq.${userTeam.id}` },
+        (payload) => {
+          const newMsg: any = payload.new;
+          // Fetch sender's profile to get name
+          supabase.from('profiles').select('first_name, last_name').eq('id', newMsg.user_id).single()
+            .then(({ data: profileData, error: profileError }) => {
+              if (profileError) {
+                console.error("Error fetching profile for new message:", profileError);
+              }
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                  id: newMsg.id,
+                  sender_id: newMsg.user_id,
+                  sender_name: `${profileData?.first_name || 'Adventure'} ${profileData?.last_name || 'Seeker'}`.trim(),
+                  text: newMsg.content,
+                  timestamp: new Date(newMsg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                },
+              ]);
+            });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, userTeam, loadingAuth, loadingUserTeam]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSendMessage = async () => {
     if (newMessage.trim() === "") {
       toast.error("Message cannot be empty.");
       return;
     }
+    if (!user || !userTeam) {
+      toast.error("You must be in a team to send messages.");
+      return;
+    }
 
-    const newMsg: ChatMessage = {
-      id: Date.now().toString(),
-      sender: "You", // For client-side demo, assume "You" are the sender
-      text: newMessage.trim(),
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
+    const { error: insertError } = await supabase
+      .from('team_messages')
+      .insert({
+        team_id: userTeam.id,
+        user_id: user.id,
+        content: newMessage.trim(),
+      });
 
-    setMessages((prevMessages) => [...prevMessages, newMsg]);
-    setNewMessage("");
-    toast.success("Message sent!");
+    if (insertError) {
+      console.error("Error sending message:", insertError);
+      toast.error("Failed to send message.");
+    } else {
+      setNewMessage("");
+      // Message will be added to state via real-time subscription
+    }
   };
 
   const handleShare = (platform: string) => {
@@ -77,6 +183,8 @@ const SocialPage = () => {
     }
   };
 
+  const isChatDisabled = !user || !userTeam || loadingMessages || loadingUserTeam || loadingAuth;
+
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-pink-50 to-red-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
       <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
@@ -97,19 +205,32 @@ const SocialPage = () => {
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Team Chat</h3>
             </div>
             <div className="h-48 overflow-y-auto bg-white dark:bg-gray-900 rounded-md p-3 mb-4 border dark:border-gray-700">
-              {messages.length === 0 ? (
+              {loadingMessages ? (
+                <div className="flex justify-center items-center h-full">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600 dark:text-blue-400" />
+                  <p className="ml-3 text-lg text-gray-600 dark:text-gray-300">Loading messages...</p>
+                </div>
+              ) : error ? (
+                <div className="flex flex-col items-center justify-center h-full text-red-600 dark:text-red-400">
+                  <AlertCircle className="h-8 w-8 mb-2" />
+                  <p className="text-lg text-center">{error}</p>
+                  {!user && <p className="text-sm mt-2">Please log in.</p>}
+                  {user && !userTeam && <p className="text-sm mt-2">Join a team to chat!</p>}
+                </div>
+              ) : messages.length === 0 ? (
                 <p className="text-gray-500 dark:text-gray-400 text-sm italic text-center mt-16">
                   No messages yet. Start the conversation!
                 </p>
               ) : (
                 messages.map((msg) => (
                   <div key={msg.id} className="mb-2 text-left">
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">{msg.sender}: </span>
+                    <span className="font-semibold text-blue-600 dark:text-blue-400">{msg.sender_name}: </span>
                     <span className="text-gray-800 dark:text-gray-200">{msg.text}</span>
                     <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">{msg.timestamp}</span>
                   </div>
                 ))
               )}
+              <div ref={messagesEndRef} />
             </div>
             <div className="flex gap-2">
               <Textarea
@@ -123,8 +244,9 @@ const SocialPage = () => {
                   }
                 }}
                 className="flex-grow resize-none min-h-[40px] max-h-[100px]"
+                disabled={isChatDisabled}
               />
-              <Button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
+              <Button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600" disabled={isChatDisabled}>
                 <Send className="h-4 w-4" />
                 <span className="sr-only">Send message</span>
               </Button>
