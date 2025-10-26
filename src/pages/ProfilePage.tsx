@@ -4,17 +4,19 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Trophy, Star, Edit } from "lucide-react";
+import { User, Trophy, Star, Edit, Users, Shield } from "lucide-react"; // Import Users and Shield icons
 
 import { Button } from "@/components/ui/button";
 import ProfileEditForm from "@/components/ProfileEditForm";
-import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth to check for logged-in state
+import { useUserProfile } from "@/contexts/UserProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTeams } from "@/contexts/TeamContext"; // Import useTeams
 import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
   const { profile, loadingProfile, updateProfileDetails, getAchievementIcon } = useUserProfile();
-  const { user, loading: loadingAuth } = useAuth(); // Get user and auth loading state
+  const { user, loading: loadingAuth } = useAuth();
+  const { userTeam, loadingUserTeam } = useTeams(); // Get userTeam from TeamContext
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -25,7 +27,7 @@ const ProfilePage = () => {
     }
   }, [user, loadingAuth, navigate]);
 
-  if (loadingAuth || loadingProfile || !profile) {
+  if (loadingAuth || loadingProfile || loadingUserTeam || !profile) { // Include loadingUserTeam
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
         <p className="text-lg text-gray-500 dark:text-gray-400">Loading profile...</p>
@@ -83,6 +85,18 @@ const ProfilePage = () => {
                   <p className="text-sm text-muted-foreground">Experience</p>
                 </div>
               </div>
+
+              {userTeam && (
+                <div className="mt-6 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950 shadow-sm">
+                  <h3 className="text-xl font-bold text-blue-800 dark:text-blue-200 mb-2 flex items-center justify-center gap-2">
+                    <Shield className="h-6 w-6" /> Your Team: {userTeam.name}
+                  </h3>
+                  <p className="text-blue-700 dark:text-blue-300 text-sm">{userTeam.description}</p>
+                  <p className="text-blue-700 dark:text-blue-300 text-sm flex items-center justify-center gap-1 mt-2">
+                    <Trophy className="h-4 w-4 text-yellow-500" /> Team Score: {userTeam.score}
+                  </p>
+                </div>
+              )}
 
               <div className="mt-8">
                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Achievements</h3>

@@ -4,15 +4,16 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock } from "lucide-react"; // Import Lock icon
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
-import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext"; // Import XP_THRESHOLDS
+import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
+import { useTeams } from "@/contexts/TeamContext"; // Import useTeams
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"; // Import AlertDialog components
+} from "@/components/ui/alert-dialog";
 
 // Helper function to get XP reward for completing a quest based on difficulty
 const getXpForDifficulty = (difficulty: Quest["difficulty"]) => {
@@ -43,8 +44,9 @@ const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
-  const { profile, loadingProfile, addExperience, deductExperience, addAchievement } = useUserProfile(); // Add deductExperience
+  const { profile, loadingProfile, addExperience, deductExperience, addAchievement } = useUserProfile();
   const { userQuests, loadingUserQuests, removeQuest } = useUserQuests();
+  const { userTeam, addTeamScore } = useTeams(); // Get userTeam and addTeamScore from TeamContext
 
   const [quest, setQuest] = useState<Quest | null>(null);
   const [questStarted, setQuestStarted] = useState(false);
@@ -53,7 +55,7 @@ const QuestDetailsPage = () => {
   const [showCompletionInput, setShowCompletionInput] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
   const [isUserCreatedQuest, setIsUserCreatedQuest] = useState(false);
-  const [isQuestUnlocked, setIsQuestUnlocked] = useState(false); // New state for quest unlock status
+  const [isQuestUnlocked, setIsQuestUnlocked] = useState(false);
 
   const getRequiredXp = (difficulty: Quest["difficulty"]) => {
     switch (difficulty) {
@@ -112,6 +114,12 @@ const QuestDetailsPage = () => {
       iconName: "Trophy",
       color: "bg-green-500",
     });
+
+    // If user is part of a team, add score to the team
+    if (userTeam) {
+      addTeamScore(userTeam.id, xpForDifficulty);
+    }
+
     setQuestCompleted(true);
     setQuestStarted(false);
     setShowCompletionInput(false);
@@ -214,7 +222,7 @@ const QuestDetailsPage = () => {
             >
               <ArrowLeft className="h-4 w-4 mr-2" /> Back to Quests
             </Button>
-            {canDeleteQuest && ( // Only show delete button if user can delete
+            {canDeleteQuest && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">

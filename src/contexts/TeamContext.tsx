@@ -24,6 +24,7 @@ interface TeamContextType {
   createTeam: (name: string, description: string) => Promise<void>;
   joinTeam: (teamId: string) => Promise<void>;
   leaveTeam: () => Promise<void>;
+  addTeamScore: (teamId: string, scoreToAdd: number) => Promise<void>; // New: Add function to update team score
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -181,6 +182,45 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, userTeam, fetchTeams]);
 
+  const addTeamScore = useCallback(async (teamId: string, scoreToAdd: number) => {
+    if (!user) {
+      toast.error("You must be logged in to update team score.");
+      return;
+    }
+
+    // Fetch current team score
+    const { data: currentTeam, error: fetchError } = await supabase
+      .from('teams')
+      .select('score')
+      .eq('id', teamId)
+      .single();
+
+    if (fetchError || !currentTeam) {
+      console.error("Error fetching current team score:", fetchError);
+      toast.error("Failed to update team score: Could not retrieve current score.");
+      return;
+    }
+
+    const newScore = currentTeam.score + scoreToAdd;
+
+    const { error } = await supabase
+      .from('teams')
+      .update({ score: newScore })
+      .eq('id', teamId);
+
+    if (error) {
+      console.error("Error adding team score:", error);
+      toast.error("Failed to update team score.");
+    } else {
+      toast.info(`Team score updated! +${scoreToAdd} points.`);
+      fetchTeams(); // Refresh all teams to show updated score
+      if (userTeam && userTeam.id === teamId) {
+        setUserTeam(prev => prev ? { ...prev, score: newScore } : null); // Update user's team state if it's their team
+      }
+    }
+  }, [user, userTeam, fetchTeams]);
+
+
   // Effect to load teams and user's team on auth state change
   useEffect(() => {
     if (loadingAuth) {
@@ -200,7 +240,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, loadingAuth, fetchTeams, fetchUserTeam]);
 
   return (
-    <TeamContext.Provider value={{ teams, userTeam, loadingTeams, loadingUserTeam, fetchTeams, createTeam, joinTeam, leaveTeam }}>
+    <TeamContext.Provider value={{ teams, userTeam, loadingTeams, loadingUserTeam, fetchTeams, createTeam, joinTeam, leaveTeam, addTeamScore }}>
       {children}
     </TeamContext.Provider>
   );
