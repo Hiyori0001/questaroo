@@ -1,4 +1,3 @@
-import { MadeWithDyad } from "@/components/made-with-dyad";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { MapPin, Info, Gamepad2 } from "lucide-react"; // Import Gamepad2 icon
@@ -31,7 +30,6 @@ const Index = () => {
           </Link>
         </div>
       </div>
-      <MadeWithDyad />
     </div>
   );
 };

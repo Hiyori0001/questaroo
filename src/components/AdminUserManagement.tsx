@@ -36,7 +36,7 @@ interface AdminProfile {
 
 // IMPORTANT: Replace this with the actual Supabase user ID (UUID) of your developer account.
 // This user will be considered the "Head Admin" with full control.
-const DEVELOPER_USER_ID = "$$DEVELOPER_USER_ID$$"; 
+const DEVELOPER_USER_ID = "6187dac6-1eac-4d78-ab27-61e31c334a05"; 
 
 const AdminUserManagement = () => {
   const { user: currentUser } = useAuth(); // Get the currently logged-in user
