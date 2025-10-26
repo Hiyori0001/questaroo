@@ -44,6 +44,7 @@ const RecenterAutomatically = ({ lat, lng }: { lat: number; lng: number }) => {
 
 const QuestMap: React.FC<QuestMapProps> = ({ quests, userLocation, onLocationFound, locationLoading }) => {
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([34.052235, -118.243683]); // Default to Los Angeles
+  const [isClient, setIsClient] = useState(false); // New state for client-side rendering
 
   // Effect to set initial map center if user location is available
   useEffect(() => {
@@ -51,6 +52,11 @@ const QuestMap: React.FC<QuestMapProps> = ({ quests, userLocation, onLocationFou
       setMapCenter(userLocation);
     }
   }, [userLocation]);
+
+  // Set isClient to true once the component mounts on the client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -94,44 +100,50 @@ const QuestMap: React.FC<QuestMapProps> = ({ quests, userLocation, onLocationFou
         </Button>
       </CardHeader>
       <CardContent className="flex-grow p-0">
-        <MapContainer center={mapCenter} zoom={13} scrollWheelZoom={true} className="h-full w-full z-0">
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {userLocation && (
-            <Marker position={userLocation} icon={userLocationIcon}>
-              <Popup>You are here!</Popup>
-            </Marker>
-          )}
-          {quests.map((quest) => {
-            if (quest.latitude !== undefined && quest.longitude !== undefined) {
-              const position: LatLngExpression = [quest.latitude, quest.longitude];
-              return (
-                <Marker key={quest.id} position={position} icon={questIcon}>
-                  <Popup>
-                    <Card className="w-64">
-                      <CardHeader className="p-3 pb-1">
-                        <CardTitle className="text-lg font-bold">{quest.title}</CardTitle>
-                        <CardDescription className="text-sm">{quest.location}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="p-3 pt-1">
-                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 line-clamp-2">{quest.description}</p>
-                        <Link to={`/location-quests/${quest.id}`}>
-                          <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
-                            View Quest
-                          </Button>
-                        </Link>
-                      </CardContent>
-                    </Card>
-                  </Popup>
-                </Marker>
-              );
-            }
-            return null;
-          })}
-          {userLocation && <RecenterAutomatically lat={(userLocation as [number, number])[0]} lng={(userLocation as [number, number])[1]} />}
-        </MapContainer>
+        {isClient ? ( // Conditionally render MapContainer only on the client
+          <MapContainer center={mapCenter} zoom={13} scrollWheelZoom={true} className="h-full w-full z-0">
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {userLocation && (
+              <Marker position={userLocation} icon={userLocationIcon}>
+                <Popup>You are here!</Popup>
+              </Marker>
+            )}
+            {quests.map((quest) => {
+              if (quest.latitude !== undefined && quest.longitude !== undefined) {
+                const position: LatLngExpression = [quest.latitude, quest.longitude];
+                return (
+                  <Marker key={quest.id} position={position} icon={questIcon}>
+                    <Popup>
+                      <Card className="w-64">
+                        <CardHeader className="p-3 pb-1">
+                          <CardTitle className="text-lg font-bold">{quest.title}</CardTitle>
+                          <CardDescription className="text-sm">{quest.location}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-3 pt-1">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 mb-2 line-clamp-2">{quest.description}</p>
+                          <Link to={`/location-quests/${quest.id}`}>
+                            <Button size="sm" className="w-full bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600">
+                              View Quest
+                            </Button>
+                          </Link>
+                        </CardContent>
+                      </Card>
+                    </Popup>
+                  </Marker>
+                );
+              }
+              return null;
+            })}
+            {userLocation && <RecenterAutomatically lat={(userLocation as [number, number])[0]} lng={(userLocation as [number, number])[1]} />}
+          </MapContainer>
+        ) : (
+          <div className="flex items-center justify-center h-full text-lg text-gray-500 dark:text-gray-400">
+            Loading map...
+          </div>
+        )}
       </CardContent>
     </Card>
   );
