@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX, LocateFixed, Compass } from "lucide-react"; // Added LocateFixed, Compass icons
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX, LocateFixed, Compass, Camera } from "lucide-react"; // Added Camera icon
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -12,9 +12,10 @@ import { allDummyQuests, Quest } from "@/data/quests";
 import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
+import QuestImageUploader from "@/components/QuestImageUploader"; // Import new component
 import { useUserQuests } from "@/contexts/UserQuestsContext";
 import { useTeams } from "@/contexts/TeamContext";
-import { haversineDistance } from "@/utils/location"; // Import haversineDistance
+import { haversineDistance } from "@/utils/location";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,10 +56,11 @@ const QuestDetailsPage = () => {
   const [completionAnswer, setCompletionAnswer] = useState("");
   const [showCompletionInput, setShowCompletionInput] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
+  const [showImageUploader, setShowImageUploader] = useState(false); // New state for image uploader
   const [isUserCreatedQuest, setIsUserCreatedQuest] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [isQuestUnlocked, setIsQuestUnlocked] = useState(false);
-  const [locationVerificationLoading, setLocationVerificationLoading] = useState(false); // New state for location loading
+  const [locationVerificationLoading, setLocationVerificationLoading] = useState(false);
 
   const getRequiredXp = (difficulty: Quest["difficulty"]) => {
     switch (difficulty) {
@@ -133,6 +135,7 @@ const QuestDetailsPage = () => {
     setQuestStarted(false);
     setShowCompletionInput(false);
     setShowQrScanner(false);
+    setShowImageUploader(false); // Close image uploader
     setCompletionAnswer("");
     toast.success(`Quest "${quest.title}" completed! You earned ${xpForDifficulty} XP!`);
   };
@@ -155,6 +158,7 @@ const QuestDetailsPage = () => {
     setQuestStarted(true);
     setShowCompletionInput(false);
     setShowQrScanner(false);
+    setShowImageUploader(false); // Ensure image uploader is closed
     setCompletionAnswer("");
     toast.success(`Starting quest: ${quest.title}! Good luck!`);
   };
@@ -200,8 +204,9 @@ const QuestDetailsPage = () => {
       setShowQrScanner(true);
     } else if (quest.completionTask) {
       setShowCompletionInput(true);
+    } else if (quest.completionImagePrompt) { // New: Handle image upload
+      setShowImageUploader(true);
     } else if (quest.latitude !== undefined && quest.longitude !== undefined && quest.verificationRadius !== undefined) {
-      // If location-based, trigger location verification directly
       handleVerifyLocation();
     } else {
       toast.info("No specific completion task for this quest. Completing now!");
@@ -223,6 +228,13 @@ const QuestDetailsPage = () => {
     } else {
       toast.error("Incorrect QR code. Please try again!");
     }
+  };
+
+  const handleImageUploadSubmit = (imageUrl: string) => {
+    // For now, successful upload means completion.
+    // In a real app, an admin might review the image.
+    console.log("Image uploaded for quest completion:", imageUrl);
+    completeQuestLogic();
   };
 
   const handleVerifyLocation = () => {
@@ -355,6 +367,11 @@ const QuestDetailsPage = () => {
                 <LocateFixed className="h-4 w-4" /> Location Verification ({quest.verificationRadius}m)
               </Badge>
             )}
+            {quest.completionImagePrompt && (
+              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                <Camera className="h-4 w-4" /> Image Upload
+              </Badge>
+            )}
           </div>
 
           {!user && (
@@ -379,7 +396,7 @@ const QuestDetailsPage = () => {
             </Button>
           )}
 
-          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && !isCreator && (
+          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && !showImageUploader && !isCreator && (
             <Button
               onClick={handleAttemptCompletion}
               className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
@@ -388,6 +405,10 @@ const QuestDetailsPage = () => {
               {quest.qrCode ? (
                 <>
                   <QrCode className="h-5 w-5 mr-2" /> Scan QR Code to Complete
+                </>
+              ) : quest.completionImagePrompt ? (
+                <>
+                  <Camera className="h-5 w-5 mr-2" /> Upload Image to Complete
                 </>
               ) : isLocationCompletionMethod ? (
                 <>
@@ -450,6 +471,16 @@ const QuestDetailsPage = () => {
           onClose={() => setShowQrScanner(false)}
           onScanComplete={handleQrScanSubmit}
           expectedQrCode={quest.qrCode}
+        />
+      )}
+
+      {quest.completionImagePrompt && (
+        <QuestImageUploader
+          isOpen={showImageUploader}
+          onClose={() => setShowImageUploader(false)}
+          onUploadComplete={handleImageUploadSubmit}
+          questId={quest.id}
+          completionImagePrompt={quest.completionImagePrompt}
         />
       )}
     </div>

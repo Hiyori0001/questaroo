@@ -24,7 +24,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setLoadingUserQuests(true);
     const { data, error } = await supabase
       .from('user_quests')
-      .select('*, latitude, longitude, verification_radius') // Select new columns
+      .select('*, latitude, longitude, verification_radius, completion_image_prompt') // Select new columns
       .eq('user_id', userId);
 
     if (error) {
@@ -44,6 +44,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         timeLimit: dbQuest.time_limit || undefined,
         completionTask: dbQuest.completion_task || undefined,
         qrCode: dbQuest.qr_code || undefined,
+        completionImagePrompt: dbQuest.completion_image_prompt || undefined, // Include completionImagePrompt
         user_id: dbQuest.user_id, // Include user_id
         latitude: dbQuest.latitude || undefined, // Include latitude
         longitude: dbQuest.longitude || undefined, // Include longitude
@@ -88,9 +89,10 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         time_limit: newQuest.timeLimit,
         completion_task: newQuest.completionTask,
         qr_code: newQuest.qrCode,
+        completion_image_prompt: newQuest.completionImagePrompt, // Insert completion_image_prompt
         latitude: newQuest.latitude,
         longitude: newQuest.longitude,
-        verification_radius: newQuest.verificationRadius, // Insert verification_radius
+        verification_radius: newQuest.verificationRadius,
       })
       .select()
       .single();
@@ -110,10 +112,11 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         timeLimit: data.time_limit || undefined,
         completionTask: data.completion_task || undefined,
         qrCode: data.qr_code || undefined,
+        completionImagePrompt: data.completion_image_prompt || undefined, // Include completionImagePrompt
         user_id: data.user_id,
         latitude: data.latitude || undefined,
         longitude: data.longitude || undefined,
-        verificationRadius: data.verification_radius || undefined, // Include verificationRadius
+        verificationRadius: data.verification_radius || undefined,
       };
       setUserQuests((prevQuests) => [...prevQuests, addedQuest]);
       toast.success(`Quest "${newQuest.title}" created successfully!`);

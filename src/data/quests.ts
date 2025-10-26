@@ -14,6 +14,7 @@ export interface Quest {
     answer: string;
   };
   qrCode?: string;
+  completionImagePrompt?: string; // New: Prompt for image verification
   user_id?: string; // Add optional user_id to track the creator
   latitude?: number; // New: Latitude for map
   longitude?: number; // New: Longitude for map
@@ -74,10 +75,7 @@ export const allDummyQuests: Quest[] = [
     difficulty: "Medium",
     reward: "400 XP, 'History Buff' Achievement",
     timeEstimate: "45-60 min",
-    completionTask: {
-      question: "What year was the Old Clock Tower built?",
-      answer: "1888",
-    },
+    completionImagePrompt: "Take a photo of the Old Clock Tower.", // Example image prompt
     latitude: 34.0500, // Example coordinate for LA historic
     longitude: -118.2500,
     verificationRadius: 75, // Example: 75 meters radius

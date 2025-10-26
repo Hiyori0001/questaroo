@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { PlusCircle, MapPin, QrCode, HelpCircle, LocateFixed } from "lucide-react"; // Added LocateFixed icon
+import { PlusCircle, MapPin, QrCode, HelpCircle, LocateFixed, Camera } from "lucide-react"; // Added Camera icon
 import { toast } from "sonner";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,14 +22,15 @@ const formSchema = z.object({
   location: z.string().min(3, { message: "Location must be at least 3 characters." }).max(100, { message: "Location must not exceed 100 characters." }),
   latitude: z.number().min(-90, { message: "Latitude must be between -90 and 90." }).max(90, { message: "Latitude must be between -90 and 90." }).optional(),
   longitude: z.number().min(-180, { message: "Longitude must be between -180 and 180." }).max(180, { message: "Longitude must be between -180 and 180." }).optional(),
-  verificationRadius: z.number().min(1, { message: "Radius must be at least 1 meter." }).max(1000, { message: "Radius must not exceed 1000 meters." }).optional(), // New: verificationRadius
+  verificationRadius: z.number().min(1, { message: "Radius must be at least 1 meter." }).max(1000, { message: "Radius must not exceed 1000 meters." }).optional(),
   timeLimit: z.string().optional(),
-  completionMethod: z.enum(["question", "qrCode", "location"], { // Added 'location'
+  completionMethod: z.enum(["question", "qrCode", "location", "imageUpload"], { // Added 'imageUpload'
     required_error: "Please select a completion method.",
   }),
   completionQuestion: z.string().optional(),
   completionAnswer: z.string().optional(),
   qrCode: z.string().optional(),
+  completionImagePrompt: z.string().optional(), // New: Image prompt field
 }).superRefine((data, ctx) => {
   if (data.completionMethod === "question") {
     if (!data.completionQuestion || data.completionQuestion.trim() === "") {
@@ -54,7 +55,7 @@ const formSchema = z.object({
         path: ["qrCode"],
       });
     }
-  } else if (data.completionMethod === "location") { // New validation for location method
+  } else if (data.completionMethod === "location") {
     if (data.latitude === undefined || data.longitude === undefined) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -72,6 +73,14 @@ const formSchema = z.object({
         code: z.ZodIssueCode.custom,
         message: "Verification Radius is required for 'Location' method.",
         path: ["verificationRadius"],
+      });
+    }
+  } else if (data.completionMethod === "imageUpload") { // New validation for image upload method
+    if (!data.completionImagePrompt || data.completionImagePrompt.trim() === "") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Image prompt is required for 'Image Upload' method.",
+        path: ["completionImagePrompt"],
       });
     }
   }
@@ -93,6 +102,7 @@ const CreateQuestPage = () => {
       completionQuestion: "",
       completionAnswer: "",
       qrCode: "",
+      completionImagePrompt: "", // Initialize new field
     },
   });
 
@@ -110,7 +120,7 @@ const CreateQuestPage = () => {
       timeLimit: values.timeLimit || undefined,
       latitude: values.latitude,
       longitude: values.longitude,
-      verificationRadius: values.verificationRadius, // Add verificationRadius
+      verificationRadius: values.verificationRadius,
     };
 
     if (values.completionMethod === "question" && values.completionQuestion && values.completionAnswer) {
@@ -120,6 +130,8 @@ const CreateQuestPage = () => {
       };
     } else if (values.completionMethod === "qrCode" && values.qrCode) {
       newQuest.qrCode = values.qrCode;
+    } else if (values.completionMethod === "imageUpload" && values.completionImagePrompt) {
+      newQuest.completionImagePrompt = values.completionImagePrompt;
     }
     // No specific completionTask or qrCode needed for 'location' method, as it uses lat/lon/radius
 
@@ -268,7 +280,8 @@ const CreateQuestPage = () => {
                       <SelectContent>
                         <SelectItem value="question">Question & Answer</SelectItem>
                         <SelectItem value="qrCode">QR Code Scan</SelectItem>
-                        <SelectItem value="location">Location Verification</SelectItem> {/* New option */}
+                        <SelectItem value="location">Location Verification</SelectItem>
+                        <SelectItem value="imageUpload">Image Upload</SelectItem> {/* New option */}
                       </SelectContent>
                     </Select>
                     <FormDescription>
@@ -339,7 +352,7 @@ const CreateQuestPage = () => {
                 />
               )}
 
-              {selectedCompletionMethod === "location" && ( // New fields for location verification
+              {selectedCompletionMethod === "location" && (
                 <>
                   <p className="text-sm text-muted-foreground">
                     For location verification, ensure you've provided Latitude and Longitude above.
@@ -369,6 +382,31 @@ const CreateQuestPage = () => {
                     )}
                   />
                 </>
+              )}
+
+              {selectedCompletionMethod === "imageUpload" && ( // New fields for image upload
+                <FormField
+                  control={form.control}
+                  name="completionImagePrompt"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                        <Camera className="h-4 w-4" /> Image Upload Prompt
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="e.g., Take a photo of yourself next to the fountain."
+                          className="resize-y min-h-[80px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Instruct players on what photo to take for quest completion.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
 
               <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
