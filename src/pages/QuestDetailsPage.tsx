@@ -67,6 +67,10 @@ const QuestDetailsPage = () => {
   const [locationVerificationLoading, setLocationVerificationLoading] = useState(false);
 
   const isCurrentUserHeadAdmin = user?.id === HEAD_ADMIN_ID;
+  // New: Check environment variable to allow Head Admin to complete their own quests
+  const allowHeadAdminSelfComplete = import.meta.env.VITE_ALLOW_HEAD_ADMIN_SELF_COMPLETE === 'true';
+  const canHeadAdminBypassCreatorRestriction = isCurrentUserHeadAdmin && allowHeadAdminSelfComplete;
+
 
   const getRequiredXp = (difficulty: Quest["difficulty"]) => {
     switch (difficulty) {
@@ -94,8 +98,8 @@ const QuestDetailsPage = () => {
         if (user && isCreatedByUser) {
           const creatorQuest = userQuests.find(uq => uq.id === foundQuest.id);
           // A user is the creator if their ID matches the quest's user_id,
-          // UNLESS they are the Head Admin, in which case they can bypass this.
-          setIsCreator(creatorQuest?.user_id === user.id && !isCurrentUserHeadAdmin);
+          // UNLESS they are the Head Admin AND the environment variable allows bypass.
+          setIsCreator(creatorQuest?.user_id === user.id && !canHeadAdminBypassCreatorRestriction);
         } else {
           setIsCreator(false);
         }
@@ -113,7 +117,7 @@ const QuestDetailsPage = () => {
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile, user, userQuests, isCurrentUserHeadAdmin]); // Added isCurrentUserHeadAdmin to dependencies
+  }, [id, navigate, profile, user, userQuests, canHeadAdminBypassCreatorRestriction]); // Added canHeadAdminBypassCreatorRestriction to dependencies
 
   if (loadingAuth || loadingProfile || loadingUserQuests || !quest) {
     return (
@@ -155,7 +159,7 @@ const QuestDetailsPage = () => {
       return;
     }
     // Allow Head Admin to start their own quests for testing
-    if (isCreator && !isCurrentUserHeadAdmin) {
+    if (isCreator && !canHeadAdminBypassCreatorRestriction) {
       toast.error("You cannot start a quest you created yourself.");
       return;
     }
@@ -179,7 +183,7 @@ const QuestDetailsPage = () => {
       return;
     }
     // Allow Head Admin to unlock their own quests for testing
-    if (isCreator && !isCurrentUserHeadAdmin) {
+    if (isCreator && !canHeadAdminBypassCreatorRestriction) {
       toast.error("You cannot unlock a quest you created yourself.");
       return;
     }
@@ -202,7 +206,7 @@ const QuestDetailsPage = () => {
       return;
     }
     // Allow Head Admin to complete their own quests for testing
-    if (isCreator && !isCurrentUserHeadAdmin) {
+    if (isCreator && !canHeadAdminBypassCreatorRestriction) {
       toast.error("You cannot complete a quest you created yourself.");
       return;
     }
@@ -253,7 +257,7 @@ const QuestDetailsPage = () => {
       return;
     }
     // Allow Head Admin to verify location for their own quests for testing
-    if (isCreator && !isCurrentUserHeadAdmin) {
+    if (isCreator && !canHeadAdminBypassCreatorRestriction) {
       toast.error("You cannot complete a quest you created yourself.");
       return;
     }
@@ -390,27 +394,27 @@ const QuestDetailsPage = () => {
             </p>
           )}
 
-          {user && isCreator && !isCurrentUserHeadAdmin && ( // Only show this message if not Head Admin
+          {user && isCreator && !canHeadAdminBypassCreatorRestriction && ( // Only show this message if not Head Admin and bypass is not active
             <p className="text-lg font-semibold text-red-600 dark:text-red-400 mt-4 flex items-center justify-center gap-2">
               <UserX className="h-5 w-5" /> You created this quest and cannot complete it yourself.
             </p>
           )}
 
-          {user && isQuestUnlocked && !questStarted && !questCompleted && (isCreator ? isCurrentUserHeadAdmin : true) && (
+          {user && isQuestUnlocked && !questStarted && !questCompleted && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
             <Button
               onClick={handleStartQuest}
               className="w-full mt-6 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-lg py-3"
-              disabled={!user || (isCreator && !isCurrentUserHeadAdmin)}
+              disabled={!user || (isCreator && !canHeadAdminBypassCreatorRestriction)}
             >
               Start Quest
             </Button>
           )}
 
-          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && !showImageUploader && (isCreator ? isCurrentUserHeadAdmin : true) && (
+          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && !showImageUploader && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
             <Button
               onClick={handleAttemptCompletion}
               className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
-              disabled={(isCreator && !isCurrentUserHeadAdmin) || locationVerificationLoading}
+              disabled={(isCreator && !canHeadAdminBypassCreatorRestriction) || locationVerificationLoading}
             >
               {quest.qrCode ? (
                 <>
@@ -437,7 +441,7 @@ const QuestDetailsPage = () => {
             </Button>
           )}
 
-          {questStarted && !questCompleted && showCompletionInput && quest.completionTask && (isCreator ? isCurrentUserHeadAdmin : true) && (
+          {questStarted && !questCompleted && showCompletionInput && quest.completionTask && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
             <div className="mt-6 space-y-4">
               <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 Completion Task: {quest.completionTask.question}
@@ -457,7 +461,7 @@ const QuestDetailsPage = () => {
               <Button
                 onClick={handleQuestionAnswerSubmit}
                 className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-lg py-3"
-                disabled={completionAnswer.trim() === "" || (isCreator && !isCurrentUserHeadAdmin)}
+                disabled={completionAnswer.trim() === "" || (isCreator && !canHeadAdminBypassCreatorRestriction)}
               >
                 <CheckCircle2 className="h-5 w-5 mr-2" /> Submit Answer & Complete Quest
               </Button>
