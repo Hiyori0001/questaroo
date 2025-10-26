@@ -50,7 +50,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log("TeamContext: Starting fetchTeams...");
     const { data, error } = await supabase
       .from('teams')
-      .select('*, profiles(count)') // Select teams and count profiles for each team
+      .select('*, profiles!team_id(count)') // Explicitly specify the foreign key relationship
       .order('score', { ascending: false });
 
     if (error) {
@@ -94,7 +94,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Fetch team details AND its member count directly
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
-        .select('*, profiles(count)') // Fetch member count here
+        .select('*, profiles!team_id(count)') // Explicitly specify the foreign key relationship here too
         .eq('id', profileData.team_id)
         .single();
 
