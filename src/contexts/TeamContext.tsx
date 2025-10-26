@@ -44,36 +44,62 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [loadingUserTeam, setLoadingUserTeam] = useState(true);
 
-  // Fetch all teams with member counts
+  // Fetch all teams and their member counts
   const fetchTeams = useCallback(async () => {
     setLoadingTeams(true);
     console.log("TeamContext: Starting fetchTeams...");
-    const { data, error } = await supabase
+    const { data: teamsData, error: teamsError } = await supabase
       .from('teams')
-      .select('*, profiles!team_id(count)') // Explicitly specify the foreign key relationship
+      .select('*') // Fetch teams without embedding profiles
       .order('score', { ascending: false });
 
-    if (error) {
-      console.error("TeamContext: Error fetching all teams:", error.message, error.details);
+    if (teamsError) {
+      console.error("TeamContext: Error fetching all teams:", teamsError.message, teamsError.details);
       toast.error("Failed to load teams.");
       setTeams([]);
-    } else {
-      console.log("TeamContext: Raw data from Supabase:", data);
-      const formattedTeams: Team[] = data.map(team => ({
-        id: team.id,
-        name: team.name,
-        description: team.description,
-        created_by: team.created_by,
-        score: team.score,
-        created_at: team.created_at,
-        member_count: team.profiles[0]?.count || 0, // Get member count from the aggregated data
-      }));
-      setTeams(formattedTeams);
-      console.log("TeamContext: Formatted teams for state:", formattedTeams);
+      setLoadingTeams(false);
+      return;
     }
+
+    console.log("TeamContext: Raw teams data from Supabase:", teamsData);
+
+    const teamsWithMemberCounts: Team[] = [];
+    for (const team of teamsData) {
+      const { count, error: countError } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact' }) // Select 'id' and get exact count
+        .eq('team_id', team.id);
+
+      if (countError) {
+        console.error(`TeamContext: Error fetching member count for team ${team.id}:`, countError.message, countError.details);
+        // Proceed with 0 count if error
+        teamsWithMemberCounts.push({
+          id: team.id,
+          name: team.name,
+          description: team.description,
+          created_by: team.created_by,
+          score: team.score,
+          created_at: team.created_at,
+          member_count: 0,
+        });
+      } else {
+        teamsWithMemberCounts.push({
+          id: team.id,
+          name: team.name,
+          description: team.description,
+          created_by: team.created_by,
+          score: team.score,
+          created_at: team.created_at,
+          member_count: count || 0,
+        });
+      }
+    }
+
+    setTeams(teamsWithMemberCounts);
+    console.log("TeamContext: Formatted teams for state:", teamsWithMemberCounts);
     setLoadingTeams(false);
     console.log("TeamContext: Finished fetchTeams.");
-  }, []); // No dependencies, so this function is stable
+  }, []);
 
   // Fetch the current user's team
   const fetchUserTeam = useCallback(async (userId: string) => {
@@ -91,35 +117,57 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserTeam(null);
     } else if (profileData?.team_id) {
       console.log("TeamContext: User profile has team_id:", profileData.team_id);
-      // Fetch team details AND its member count directly
-      const { data: teamData, error: teamError } = await supabase
+      // Fetch team details
+      const { data: teamDetails, error: teamDetailsError } = await supabase
         .from('teams')
-        .select('*, profiles!team_id(count)') // Explicitly specify the foreign key relationship here too
+        .select('*')
         .eq('id', profileData.team_id)
         .single();
 
-      if (teamError) {
-        console.error("TeamContext: Error fetching user's team details:", teamError.message, teamError.details);
+      if (teamDetailsError) {
+        console.error("TeamContext: Error fetching user's team details:", teamDetailsError.message, teamDetailsError.details);
         toast.error("Failed to load your team details.");
         setUserTeam(null);
+        setLoadingUserTeam(false);
+        return;
+      }
+
+      // Fetch member count for this specific team
+      const { count, error: countError } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact' })
+        .eq('team_id', teamDetails.id);
+
+      if (countError) {
+        console.error(`TeamContext: Error fetching member count for user's team ${teamDetails.id}:`, countError.message, countError.details);
+        // Proceed with 0 count if error
+        setUserTeam({
+          id: teamDetails.id,
+          name: teamDetails.name,
+          description: teamDetails.description,
+          created_by: teamDetails.created_by,
+          score: teamDetails.score,
+          created_at: teamDetails.created_at,
+          member_count: 0,
+        });
       } else {
         setUserTeam({
-          id: teamData.id,
-          name: teamData.name,
-          description: teamData.description,
-          created_by: teamData.created_by,
-          score: teamData.score,
-          created_at: teamData.created_at,
-          member_count: teamData.profiles[0]?.count || 0, // Get member count from this query
+          id: teamDetails.id,
+          name: teamDetails.name,
+          description: teamDetails.description,
+          created_by: teamDetails.created_by,
+          score: teamDetails.score,
+          created_at: teamDetails.created_at,
+          member_count: count || 0,
         });
-        console.log("TeamContext: User's team data set:", teamData);
       }
+      console.log("TeamContext: User's team data set:", teamDetails);
     } else {
       console.log("TeamContext: User profile has no team_id or profile not found.");
       setUserTeam(null);
     }
     setLoadingUserTeam(false);
-  }, [user]); // Now only depends on 'user', making it stable
+  }, [user]);
 
   // New function to fetch members of a specific team
   const fetchTeamMembers = useCallback(async (teamId: string): Promise<TeamMemberProfile[]> => {
