@@ -1,13 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Save, X, RefreshCw } from "lucide-react"; // Import RefreshCw icon
+import { Save, X, RefreshCw, Upload, Loader2 } from "lucide-react"; // Import Upload and Loader2 icons
 import { toast } from "sonner";
 import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
 
@@ -27,7 +27,10 @@ interface ProfileEditFormProps {
 }
 
 const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, onCancel }) => {
-  const { updateAvatar } = useUserProfile(); // Use the new updateAvatar function
+  const { updateAvatar, uploadAvatar } = useUserProfile(); // Use the new updateAvatar and uploadAvatar functions
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: initialData,
@@ -35,7 +38,32 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, 
 
   const onSubmit = (values: z.infer<typeof profileFormSchema>) => {
     onSave(values);
-    toast.success("Profile updated successfully!");
+    // toast.success("Profile updated successfully!"); // Toast is now handled by onSave in ProfilePage
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    } else {
+      setSelectedFile(null);
+    }
+  };
+
+  const handleUploadAvatar = async () => {
+    if (!selectedFile) {
+      toast.error("Please select an image file to upload.");
+      return;
+    }
+    setIsUploading(true);
+    try {
+      await uploadAvatar(selectedFile);
+      setSelectedFile(null); // Clear selected file after upload
+    } catch (error) {
+      console.error("Error during avatar upload:", error);
+      // toast.error is already handled by uploadAvatar
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -67,20 +95,55 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, 
             </FormItem>
           )}
         />
+
+        {/* Avatar Upload Section */}
+        <div className="space-y-2 pt-4 border-t dark:border-gray-700">
+          <FormLabel className="text-gray-800 dark:text-gray-200">Change Avatar</FormLabel>
+          <div className="flex flex-col sm:flex-row gap-3 items-center">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="flex-grow"
+              disabled={isUploading}
+            />
+            <Button
+              type="button"
+              onClick={handleUploadAvatar}
+              disabled={!selectedFile || isUploading}
+              className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" /> Upload Avatar
+                </>
+              )}
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Upload your own image or randomize your avatar below.
+          </p>
+        </div>
+
         <div className="flex justify-between items-center pt-4">
           <Button
             type="button"
             variant="outline"
             onClick={updateAvatar} // Call updateAvatar when this button is clicked
             className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+            disabled={isUploading}
           >
             <RefreshCw className="h-4 w-4 mr-2" /> Randomize Avatar
           </Button>
           <div className="flex gap-3">
-            <Button type="button" variant="outline" onClick={onCancel} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">
+            <Button type="button" variant="outline" onClick={onCancel} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600" disabled={isUploading}>
               <X className="h-4 w-4 mr-2" /> Cancel
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600" disabled={isUploading}>
               <Save className="h-4 w-4 mr-2" /> Save Changes
             </Button>
           </div>

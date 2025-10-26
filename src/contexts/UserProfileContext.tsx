@@ -50,7 +50,8 @@ interface UserProfileContextType {
   deductExperience: (xp: number) => Promise<boolean>; // New function to deduct XP
   addAchievement: (achievement: Achievement) => Promise<void>;
   updateProfileDetails: (name: string, email: string) => Promise<void>;
-  updateAvatar: () => Promise<void>; // New: Function to update avatar
+  updateAvatar: () => Promise<void>; // Function to update avatar with a random one
+  uploadAvatar: (file: File) => Promise<void>; // New: Function to upload a custom avatar
   getAchievementIcon: (iconName: string) => LucideIcon | undefined;
   startQuest: (questId: string) => Promise<void>; // New: Mark quest as started
   completeQuest: (questId: string) => Promise<void>; // New: Mark quest as completed
@@ -235,16 +236,13 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const [firstName, ...lastNameParts] = name.split(' ');
     const lastName = lastNameParts.join(' ');
 
-    // Note: Avatar URL is still generated based on name here.
-    // The new updateAvatar function will allow independent randomization.
-    const newAvatarUrl = `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(name)}`;
-
+    // Only update name fields in the database
     const { error } = await supabase
       .from('profiles')
       .update({
         first_name: firstName,
         last_name: lastName,
-        avatar_url: newAvatarUrl,
+        // Do NOT update avatar_url here, it's handled by updateAvatar or uploadAvatar
       })
       .eq('id', user.id);
 
@@ -268,7 +266,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         ...prev,
         name,
         email,
-        avatarUrl: newAvatarUrl,
+        avatarUrl: prev.avatarUrl, // Keep the existing avatarUrl
       } : null);
       toast.success("Profile updated successfully!");
     }
@@ -294,6 +292,55 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } else {
       setProfile((prev) => prev ? { ...prev, avatarUrl: newAvatarUrl } : null);
       toast.success("Avatar updated successfully!");
+    }
+  }, [user, profile]);
+
+  const uploadAvatar = useCallback(async (file: File) => {
+    if (!user || !profile) {
+      toast.error("You must be logged in to upload an avatar.");
+      return;
+    }
+
+    const fileExtension = file.name.split('.').pop();
+    const filePath = `${user.id}/avatar.${fileExtension}`; // Store in user's folder
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('avatars') // Assuming a bucket named 'avatars' exists
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: true, // Overwrite existing file if it has the same path
+      });
+
+    if (uploadError) {
+      console.error("Error uploading avatar:", uploadError);
+      toast.error("Failed to upload avatar: " + uploadError.message);
+      return;
+    }
+
+    // Get the public URL of the uploaded file
+    const { data: publicUrlData } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    if (!publicUrlData?.publicUrl) {
+      toast.error("Failed to get public URL for avatar.");
+      return;
+    }
+
+    const newAvatarUrl = publicUrlData.publicUrl;
+
+    // Update the profile table with the new avatar URL
+    const { error: updateProfileError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: newAvatarUrl })
+      .eq('id', user.id);
+
+    if (updateProfileError) {
+      console.error("Error updating profile with new avatar URL:", updateProfileError);
+      toast.error("Failed to update profile with new avatar.");
+    } else {
+      setProfile((prev) => prev ? { ...prev, avatarUrl: newAvatarUrl } : null);
+      toast.success("Custom avatar uploaded successfully!");
     }
   }, [user, profile]);
 
@@ -343,7 +390,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, updateAvatar, getAchievementIcon, startQuest, completeQuest }}>
+    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, updateAvatar, uploadAvatar, getAchievementIcon, startQuest, completeQuest }}>
       {children}
     </UserProfileContext.Provider>
   );
