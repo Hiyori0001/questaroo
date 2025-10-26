@@ -12,7 +12,14 @@ interface Team {
   created_by: string; // User ID of the creator
   score: number;
   created_at: string;
-  member_count?: number; // To store aggregated member count
+  member_count: number; // Now always available
+}
+
+interface TeamMemberProfile {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string;
 }
 
 interface TeamContextType {
@@ -24,7 +31,8 @@ interface TeamContextType {
   createTeam: (name: string, description: string) => Promise<void>;
   joinTeam: (teamId: string) => Promise<void>;
   leaveTeam: () => Promise<void>;
-  addTeamScore: (teamId: string, scoreToAdd: number) => Promise<void>; // New: Add function to update team score
+  addTeamScore: (teamId: string, scoreToAdd: number) => Promise<void>;
+  fetchTeamMembers: (teamId: string) => Promise<TeamMemberProfile[]>; // New: Fetch team members
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
@@ -36,12 +44,12 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [loadingUserTeam, setLoadingUserTeam] = useState(true);
 
-  // Fetch all teams
+  // Fetch all teams with member counts
   const fetchTeams = useCallback(async () => {
     setLoadingTeams(true);
     const { data, error } = await supabase
       .from('teams')
-      .select('*') // Simplified: Removed 'profiles(count)'
+      .select('*, profiles(count)') // Select teams and count profiles for each team
       .order('score', { ascending: false });
 
     if (error) {
@@ -56,7 +64,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         created_by: team.created_by,
         score: team.score,
         created_at: team.created_at,
-        // member_count: team.profiles[0]?.count || 0, // Removed member count for now
+        member_count: team.profiles[0]?.count || 0, // Get member count from the aggregated data
       }));
       setTeams(formattedTeams);
     }
@@ -79,7 +87,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else if (profileData?.team_id) {
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
-        .select('*') // Simplified: Removed 'profiles(count)'
+        .select('*, profiles(count)') // Also get member count for user's team
         .eq('id', profileData.team_id)
         .single();
 
@@ -95,7 +103,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_by: teamData.created_by,
           score: teamData.score,
           created_at: teamData.created_at,
-          // member_count: teamData.profiles[0]?.count || 0, // Removed member count for now
+          member_count: teamData.profiles[0]?.count || 0,
         });
       }
     } else {
@@ -104,13 +112,40 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoadingUserTeam(false);
   }, []);
 
-  // Define joinTeam before createTeam
+  // New function to fetch members of a specific team
+  const fetchTeamMembers = useCallback(async (teamId: string): Promise<TeamMemberProfile[]> => {
+    if (!user) {
+      toast.error("You must be logged in to view team members.");
+      return [];
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, first_name, last_name, avatar_url')
+      .eq('team_id', teamId);
+
+    if (error) {
+      console.error("Error fetching team members:", error);
+      toast.error("Failed to load team members.");
+      return [];
+    }
+
+    // The RLS policy on 'profiles' will automatically filter results based on user permissions.
+    // Admins will see all members. Team creators will see members of their team.
+    // Other users will only see their own profile if they are in that team.
+    return data.map(profile => ({
+      id: profile.id,
+      first_name: profile.first_name || "Adventure",
+      last_name: profile.last_name || "Seeker",
+      avatar_url: profile.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(profile.id)}`,
+    }));
+  }, [user]);
+
   const joinTeam = useCallback(async (teamId: string) => {
     if (!user) {
       toast.error("You must be logged in to join a team.");
       return;
     }
-    // Check if user is already in a team by checking the current userTeam state
     if (userTeam) {
       toast.error("You are already part of a team. Please leave your current team first.");
       return;
@@ -136,7 +171,6 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.error("You must be logged in to create a team.");
       return;
     }
-    // Check if user is already in a team by checking the current userTeam state
     if (userTeam) {
       toast.error("You are already part of a team. Please leave your current team first.");
       return;
@@ -152,8 +186,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Error creating team:", error);
       toast.error(`Failed to create team "${name}". ${error.message}`);
     } else {
-      // Automatically join the created team
-      await joinTeam(data.id);
+      await joinTeam(data.id); // Automatically join the created team
       toast.success(`Team "${name}" created successfully!`);
       fetchTeams(); // Refresh all teams
     }
@@ -190,7 +223,6 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    // Fetch current team score
     const { data: currentTeam, error: fetchError } = await supabase
       .from('teams')
       .select('score')
@@ -222,8 +254,6 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [user, userTeam, fetchTeams]);
 
-
-  // Effect to load teams and user's team on auth state change
   useEffect(() => {
     if (loadingAuth) {
       setLoadingTeams(true);
@@ -231,18 +261,18 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
-    fetchTeams(); // Always fetch all teams
+    fetchTeams();
 
     if (user) {
       fetchUserTeam(user.id);
     } else {
-      setUserTeam(null); // Clear user team if no user is logged in
+      setUserTeam(null);
       setLoadingUserTeam(false);
     }
   }, [user, loadingAuth, fetchTeams, fetchUserTeam]);
 
   return (
-    <TeamContext.Provider value={{ teams, userTeam, loadingTeams, loadingUserTeam, fetchTeams, createTeam, joinTeam, leaveTeam, addTeamScore }}>
+    <TeamContext.Provider value={{ teams, userTeam, loadingTeams, loadingUserTeam, fetchTeams, createTeam, joinTeam, leaveTeam, addTeamScore, fetchTeamMembers }}>
       {children}
     </TeamContext.Provider>
   );

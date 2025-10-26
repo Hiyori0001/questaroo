@@ -3,11 +3,12 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, Shield, Trophy, PlusCircle, LogOut, Loader2, AlertCircle, UserPlus } from "lucide-react";
+import { Users, Shield, Trophy, PlusCircle, LogOut, Loader2, AlertCircle, UserPlus, Eye } from "lucide-react"; // Added Eye icon
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useTeams } from "@/contexts/TeamContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
 import { toast } from "sonner";
 import {
   Dialog,
@@ -29,19 +30,29 @@ import {
 } from "@/components/ui/alert-dialog";
 import CreateTeamForm from "@/components/CreateTeamForm";
 import JoinTeamDialog from "@/components/JoinTeamDialog";
-import { Badge } from "@/components/ui/badge"; // Import Badge component
+import TeamMembersDialog from "@/components/TeamMembersDialog"; // Import new component
+import { Badge } from "@/components/ui/badge";
 
 const TeamsPage = () => {
   const { teams, userTeam, loadingTeams, loadingUserTeam, leaveTeam } = useTeams();
   const { user, loading: loadingAuth } = useAuth();
+  const { profile, loadingProfile } = useUserProfile(); // Get user profile for isAdmin check
+
   const [isCreateTeamDialogOpen, setIsCreateTeamDialogOpen] = useState(false);
   const [isJoinTeamDialogOpen, setIsJoinTeamDialogOpen] = useState(false);
+  const [isTeamMembersDialogOpen, setIsTeamMembersDialogOpen] = useState(false);
+  const [selectedTeamForMembers, setSelectedTeamForMembers] = useState<{ id: string; name: string } | null>(null);
 
   const handleLeaveTeam = async () => {
     await leaveTeam();
   };
 
-  if (loadingAuth || loadingTeams || loadingUserTeam) {
+  const handleViewMembers = (teamId: string, teamName: string) => {
+    setSelectedTeamForMembers({ id: teamId, name: teamName });
+    setIsTeamMembersDialogOpen(true);
+  };
+
+  if (loadingAuth || loadingTeams || loadingUserTeam || loadingProfile) { // Include loadingProfile
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
         <Loader2 className="h-12 w-12 animate-spin text-blue-600 dark:text-blue-400 mb-4" />
@@ -64,6 +75,8 @@ const TeamsPage = () => {
     );
   }
 
+  const isCurrentUserAdmin = profile?.isAdmin || false;
+
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-blue-50 to-purple-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
       <Card className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
@@ -85,25 +98,35 @@ const TeamsPage = () => {
                 <p className="flex items-center gap-1"><Users className="h-5 w-5" /> Members: {userTeam.member_count}</p>
                 <p className="flex items-center gap-1"><Trophy className="h-5 w-5 text-yellow-500" /> Score: {userTeam.score}</p>
               </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" className="mt-4 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
-                    <LogOut className="h-4 w-4 mr-2" /> Leave Team
+              <div className="flex justify-center gap-4 mt-4">
+                {(userTeam.created_by === user.id || isCurrentUserAdmin) && (
+                  <Button
+                    onClick={() => handleViewMembers(userTeam.id, userTeam.name)}
+                    className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  >
+                    <Eye className="h-4 w-4 mr-2" /> View Members
                   </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-white dark:bg-gray-800">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-gray-900 dark:text-white">Are you sure you want to leave your team?</AlertDialogTitle>
-                    <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
-                      You will no longer be part of "{userTeam.name}" and will lose team benefits.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleLeaveTeam} className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">Leave Team</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+                )}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
+                      <LogOut className="h-4 w-4 mr-2" /> Leave Team
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-white dark:bg-gray-800">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-gray-900 dark:text-white">Are you sure you want to leave your team?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
+                        You will no longer be part of "{userTeam.name}" and will lose team benefits.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleLeaveTeam} className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">Leave Team</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           ) : (
             <div className="mb-8 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800 shadow-sm">
@@ -159,7 +182,7 @@ const TeamsPage = () => {
                   <TableHead className="text-left">Description</TableHead>
                   <TableHead className="text-center">Members</TableHead>
                   <TableHead className="text-right">Score</TableHead>
-                  <TableHead className="text-center">Action</TableHead>
+                  <TableHead className="text-center">Actions</TableHead> {/* Changed to Actions */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -180,22 +203,34 @@ const TeamsPage = () => {
                       <Trophy className="h-4 w-4 text-yellow-500 mr-1" /> {team.score}
                     </TableCell>
                     <TableCell className="text-center">
-                      {!userTeam && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setIsJoinTeamDialogOpen(true); // Open the join dialog
-                            toast.info(`Select "${team.name}" to join.`);
-                          }}
-                          className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-gray-600"
-                        >
-                          Join
-                        </Button>
-                      )}
-                      {userTeam && userTeam.id === team.id && (
-                        <Badge className="bg-blue-500 dark:bg-blue-700 text-white">Your Team</Badge>
-                      )}
+                      <div className="flex justify-center gap-2">
+                        {!userTeam && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setIsJoinTeamDialogOpen(true);
+                              toast.info(`Select "${team.name}" to join.`);
+                            }}
+                            className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-gray-600"
+                          >
+                            Join
+                          </Button>
+                        )}
+                        {userTeam && userTeam.id === team.id && (
+                          <Badge className="bg-blue-500 dark:bg-blue-700 text-white">Your Team</Badge>
+                        )}
+                        {(team.created_by === user.id || isCurrentUserAdmin) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewMembers(team.id, team.name)}
+                            className="border-gray-400 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -204,6 +239,15 @@ const TeamsPage = () => {
           )}
         </CardContent>
       </Card>
+
+      {selectedTeamForMembers && (
+        <TeamMembersDialog
+          isOpen={isTeamMembersDialogOpen}
+          onClose={() => setIsTeamMembersDialogOpen(false)}
+          teamId={selectedTeamForMembers.id}
+          teamName={selectedTeamForMembers.name}
+        />
+      )}
     </div>
   );
 };
