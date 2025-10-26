@@ -7,23 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import QuestList from "@/components/QuestList";
-import QuestMapPlaceholder from "@/components/QuestMapPlaceholder";
+import QuestMap from "@/components/QuestMap"; // Import the new QuestMap component
 import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
-import { useUserQuests } from "@/contexts/UserQuestsContext"; // Import useUserQuests
+import { useUserQuests } from "@/contexts/UserQuestsContext";
 
 const LocationQuests = () => {
-  const { userQuests, loadingUserQuests } = useUserQuests(); // Get user-created quests
+  const { userQuests, loadingUserQuests } = useUserQuests();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
   const handleFindNearbyQuests = () => {
     setSelectedDifficulty("Easy");
-    toast.info("Searching for nearby quests... showing easy quests for now!");
+    setViewMode("map"); // Switch to map view when finding nearby quests
+    toast.info("Searching for nearby quests... showing easy quests on the map!");
   };
 
-  // Combine dummy quests and user-created quests
   const allAvailableQuests = [...allDummyQuests, ...userQuests];
 
   const filteredQuests = allAvailableQuests.filter(
@@ -65,12 +65,17 @@ const LocationQuests = () => {
             >
               <Compass className="h-5 w-5 mr-2" /> Find Nearby Quests
             </Button>
-            <Button size="lg" variant="outline" className="px-8 py-4 text-lg font-semibold border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-gray-600">
-              <Search className="h-5 w-5 mr-2" /> Explore Map
+            <Button
+              size="lg"
+              variant="outline"
+              className="px-8 py-4 text-lg font-semibold border-green-600 text-green-600 hover:bg-green-50 dark:border-green-500 dark:text-green-500 dark:hover:bg-gray-600"
+              onClick={() => setViewMode("map")} // Explicitly switch to map view
+            >
+              <Map className="h-5 w-5 mr-2" /> Explore Map
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
-            (Feature coming soon: GPS integration and interactive map)
+            (Map locations are illustrative; real GPS integration is planned.)
           </p>
         </CardContent>
       </Card>
@@ -123,7 +128,7 @@ const LocationQuests = () => {
         {viewMode === "list" ? (
           <QuestList quests={filteredQuests} />
         ) : (
-          <QuestMapPlaceholder />
+          <QuestMap quests={filteredQuests} />
         )}
       </div>
     </div>
