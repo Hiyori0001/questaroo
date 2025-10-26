@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, MapPin, Trash2, Eye } from "lucide-react";
+import { Loader2, AlertCircle, MapPin, Trash2, Eye, CheckCircle2, XCircle, Hourglass } from "lucide-react"; // Added CheckCircle2, XCircle, Hourglass
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
@@ -19,29 +19,60 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 
 interface AdminQuest extends Quest {
   is_user_created: boolean;
 }
 
+interface PendingImageSubmission {
+  id: string; // user_quest_progress ID
+  user_id: string;
+  quest_id: string;
+  completion_image_url: string;
+  quest_title: string;
+  user_name: string;
+  user_avatar_url: string;
+  xp_reward: number;
+  team_id: string | null;
+}
+
+const getXpForDifficulty = (difficulty: Quest["difficulty"]) => {
+  switch (difficulty) {
+    case "Easy":
+      return 100;
+    case "Medium":
+      return 250;
+    case "Hard":
+      return 500;
+    default:
+      return 0;
+  }
+};
+
 const AdminQuestManagement = () => {
+  const { user: currentUser } = useAuth();
+  const { profile: currentUserProfile, verifyQuestCompletion } = useUserProfile();
   const [quests, setQuests] = useState<AdminQuest[]>([]);
+  const [pendingSubmissions, setPendingSubmissions] = useState<PendingImageSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchQuests = useCallback(async () => {
+  const fetchQuestsAndSubmissions = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const { data, error: dbError } = await supabase
+      // Fetch all user-created quests
+      const { data: userQuestsData, error: userQuestsError } = await supabase
         .from('user_quests')
         .select('*');
 
-      if (dbError) {
-        throw dbError;
+      if (userQuestsError) {
+        throw userQuestsError;
       }
 
-      const userCreatedQuests: AdminQuest[] = data.map(dbQuest => ({
+      const userCreatedQuests: AdminQuest[] = userQuestsData.map(dbQuest => ({
         id: dbQuest.id,
         title: dbQuest.title,
         description: dbQuest.description,
@@ -55,6 +86,7 @@ const AdminQuestManagement = () => {
         user_id: dbQuest.user_id,
         latitude: dbQuest.latitude || undefined,
         longitude: dbQuest.longitude || undefined,
+        completionImagePrompt: dbQuest.completion_image_prompt || undefined,
         is_user_created: true,
       }));
 
@@ -64,18 +96,51 @@ const AdminQuestManagement = () => {
       }));
 
       setQuests([...dummyQuestsWithFlag, ...userCreatedQuests]);
+
+      // Fetch pending image submissions
+      const { data: pendingData, error: pendingError } = await supabase
+        .from('user_quest_progress')
+        .select(`
+          id,
+          user_id,
+          quest_id,
+          completion_image_url,
+          profiles!user_id(first_name, last_name, avatar_url, team_id),
+          user_quests!quest_id(title, difficulty)
+        `)
+        .eq('verification_status', 'pending');
+
+      if (pendingError) {
+        throw pendingError;
+      }
+
+      const formattedPending: PendingImageSubmission[] = pendingData
+        .filter(p => p.completion_image_url && p.user_quests) // Ensure image and quest details exist
+        .map(p => ({
+          id: p.id,
+          user_id: p.user_id,
+          quest_id: p.quest_id,
+          completion_image_url: p.completion_image_url!,
+          quest_title: p.user_quests?.title || "Unknown Quest",
+          user_name: `${p.profiles?.first_name || 'Adventure'} ${p.profiles?.last_name || 'Seeker'}`.trim(),
+          user_avatar_url: p.profiles?.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(p.user_id)}`,
+          xp_reward: getXpForDifficulty(p.user_quests?.difficulty as Quest["difficulty"] || "Easy"),
+          team_id: p.profiles?.team_id || null,
+        }));
+      setPendingSubmissions(formattedPending);
+
     } catch (err: any) {
-      console.error("Error fetching quests:", err.message);
-      setError("Failed to load quests: " + err.message);
-      toast.error("Failed to load quests.");
+      console.error("Error fetching admin data:", err.message);
+      setError("Failed to load admin data: " + err.message);
+      toast.error("Failed to load admin data.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [currentUserProfile]); // Depend on currentUserProfile to ensure admin status is loaded
 
   useEffect(() => {
-    fetchQuests();
-  }, [fetchQuests]);
+    fetchQuestsAndSubmissions();
+  }, [fetchQuestsAndSubmissions]);
 
   const handleDeleteQuest = async (questId: string, isUserCreated: boolean) => {
     if (!isUserCreated) {
@@ -95,10 +160,34 @@ const AdminQuestManagement = () => {
       }
 
       toast.success(`Quest ${questId} deleted successfully.`);
-      fetchQuests(); // Re-fetch to update UI
+      fetchQuestsAndSubmissions(); // Re-fetch to update UI
     } catch (err: any) {
       console.error("Error deleting quest:", err.message);
       toast.error("Failed to delete quest: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerify = async (submission: PendingImageSubmission, status: 'approved' | 'rejected') => {
+    if (!currentUserProfile?.isAdmin) {
+      toast.error("You do not have permission to verify quests.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await verifyQuestCompletion(
+        submission.user_id,
+        submission.quest_id,
+        status,
+        submission.xp_reward,
+        submission.quest_title,
+        submission.team_id
+      );
+      fetchQuestsAndSubmissions(); // Re-fetch to update UI
+    } catch (err: any) {
+      console.error("Error during verification:", err);
+      toast.error("Failed to process verification.");
     } finally {
       setLoading(false);
     }
@@ -108,7 +197,7 @@ const AdminQuestManagement = () => {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600 dark:text-blue-400" />
-        <p className="ml-3 text-lg text-gray-600 dark:text-gray-300">Loading quests...</p>
+        <p className="ml-3 text-lg text-gray-600 dark:text-gray-300">Loading admin data...</p>
       </div>
     );
   }
@@ -118,7 +207,7 @@ const AdminQuestManagement = () => {
       <div className="flex flex-col items-center justify-center h-64 text-red-600 dark:text-red-400">
         <AlertCircle className="h-10 w-10 mb-2" />
         <p className="text-lg text-center">{error}</p>
-        <Button onClick={fetchQuests} variant="link" className="mt-2 text-red-600 dark:text-red-400">
+        <Button onClick={fetchQuestsAndSubmissions} variant="link" className="mt-2 text-red-600 dark:text-red-400">
           Retry
         </Button>
       </div>
@@ -126,60 +215,104 @@ const AdminQuestManagement = () => {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="text-left">Title</TableHead>
-            <TableHead className="text-left">Location</TableHead>
-            <TableHead className="text-center">Difficulty</TableHead>
-            <TableHead className="text-center">Type</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {quests.map((questEntry) => (
-            <TableRow key={questEntry.id}>
-              <TableCell className="font-medium text-gray-800 dark:text-gray-200">{questEntry.title}</TableCell>
-              <TableCell className="text-gray-700 dark:text-gray-300">{questEntry.location}</TableCell>
-              <TableCell className="text-center text-gray-700 dark:text-gray-300">{questEntry.difficulty}</TableCell>
-              <TableCell className="text-center">
-                {questEntry.is_user_created ? "User-Created" : "Pre-defined"}
-              </TableCell>
-              <TableCell className="text-center">
-                <div className="flex justify-center gap-2">
-                  <Link to={`/location-quests/${questEntry.id}`}>
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  {questEntry.is_user_created && (
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm" disabled={loading}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent className="bg-white dark:bg-gray-800">
-                        <AlertDialogHeader>
-                          <AlertDialogTitle className="text-gray-900 dark:text-white">Confirm Deletion</AlertDialogTitle>
-                          <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
-                            Are you sure you want to delete quest "{questEntry.title}"? This action cannot be undone.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDeleteQuest(questEntry.id, questEntry.is_user_created)} className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">Delete</AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  )}
+    <div className="space-y-8">
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Pending Image Submissions</h3>
+      {pendingSubmissions.length === 0 ? (
+        <p className="text-lg text-gray-500 dark:text-gray-400 text-center">No pending image submissions.</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {pendingSubmissions.map((submission) => (
+            <Card key={submission.id} className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <img src={submission.user_avatar_url} alt={submission.user_name} className="h-10 w-10 rounded-full object-cover" />
+                <div>
+                  <p className="font-semibold text-gray-900 dark:text-white">{submission.user_name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">submitted for "{submission.quest_title}"</p>
                 </div>
-              </TableCell>
-            </TableRow>
+              </div>
+              <div className="mb-3">
+                <img src={submission.completion_image_url} alt="Quest Submission" className="w-full h-48 object-cover rounded-md border dark:border-gray-700" />
+              </div>
+              <div className="flex justify-center gap-2">
+                <Button
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+                  onClick={() => handleVerify(submission, 'approved')}
+                  disabled={loading}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" /> Approve
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+                  onClick={() => handleVerify(submission, 'rejected')}
+                  disabled={loading}
+                >
+                  <XCircle className="h-4 w-4 mr-1" /> Reject
+                </Button>
+              </div>
+            </Card>
           ))}
-        </TableBody>
-      </Table>
+        </div>
+      )}
+
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 mt-8">All Quests</h3>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="text-left">Title</TableHead>
+              <TableHead className="text-left">Location</TableHead>
+              <TableHead className="text-center">Difficulty</TableHead>
+              <TableHead className="text-center">Type</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {quests.map((questEntry) => (
+              <TableRow key={questEntry.id}>
+                <TableCell className="font-medium text-gray-800 dark:text-gray-200">{questEntry.title}</TableCell>
+                <TableCell className="text-gray-700 dark:text-gray-300">{questEntry.location}</TableCell>
+                <TableCell className="text-center text-gray-700 dark:text-gray-300">{questEntry.difficulty}</TableCell>
+                <TableCell className="text-center">
+                  {questEntry.is_user_created ? "User-Created" : "Pre-defined"}
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="flex justify-center gap-2">
+                    <Link to={`/location-quests/${questEntry.id}`}>
+                      <Button variant="outline" size="sm">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    {questEntry.is_user_created && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm" disabled={loading}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-white dark:bg-gray-800">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-gray-900 dark:text-white">Confirm Deletion</AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
+                              Are you sure you want to delete quest "{questEntry.title}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteQuest(questEntry.id, questEntry.is_user_created)} className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX, LocateFixed, Compass, Camera } from "lucide-react";
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX, LocateFixed, Compass, Camera, Hourglass, XCircle } from "lucide-react"; // Added Hourglass, XCircle
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import QuestImageUploader from "@/components/QuestImageUploader";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
 import { useTeams } from "@/contexts/TeamContext";
 import { haversineDistance } from "@/utils/location";
+import { supabase } from "@/lib/supabase"; // Import supabase client
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,17 +47,25 @@ const getXpForDifficulty = (difficulty: Quest["difficulty"]) => {
   }
 };
 
+interface UserQuestProgress {
+  quest_id: string;
+  status: 'started' | 'completed' | 'failed';
+  verification_status: 'pending' | 'approved' | 'rejected' | 'not_applicable';
+  completion_image_url: string | null;
+  started_at: string;
+  completed_at: string | null;
+}
+
 const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
-  const { profile, loadingProfile, addExperience, deductExperience, addAchievement, startQuest, completeQuest } = useUserProfile();
+  const { profile, loadingProfile, addExperience, deductExperience, addAchievement, startQuest, completeQuest, submitImageForVerification } = useUserProfile();
   const { userQuests, loadingUserQuests, removeQuest } = useUserQuests();
   const { userTeam, addTeamScore } = useTeams();
 
   const [quest, setQuest] = useState<Quest | null>(null);
-  const [questStarted, setQuestStarted] = useState(false);
-  const [questCompleted, setQuestCompleted] = useState(false);
+  const [userQuestProgress, setUserQuestProgress] = useState<UserQuestProgress | null>(null);
   const [completionAnswer, setCompletionAnswer] = useState("");
   const [showCompletionInput, setShowCompletionInput] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
@@ -67,10 +76,8 @@ const QuestDetailsPage = () => {
   const [locationVerificationLoading, setLocationVerificationLoading] = useState(false);
 
   const isCurrentUserHeadAdmin = user?.id === HEAD_ADMIN_ID;
-  // New: Check environment variable to allow Head Admin to complete their own quests
   const allowHeadAdminSelfComplete = import.meta.env.VITE_ALLOW_HEAD_ADMIN_SELF_COMPLETE === 'true';
   const canHeadAdminBypassCreatorRestriction = isCurrentUserHeadAdmin && allowHeadAdminSelfComplete;
-
 
   const getRequiredXp = (difficulty: Quest["difficulty"]) => {
     switch (difficulty) {
@@ -85,6 +92,24 @@ const QuestDetailsPage = () => {
     }
   };
 
+  const fetchUserQuestProgress = useCallback(async (userId: string, questId: string) => {
+    const { data, error } = await supabase
+      .from('user_quest_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('quest_id', questId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      console.error("Error fetching user quest progress:", error);
+      setUserQuestProgress(null);
+    } else if (data) {
+      setUserQuestProgress(data as UserQuestProgress);
+    } else {
+      setUserQuestProgress(null);
+    }
+  }, []);
+
   useEffect(() => {
     if (id) {
       const allAvailableQuests = [...allDummyQuests, ...userQuests];
@@ -97,27 +122,31 @@ const QuestDetailsPage = () => {
 
         if (user && isCreatedByUser) {
           const creatorQuest = userQuests.find(uq => uq.id === foundQuest.id);
-          // A user is the creator if their ID matches the quest's user_id,
-          // UNLESS they are the Head Admin AND the environment variable allows bypass.
           setIsCreator(creatorQuest?.user_id === user.id && !canHeadAdminBypassCreatorRestriction);
         } else {
           setIsCreator(false);
         }
 
         if (profile) {
-          if (profile.achievements.some(a => a.name === `Completed: ${foundQuest.title}`)) {
-            setQuestCompleted(true);
-          }
-
           const requiredXp = getRequiredXp(foundQuest.difficulty);
           setIsQuestUnlocked(profile.experience >= requiredXp);
+        }
+
+        if (user) {
+          fetchUserQuestProgress(user.id, foundQuest.id);
         }
       } else {
         toast.error("Quest not found!");
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile, user, userQuests, canHeadAdminBypassCreatorRestriction]); // Added canHeadAdminBypassCreatorRestriction to dependencies
+  }, [id, navigate, profile, user, userQuests, canHeadAdminBypassCreatorRestriction, fetchUserQuestProgress]);
+
+  const questStarted = userQuestProgress?.status === 'started';
+  const questCompleted = userQuestProgress?.status === 'completed';
+  const questFailed = userQuestProgress?.status === 'failed';
+  const isPendingVerification = userQuestProgress?.verification_status === 'pending';
+  const isRejectedVerification = userQuestProgress?.verification_status === 'rejected';
 
   if (loadingAuth || loadingProfile || loadingUserQuests || !quest) {
     return (
@@ -131,20 +160,23 @@ const QuestDetailsPage = () => {
   const requiredXpToUnlock = getRequiredXp(quest.difficulty);
 
   const completeQuestLogic = async () => {
+    // This function is now only for non-image verification quests
+    // For image quests, completion is handled by verifyQuestCompletion in UserProfileContext
     await addExperience(xpForDifficulty);
     await addAchievement({
       name: `Completed: ${quest.title}`,
       iconName: "Trophy",
       color: "bg-green-500",
     });
-    await completeQuest(quest.id);
+    await completeQuest(quest.id); // This now only updates status to 'completed'
 
     if (userTeam) {
       await addTeamScore(userTeam.id, xpForDifficulty);
     }
 
-    setQuestCompleted(true);
-    setQuestStarted(false);
+    // Re-fetch progress to update UI
+    if (user) fetchUserQuestProgress(user.id, quest.id);
+
     setShowCompletionInput(false);
     setShowQrScanner(false);
     setShowImageUploader(false);
@@ -158,7 +190,6 @@ const QuestDetailsPage = () => {
       navigate("/auth");
       return;
     }
-    // Allow Head Admin to start their own quests for testing
     if (isCreator && !canHeadAdminBypassCreatorRestriction) {
       toast.error("You cannot start a quest you created yourself.");
       return;
@@ -168,7 +199,8 @@ const QuestDetailsPage = () => {
       return;
     }
     await startQuest(quest.id);
-    setQuestStarted(true);
+    // Re-fetch progress to update UI
+    if (user) fetchUserQuestProgress(user.id, quest.id);
     setShowCompletionInput(false);
     setShowQrScanner(false);
     setShowImageUploader(false);
@@ -182,7 +214,6 @@ const QuestDetailsPage = () => {
       navigate("/auth");
       return;
     }
-    // Allow Head Admin to unlock their own quests for testing
     if (isCreator && !canHeadAdminBypassCreatorRestriction) {
       toast.error("You cannot unlock a quest you created yourself.");
       return;
@@ -205,13 +236,22 @@ const QuestDetailsPage = () => {
       navigate("/auth");
       return;
     }
-    // Allow Head Admin to complete their own quests for testing
     if (isCreator && !canHeadAdminBypassCreatorRestriction) {
       toast.error("You cannot complete a quest you created yourself.");
       return;
     }
     if (questCompleted) {
       toast.info("You've already completed this quest!");
+      return;
+    }
+    if (isPendingVerification) {
+      toast.info("Your submission is currently awaiting review.");
+      return;
+    }
+    if (isRejectedVerification) {
+      toast.info("Your previous submission was rejected. Please try again!");
+      // Optionally, allow re-submission by resetting status or showing uploader again
+      setShowImageUploader(true); // Allow re-upload
       return;
     }
 
@@ -229,34 +269,33 @@ const QuestDetailsPage = () => {
     }
   };
 
-  const handleQuestionAnswerSubmit = () => {
+  const handleQuestionAnswerSubmit = async () => {
     if (quest.completionTask && completionAnswer.toLowerCase().trim() === quest.completionTask.answer.toLowerCase().trim()) {
-      completeQuestLogic();
+      await completeQuestLogic();
     } else {
       toast.error("Incorrect answer. Try again!");
     }
   };
 
-  const handleQrScanSubmit = (scannedCode: string) => {
+  const handleQrScanSubmit = async (scannedCode: string) => {
     if (quest.qrCode && scannedCode.toUpperCase() === quest.qrCode.toUpperCase()) {
-      completeQuestLogic();
+      await completeQuestLogic();
     } else {
       toast.error("Incorrect QR code. Please try again!");
     }
   };
 
-  const handleImageUploadSubmit = (imageUrl: string) => {
-    console.log("Image uploaded for quest completion:", imageUrl);
-    completeQuestLogic();
+  const handleImageUploadSubmit = async () => {
+    // This function is now just a wrapper to trigger the uploader dialog
+    setShowImageUploader(true);
   };
 
-  const handleVerifyLocation = () => {
+  const handleVerifyLocation = async () => {
     if (!user) {
       toast.error("You must be logged in to verify location.");
       navigate("/auth");
       return;
     }
-    // Allow Head Admin to verify location for their own quests for testing
     if (isCreator && !canHeadAdminBypassCreatorRestriction) {
       toast.error("You cannot complete a quest you created yourself.");
       return;
@@ -273,13 +312,13 @@ const QuestDetailsPage = () => {
     setLocationVerificationLoading(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const userLat = position.coords.latitude;
           const userLon = position.coords.longitude;
           const distance = haversineDistance(userLat, userLon, quest.latitude!, quest.longitude!);
 
           if (distance <= quest.verificationRadius!) {
-            completeQuestLogic();
+            await completeQuestLogic();
             toast.success(`Location verified! You are ${distance.toFixed(2)} meters from the target.`);
           } else {
             toast.error(`You are too far! You are ${distance.toFixed(2)} meters away, but need to be within ${quest.verificationRadius} meters.`);
@@ -394,13 +433,13 @@ const QuestDetailsPage = () => {
             </p>
           )}
 
-          {user && isCreator && !canHeadAdminBypassCreatorRestriction && ( // Only show this message if not Head Admin and bypass is not active
+          {user && isCreator && !canHeadAdminBypassCreatorRestriction && (
             <p className="text-lg font-semibold text-red-600 dark:text-red-400 mt-4 flex items-center justify-center gap-2">
               <UserX className="h-5 w-5" /> You created this quest and cannot complete it yourself.
             </p>
           )}
 
-          {user && isQuestUnlocked && !questStarted && !questCompleted && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
+          {user && isQuestUnlocked && !questStarted && !questCompleted && !questFailed && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
             <Button
               onClick={handleStartQuest}
               className="w-full mt-6 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-lg py-3"
@@ -410,38 +449,56 @@ const QuestDetailsPage = () => {
             </Button>
           )}
 
-          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && !showImageUploader && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
-            <Button
-              onClick={handleAttemptCompletion}
-              className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
-              disabled={(isCreator && !canHeadAdminBypassCreatorRestriction) || locationVerificationLoading}
-            >
-              {quest.qrCode ? (
-                <>
-                  <QrCode className="h-5 w-5 mr-2" /> Scan QR Code to Complete
-                </>
-              ) : quest.completionImagePrompt ? (
-                <>
-                  <Camera className="h-5 w-5 mr-2" /> Upload Image to Complete
-                </>
-              ) : isLocationCompletionMethod ? (
-                <>
-                  {locationVerificationLoading ? (
-                    <Compass className="h-5 w-5 mr-2 animate-spin" />
-                  ) : (
-                    <LocateFixed className="h-5 w-5 mr-2" />
-                  )}
-                  {locationVerificationLoading ? "Verifying Location..." : "Verify Location to Complete"}
-                </>
+          {questStarted && !questCompleted && !questFailed && !showCompletionInput && !showQrScanner && !showImageUploader && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
+            <>
+              {isPendingVerification ? (
+                <Button
+                  className="w-full mt-6 bg-yellow-500 dark:bg-yellow-700 text-white text-lg py-3 cursor-not-allowed"
+                  disabled
+                >
+                  <Hourglass className="h-5 w-5 mr-2" /> Awaiting Review...
+                </Button>
+              ) : isRejectedVerification ? (
+                <Button
+                  onClick={handleAttemptCompletion} // Allow re-attempt
+                  className="w-full mt-6 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-lg py-3"
+                >
+                  <XCircle className="h-5 w-5 mr-2" /> Submission Rejected. Re-attempt?
+                </Button>
               ) : (
-                <>
-                  <HelpCircle className="h-5 w-5 mr-2" /> Ready to Complete?
-                </>
+                <Button
+                  onClick={handleAttemptCompletion}
+                  className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
+                  disabled={(isCreator && !canHeadAdminBypassCreatorRestriction) || locationVerificationLoading}
+                >
+                  {quest.qrCode ? (
+                    <>
+                      <QrCode className="h-5 w-5 mr-2" /> Scan QR Code to Complete
+                    </>
+                  ) : quest.completionImagePrompt ? (
+                    <>
+                      <Camera className="h-5 w-5 mr-2" /> Upload Image to Complete
+                    </>
+                  ) : isLocationCompletionMethod ? (
+                    <>
+                      {locationVerificationLoading ? (
+                        <Compass className="h-5 w-5 mr-2 animate-spin" />
+                      ) : (
+                        <LocateFixed className="h-5 w-5 mr-2" />
+                      )}
+                      {locationVerificationLoading ? "Verifying Location..." : "Verify Location to Complete"}
+                    </>
+                  ) : (
+                    <>
+                      <HelpCircle className="h-5 w-5 mr-2" /> Ready to Complete?
+                    </>
+                  )}
+                </Button>
               )}
-            </Button>
+            </>
           )}
 
-          {questStarted && !questCompleted && showCompletionInput && quest.completionTask && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
+          {questStarted && !questCompleted && !questFailed && showCompletionInput && quest.completionTask && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
             <div className="mt-6 space-y-4">
               <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 Completion Task: {quest.completionTask.question}
@@ -476,6 +533,15 @@ const QuestDetailsPage = () => {
               <CheckCircle2 className="h-5 w-5 mr-2" /> Quest Completed!
             </Button>
           )}
+
+          {questFailed && (
+            <Button
+              className="w-full mt-6 bg-red-400 dark:bg-red-600 text-lg py-3 cursor-not-allowed"
+              disabled
+            >
+              <XCircle className="h-5 w-5 mr-2" /> Quest Failed!
+            </Button>
+          )}
         </CardContent>
       </Card>
 
@@ -492,7 +558,6 @@ const QuestDetailsPage = () => {
         <QuestImageUploader
           isOpen={showImageUploader}
           onClose={() => setShowImageUploader(false)}
-          onUploadComplete={handleImageUploadSubmit}
           questId={quest.id}
           completionImagePrompt={quest.completionImagePrompt}
         />

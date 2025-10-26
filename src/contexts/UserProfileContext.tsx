@@ -54,7 +54,9 @@ interface UserProfileContextType {
   uploadAvatar: (file: File) => Promise<void>; // New: Function to upload a custom avatar
   getAchievementIcon: (iconName: string) => LucideIcon | undefined;
   startQuest: (questId: string) => Promise<void>; // New: Mark quest as started
-  completeQuest: (questId: string) => Promise<void>; // New: Mark quest as completed
+  completeQuest: (questId: string) => Promise<void>; // New: Mark quest as completed (now only updates status)
+  submitImageForVerification: (questId: string, imageFile: File) => Promise<void>; // New: Submit image for review
+  verifyQuestCompletion: (userId: string, questId: string, status: 'approved' | 'rejected', xpReward: number, questTitle: string, teamId?: string) => Promise<void>; // New: Creator/Admin verification
 }
 
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
@@ -353,7 +355,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const { error } = await supabase
       .from('user_quest_progress')
       .upsert(
-        { user_id: user.id, quest_id: questId, status: 'started', started_at: new Date().toISOString(), last_updated_at: new Date().toISOString() },
+        { user_id: user.id, quest_id: questId, status: 'started', started_at: new Date().toISOString(), last_updated_at: new Date().toISOString(), verification_status: 'not_applicable' }, // Default for non-image quests
         { onConflict: 'user_id, quest_id' } // Update if already exists
       );
 
@@ -365,6 +367,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [user]);
 
+  // This function now only updates the status to 'completed' without granting rewards
   const completeQuest = useCallback(async (questId: string) => {
     if (!user) {
       toast.error("You must be logged in to complete a quest.");
@@ -381,16 +384,149 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       console.error("Error completing quest:", error);
       toast.error("Failed to mark quest as completed.");
     } else {
+      // Rewards are now handled by verifyQuestCompletion
       toast.info("Quest progress updated to completed!");
     }
   }, [user]);
+
+  const submitImageForVerification = useCallback(async (questId: string, imageFile: File) => {
+    if (!user) {
+      throw new Error("User not authenticated.");
+    }
+
+    const fileExtension = imageFile.name.split('.').pop();
+    const filePath = `${user.id}/${questId}/${Date.now()}.${fileExtension}`;
+
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('quest-completion-images')
+      .upload(filePath, imageFile, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from('quest-completion-images')
+      .getPublicUrl(filePath);
+
+    if (!publicUrlData?.publicUrl) {
+      throw new Error("Failed to get public URL for uploaded image.");
+    }
+
+    const { error: updateError } = await supabase
+      .from('user_quest_progress')
+      .update({
+        completion_image_url: publicUrlData.publicUrl,
+        verification_status: 'pending',
+        status: 'started', // Keep status as 'started' until approved
+        last_updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', user.id)
+      .eq('quest_id', questId);
+
+    if (updateError) {
+      throw updateError;
+    }
+  }, [user]);
+
+  const verifyQuestCompletion = useCallback(async (
+    targetUserId: string,
+    questId: string,
+    status: 'approved' | 'rejected',
+    xpReward: number,
+    questTitle: string,
+    teamId?: string
+  ) => {
+    if (!user || !profile?.isAdmin) { // Only admins can verify
+      toast.error("You do not have permission to verify quests.");
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from('user_quest_progress')
+      .update({
+        verification_status: status,
+        status: status === 'approved' ? 'completed' : 'failed', // Mark as completed or failed
+        completed_at: status === 'approved' ? new Date().toISOString() : null,
+        last_updated_at: new Date().toISOString(),
+      })
+      .eq('user_id', targetUserId)
+      .eq('quest_id', questId);
+
+    if (updateError) {
+      console.error("Error updating quest verification status:", updateError);
+      toast.error("Failed to update quest verification status.");
+      return;
+    }
+
+    if (status === 'approved') {
+      // Grant XP and achievement to the target user
+      const { data: targetProfile, error: fetchProfileError } = await supabase
+        .from('profiles')
+        .select('experience, achievements')
+        .eq('id', targetUserId)
+        .single();
+
+      if (fetchProfileError || !targetProfile) {
+        console.error("Error fetching target user profile for rewards:", fetchProfileError);
+        toast.error("Failed to grant rewards: Could not fetch user profile.");
+        return;
+      }
+
+      const newExperience = targetProfile.experience + xpReward;
+      const newLevel = calculateLevel(newExperience);
+      const newAchievement: Achievement = {
+        name: `Completed: ${questTitle}`,
+        iconName: "Trophy",
+        color: "bg-green-500",
+      };
+      const updatedAchievements = targetProfile.achievements.some((a: Achievement) => a.name === newAchievement.name)
+        ? targetProfile.achievements
+        : [...targetProfile.achievements, newAchievement];
+
+      const { error: rewardError } = await supabase
+        .from('profiles')
+        .update({
+          experience: newExperience,
+          achievements: updatedAchievements,
+        })
+        .eq('id', targetUserId);
+
+      if (rewardError) {
+        console.error("Error granting rewards:", rewardError);
+        toast.error("Failed to grant XP and achievement.");
+      } else {
+        toast.success(`Quest "${questTitle}" approved! ${targetUserId} received ${xpReward} XP.`);
+        // Optionally update the current user's profile if it's the target user
+        if (user?.id === targetUserId) {
+          setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel, achievements: updatedAchievements } : null);
+        }
+      }
+
+      // Add team score if applicable
+      if (teamId) {
+        // This would ideally call a function from TeamContext to update team score
+        // For now, we'll just log it or add a placeholder
+        console.log(`Team ${teamId} would receive ${xpReward} points for quest ${questTitle}.`);
+        // You would call addTeamScore here if it were available in this context
+        // await addTeamScore(teamId, xpReward);
+      }
+
+    } else {
+      toast.info(`Quest "${questTitle}" rejected for ${targetUserId}.`);
+    }
+  }, [user, profile]);
+
 
   const getAchievementIcon = useCallback((iconName: string) => {
     return LucideIconMap[iconName];
   }, []);
 
   return (
-    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, updateAvatar, uploadAvatar, getAchievementIcon, startQuest, completeQuest }}>
+    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, updateAvatar, uploadAvatar, getAchievementIcon, startQuest, completeQuest, submitImageForVerification, verifyQuestCompletion }}>
       {children}
     </UserProfileContext.Provider>
   );

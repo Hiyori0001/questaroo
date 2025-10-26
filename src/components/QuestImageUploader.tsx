@@ -8,17 +8,18 @@ import { Camera, CheckCircle2, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
 
 interface QuestImageUploaderProps {
   isOpen: boolean;
   onClose: () => void;
-  onUploadComplete: (imageUrl: string) => void;
   questId: string;
   completionImagePrompt: string;
 }
 
-const QuestImageUploader: React.FC<QuestImageUploaderProps> = ({ isOpen, onClose, onUploadComplete, questId, completionImagePrompt }) => {
+const QuestImageUploader: React.FC<QuestImageUploaderProps> = ({ isOpen, onClose, questId, completionImagePrompt }) => {
   const { user } = useAuth();
+  const { submitImageForVerification } = useUserProfile(); // Use new function from context
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -45,36 +46,13 @@ const QuestImageUploader: React.FC<QuestImageUploaderProps> = ({ isOpen, onClose
     }
 
     setIsUploading(true);
-    const fileExtension = selectedFile.name.split('.').pop();
-    // Store images in a path like: quest-completion-images/user_id/quest_id/timestamp.ext
-    const filePath = `${user.id}/${questId}/${Date.now()}.${fileExtension}`;
-
     try {
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('quest-completion-images')
-        .upload(filePath, selectedFile, {
-          cacheControl: '3600',
-          upsert: false, // Do not upsert, create new file each time
-        });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data: publicUrlData } = supabase.storage
-        .from('quest-completion-images')
-        .getPublicUrl(filePath);
-
-      if (!publicUrlData?.publicUrl) {
-        throw new Error("Failed to get public URL for uploaded image.");
-      }
-
-      onUploadComplete(publicUrlData.publicUrl);
-      toast.success("Image uploaded successfully for quest completion!");
+      await submitImageForVerification(questId, selectedFile);
+      toast.success("Image uploaded! Awaiting quest creator's review.");
       handleClose();
     } catch (error: any) {
-      console.error("Error uploading image:", error);
-      toast.error("Failed to upload image: " + error.message);
+      console.error("Error during image submission:", error);
+      toast.error("Failed to submit image: " + error.message);
     } finally {
       setIsUploading(false);
     }
