@@ -24,7 +24,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setLoadingUserQuests(true);
     const { data, error } = await supabase
       .from('user_quests')
-      .select('*')
+      .select('*, latitude, longitude') // Select new columns
       .eq('user_id', userId);
 
     if (error) {
@@ -45,6 +45,8 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         completionTask: dbQuest.completion_task || undefined,
         qrCode: dbQuest.qr_code || undefined,
         user_id: dbQuest.user_id, // Include user_id
+        latitude: dbQuest.latitude || undefined, // Include latitude
+        longitude: dbQuest.longitude || undefined, // Include longitude
       }));
       setUserQuests(fetchedQuests);
     }
@@ -85,6 +87,8 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         time_limit: newQuest.timeLimit,
         completion_task: newQuest.completionTask,
         qr_code: newQuest.qrCode,
+        latitude: newQuest.latitude, // Insert latitude
+        longitude: newQuest.longitude, // Insert longitude
       })
       .select()
       .single();
@@ -105,6 +109,8 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         completionTask: data.completion_task || undefined,
         qrCode: data.qr_code || undefined,
         user_id: data.user_id, // Include user_id
+        latitude: data.latitude || undefined, // Include latitude
+        longitude: data.longitude || undefined, // Include longitude
       };
       setUserQuests((prevQuests) => [...prevQuests, addedQuest]);
       toast.success(`Quest "${newQuest.title}" created successfully!`);

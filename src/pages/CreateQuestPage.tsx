@@ -20,6 +20,8 @@ const formSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters." }).max(100, { message: "Title must not exceed 100 characters." }),
   description: z.string().min(20, { message: "Description must be at least 20 characters." }).max(500, { message: "Description must not exceed 500 characters." }),
   location: z.string().min(3, { message: "Location must be at least 3 characters." }).max(100, { message: "Location must not exceed 100 characters." }),
+  latitude: z.number().min(-90, { message: "Latitude must be between -90 and 90." }).max(90, { message: "Latitude must be between -90 and 90." }).optional(),
+  longitude: z.number().min(-180, { message: "Longitude must be between -180 and 180." }).max(180, { message: "Longitude must be between -180 and 180." }).optional(),
   timeLimit: z.string().optional(), // New: Optional time limit field
   completionMethod: z.enum(["question", "qrCode"], {
     required_error: "Please select a completion method.",
@@ -62,6 +64,8 @@ const CreateQuestPage = () => {
       title: "",
       description: "",
       location: "",
+      latitude: undefined,
+      longitude: undefined,
       timeLimit: "", // Default value for new field
       completionMethod: "question", // Default to question
       completionQuestion: "",
@@ -82,6 +86,8 @@ const CreateQuestPage = () => {
       reward: "User-Created XP", // Default reward
       timeEstimate: "Variable", // Default time estimate
       timeLimit: values.timeLimit || undefined, // Add timeLimit
+      latitude: values.latitude, // Add latitude
+      longitude: values.longitude, // Add longitude
     };
 
     if (values.completionMethod === "question" && values.completionQuestion && values.completionAnswer) {
@@ -155,6 +161,55 @@ const CreateQuestPage = () => {
                   </FormItem>
                 )}
               />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="latitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-800 dark:text-gray-200">Latitude (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="any"
+                          placeholder="e.g., 34.0522"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                          value={field.value === undefined ? "" : field.value}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Geographic coordinate for the quest location.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="longitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-800 dark:text-gray-200">Longitude (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="any"
+                          placeholder="e.g., -118.2437"
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                          value={field.value === undefined ? "" : field.value}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Geographic coordinate for the quest location.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               {/* New Time Limit Field */}
               <FormField

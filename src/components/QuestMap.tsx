@@ -28,6 +28,9 @@ const userLocationIcon = new Icon({
 
 interface QuestMapProps {
   quests: Quest[];
+  userLocation: LatLngExpression | null; // Pass userLocation as prop
+  onLocationFound: (latlng: LatLngExpression) => void; // Callback for when location is found
+  locationLoading: boolean; // Pass loading state
 }
 
 // Helper component to recenter map
@@ -39,51 +42,33 @@ const RecenterAutomatically = ({ lat, lng }: { lat: number; lng: number }) => {
   return null;
 };
 
-const QuestMap: React.FC<QuestMapProps> = ({ quests }) => {
-  const [userLocation, setUserLocation] = useState<LatLngExpression | null>(null);
+const QuestMap: React.FC<QuestMapProps> = ({ quests, userLocation, onLocationFound, locationLoading }) => {
   const [mapCenter, setMapCenter] = useState<LatLngExpression>([34.052235, -118.243683]); // Default to Los Angeles
-  const [locationLoading, setLocationLoading] = useState(false);
+
+  // Effect to set initial map center if user location is available
+  useEffect(() => {
+    if (userLocation) {
+      setMapCenter(userLocation);
+    }
+  }, [userLocation]);
 
   const getUserLocation = () => {
-    setLocationLoading(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
-          setUserLocation([latitude, longitude]);
-          setMapCenter([latitude, longitude]); // Center map on user
-          setLocationLoading(false);
+          const latlng: LatLngExpression = [latitude, longitude];
+          onLocationFound(latlng); // Call the callback
           toast.success("Your location has been found!");
         },
         (error) => {
           console.error("Error getting user location:", error);
           toast.error("Failed to get your location. Please enable location services.");
-          setLocationLoading(false);
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
       );
     } else {
       toast.error("Geolocation is not supported by your browser.");
-      setLocationLoading(false);
-    }
-  };
-
-  // Effect to get user location on mount
-  useEffect(() => {
-    getUserLocation();
-  }, []);
-
-  // Dummy function to convert location string to LatLng.
-  // In a real app, you'd use a geocoding service.
-  const geocodeLocation = (locationName: string): LatLngExpression | null => {
-    switch (locationName.toLowerCase()) {
-      case "central park, new york": return [40.785091, -73.968285];
-      case "downtown city center": return [34.0437, -118.2645]; // Example for LA downtown
-      case "riverside promenade": return [34.0000, -118.2000]; // Example for LA riverside
-      case "old town historic district": return [34.0500, -118.2500]; // Example for LA historic
-      case "museum quarter, cityville": return [34.0600, -118.2800]; // Example for LA museum
-      case "green valley park": return [34.0800, -118.3000]; // Example for LA park
-      default: return null;
     }
   };
 
@@ -120,8 +105,8 @@ const QuestMap: React.FC<QuestMapProps> = ({ quests }) => {
             </Marker>
           )}
           {quests.map((quest) => {
-            const position = geocodeLocation(quest.location);
-            if (position) {
+            if (quest.latitude !== undefined && quest.longitude !== undefined) {
+              const position: LatLngExpression = [quest.latitude, quest.longitude];
               return (
                 <Marker key={quest.id} position={position} icon={questIcon}>
                   <Popup>

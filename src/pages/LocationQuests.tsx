@@ -1,39 +1,109 @@
 "use client";
 
-import React, { useState, Suspense } from "react"; // Import Suspense
+import React, { useState, Suspense, useEffect, useCallback } from "react"; // Import Suspense, useEffect, useCallback
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { MapPin, Compass, Search, List, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import QuestList from "@/components/QuestList";
-// import QuestMap from "@/components/QuestMap"; // Remove direct import
 import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
+import { LatLngExpression } from "leaflet"; // Import LatLngExpression
 
 // Dynamically import QuestMap
 const QuestMap = React.lazy(() => import("@/components/QuestMap"));
+
+// Haversine formula to calculate distance between two lat/lon points in meters
+const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371e3; // metres
+  const φ1 = lat1 * Math.PI / 180; // φ, λ in radians
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) *
+            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // in metres
+};
 
 const LocationQuests = () => {
   const { userQuests, loadingUserQuests } = useUserQuests();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
+  const [userLocation, setUserLocation] = useState<LatLngExpression | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [proximityRadius, setProximityRadius] = useState(5000); // Default 5km radius for nearby quests
+
+  const handleLocationFound = useCallback((latlng: LatLngExpression) => {
+    setUserLocation(latlng);
+    setLocationLoading(false);
+  }, []);
+
+  const getUserLocation = () => {
+    setLocationLoading(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          handleLocationFound([latitude, longitude]);
+          toast.success("Your location has been found!");
+        },
+        (error) => {
+          console.error("Error getting user location:", error);
+          toast.error("Failed to get your location. Please enable location services.");
+          setLocationLoading(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      toast.error("Geolocation is not supported by your browser.");
+      setLocationLoading(false);
+    }
+  };
+
+  // Get user location on component mount
+  useEffect(() => {
+    getUserLocation();
+  }, []);
 
   const handleFindNearbyQuests = () => {
-    setSelectedDifficulty("Easy");
+    if (!userLocation) {
+      toast.info("Please allow location access to find nearby quests.");
+      getUserLocation(); // Try to get location again
+      return;
+    }
+    setSelectedDifficulty("All"); // Show all difficulties for nearby quests
     setViewMode("map"); // Switch to map view when finding nearby quests
-    toast.info("Searching for nearby quests... showing easy quests on the map!");
+    toast.info(`Searching for quests within ${proximityRadius / 1000} km of your location.`);
   };
 
   const allAvailableQuests = [...allDummyQuests, ...userQuests];
 
   const filteredQuests = allAvailableQuests.filter(
-    (quest) =>
-      (quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      quest.location.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (selectedDifficulty === "All" || quest.difficulty === selectedDifficulty)
+    (quest) => {
+      const matchesSearchTerm = (
+        quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        quest.location.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      const matchesDifficulty = (
+        selectedDifficulty === "All" || quest.difficulty === selectedDifficulty
+      );
+
+      // If in map view and user location is available, also filter by proximity
+      if (viewMode === "map" && userLocation && quest.latitude !== undefined && quest.longitude !== undefined) {
+        const [userLat, userLon] = userLocation as [number, number];
+        const distance = haversineDistance(userLat, userLon, quest.latitude, quest.longitude);
+        return matchesSearchTerm && matchesDifficulty && distance <= proximityRadius;
+      }
+
+      return matchesSearchTerm && matchesDifficulty;
+    }
   );
 
   if (loadingUserQuests) {
@@ -65,8 +135,9 @@ const LocationQuests = () => {
               size="lg"
               className="px-8 py-4 text-lg font-semibold bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
               onClick={handleFindNearbyQuests}
+              disabled={locationLoading}
             >
-              <Compass className="h-5 w-5 mr-2" /> Find Nearby Quests
+              <Compass className="h-5 w-5 mr-2" /> {locationLoading ? "Locating..." : "Find Nearby Quests"}
             </Button>
             <Button
               size="lg"
@@ -78,7 +149,7 @@ const LocationQuests = () => {
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
-            (Map locations are illustrative; real GPS integration is planned.)
+            (Map locations are illustrative; real GPS integration is used for your location.)
           </p>
         </CardContent>
       </Card>
@@ -115,12 +186,12 @@ const LocationQuests = () => {
             >
               {viewMode === "list" ? (
                 <>
-                  <List className="h-5 w-5" />
-                  <span className="sr-only">Switch to List View</span>
+                  <Map className="h-5 w-5" />
+                  <span className="sr-only">Switch to Map View</span>
                 </>
               ) : (
                 <>
-                  <Map className="h-5 w-5" />
+                  <List className="h-5 w-5" />
                   <span className="sr-only">Switch to List View</span>
                 </>
               )}
@@ -132,7 +203,12 @@ const LocationQuests = () => {
           <QuestList quests={filteredQuests} />
         ) : (
           <Suspense fallback={<div className="flex items-center justify-center h-[500px] text-lg text-gray-500 dark:text-gray-400">Loading map...</div>}>
-            <QuestMap quests={filteredQuests} />
+            <QuestMap
+              quests={filteredQuests}
+              userLocation={userLocation}
+              onLocationFound={handleLocationFound}
+              locationLoading={locationLoading}
+            />
           </Suspense>
         )}
       </div>

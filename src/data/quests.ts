@@ -15,6 +15,8 @@ export interface Quest {
   };
   qrCode?: string;
   user_id?: string; // Add optional user_id to track the creator
+  latitude?: number; // New: Latitude for map
+  longitude?: number; // New: Longitude for map
 }
 
 export const allDummyQuests: Quest[] = [
@@ -30,6 +32,8 @@ export const allDummyQuests: Quest[] = [
       question: "What color are the leaves of the ancient tree?",
       answer: "green",
     },
+    latitude: 40.785091, // Example coordinate for Central Park
+    longitude: -73.968285,
   },
   {
     id: "q2",
@@ -40,6 +44,8 @@ export const allDummyQuests: Quest[] = [
     reward: "800 XP, 'Urban Pathfinder' Title",
     timeEstimate: "60-90 min",
     qrCode: "QUESTAROO-DT-789", // This will be the "QR code" to scan
+    latitude: 34.0437, // Example coordinate for LA downtown
+    longitude: -118.2645,
   },
   {
     id: "q3",
@@ -53,6 +59,8 @@ export const allDummyQuests: Quest[] = [
       question: "How many bridges cross the river in this section?",
       answer: "3",
     },
+    latitude: 34.0000, // Example coordinate for LA riverside
+    longitude: -118.2000,
   },
   {
     id: "q4",
@@ -66,6 +74,8 @@ export const allDummyQuests: Quest[] = [
       question: "What year was the Old Clock Tower built?",
       answer: "1888",
     },
+    latitude: 34.0500, // Example coordinate for LA historic
+    longitude: -118.2500,
   },
   {
     id: "q5",
@@ -79,6 +89,8 @@ export const allDummyQuests: Quest[] = [
       question: "What is the title of the famous painting in Gallery A?",
       answer: "starry night",
     },
+    latitude: 34.0600, // Example coordinate for LA museum
+    longitude: -118.2800,
   },
   {
     id: "q6",
@@ -92,5 +104,7 @@ export const allDummyQuests: Quest[] = [
       question: "How many benches are around the central fountain?",
       answer: "5",
     },
+    latitude: 34.0800, // Example coordinate for LA park
+    longitude: -118.3000,
   },
 ];
