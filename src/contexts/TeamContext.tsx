@@ -47,13 +47,14 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch all teams with member counts
   const fetchTeams = useCallback(async () => {
     setLoadingTeams(true);
+    console.log("TeamContext: Fetching all teams...");
     const { data, error } = await supabase
       .from('teams')
       .select('*, profiles(count)') // Select teams and count profiles for each team
       .order('score', { ascending: false });
 
     if (error) {
-      console.error("Error fetching teams:", error);
+      console.error("TeamContext: Error fetching all teams:", error);
       toast.error("Failed to load teams.");
       setTeams([]);
     } else {
@@ -67,7 +68,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         member_count: team.profiles[0]?.count || 0, // Get member count from the aggregated data
       }));
       setTeams(formattedTeams);
-      console.log("Fetched all teams:", formattedTeams);
+      console.log("TeamContext: Fetched all teams:", formattedTeams);
     }
     setLoadingTeams(false);
   }, []);
@@ -75,7 +76,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch the current user's team
   const fetchUserTeam = useCallback(async (userId: string) => {
     setLoadingUserTeam(true);
-    console.log("Fetching user team for userId:", userId);
+    console.log("TeamContext: Fetching user team for userId:", userId);
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('team_id')
@@ -83,22 +84,25 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
 
     if (profileError && profileError.code !== 'PGRST116') { // PGRST116 means no rows found
-      console.error("Error fetching user profile for team_id:", profileError);
+      console.error("TeamContext: Error fetching user profile for team_id:", profileError);
       toast.error("Failed to load your team status.");
       setUserTeam(null);
     } else if (profileData?.team_id) {
-      console.log("User profile has team_id:", profileData.team_id);
+      console.log("TeamContext: User profile has team_id:", profileData.team_id);
+      // Temporarily simplify the select to rule out issues with profiles(count) for single team fetch
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
-        .select('*, profiles(count)') // Also get member count for user's team
+        .select('*') // Removed profiles(count) for now
         .eq('id', profileData.team_id)
         .single();
 
       if (teamError) {
-        console.error("Error fetching user's team:", teamError);
+        console.error("TeamContext: Error fetching user's team details:", teamError);
         toast.error("Failed to load your team details.");
         setUserTeam(null);
       } else {
+        // Find the member count from the 'teams' array that was fetched by fetchTeams
+        const fullTeamData = teams.find(t => t.id === teamData.id);
         setUserTeam({
           id: teamData.id,
           name: teamData.name,
@@ -106,16 +110,16 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_by: teamData.created_by,
           score: teamData.score,
           created_at: teamData.created_at,
-          member_count: teamData.profiles[0]?.count || 0,
+          member_count: fullTeamData?.member_count || 0, // Use count from all teams fetch
         });
-        console.log("User's team data:", teamData);
+        console.log("TeamContext: User's team data set:", teamData);
       }
     } else {
-      console.log("User profile has no team_id or profile not found.");
+      console.log("TeamContext: User profile has no team_id or profile not found.");
       setUserTeam(null);
     }
     setLoadingUserTeam(false);
-  }, []);
+  }, [user, teams]); // Added 'teams' to dependency array
 
   // New function to fetch members of a specific team
   const fetchTeamMembers = useCallback(async (teamId: string): Promise<TeamMemberProfile[]> => {
@@ -130,7 +134,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('team_id', teamId);
 
     if (error) {
-      console.error("Error fetching team members:", error);
+      console.error("TeamContext: Error fetching team members:", error);
       toast.error("Failed to load team members.");
       return [];
     }
@@ -162,7 +166,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('id', user.id);
 
     if (error) {
-      console.error("Error joining team:", error);
+      console.error("TeamContext: Error joining team:", error);
       toast.error("Failed to join team.");
     } else {
       toast.success("Successfully joined the team!");
@@ -188,7 +192,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
 
     if (error) {
-      console.error("Error creating team:", error);
+      console.error("TeamContext: Error creating team:", error);
       toast.error(`Failed to create team "${name}". ${error.message}`);
     } else {
       await joinTeam(data.id); // Automatically join the created team
@@ -213,7 +217,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('id', user.id);
 
     if (error) {
-      console.error("Error leaving team:", error);
+      console.error("TeamContext: Error leaving team:", error);
       toast.error("Failed to leave team.");
     } else {
       toast.success("Successfully left the team.");
@@ -235,7 +239,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
 
     if (fetchError || !currentTeam) {
-      console.error("Error fetching current team score:", fetchError);
+      console.error("TeamContext: Error fetching current team score for update:", fetchError);
       toast.error("Failed to update team score: Could not retrieve current score.");
       return;
     }
@@ -248,7 +252,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('id', teamId);
 
     if (error) {
-      console.error("Error adding team score:", error);
+      console.error("TeamContext: Error adding team score:", error);
       toast.error("Failed to update team score.");
     } else {
       toast.info(`Team score updated! +${scoreToAdd} points.`);
