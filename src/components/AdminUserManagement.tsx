@@ -42,7 +42,7 @@ const AdminUserManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch profiles and join with auth.users for email, and teams for team name
+      // Fetch profiles and explicitly join with teams for team name
       const { data, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -53,7 +53,7 @@ const AdminUserManagement = () => {
           experience,
           is_admin,
           team_id,
-          teams(name)
+          team:teams(name) // Explicitly alias the 'teams' relationship as 'team'
         `);
 
       if (profilesError) {
@@ -78,7 +78,7 @@ const AdminUserManagement = () => {
         experience: profile.experience || 0,
         is_admin: profile.is_admin || false,
         team_id: profile.team_id,
-        team_name: profile.teams?.name || null,
+        team_name: profile.team?.name || null, // Access the aliased 'team' object
       }));
       setUsers(formattedUsers);
     } catch (err: any) {
