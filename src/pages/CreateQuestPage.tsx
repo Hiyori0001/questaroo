@@ -141,7 +141,8 @@ const CreateQuestPage = () => {
     let creatorReferenceImageUrl: string | undefined;
     if (selectedReferenceFile) {
       const fileExtension = selectedReferenceFile.name.split('.').pop();
-      const filePath = `creator_references/${user.id}/${Date.now()}.${fileExtension}`;
+      // Changed filePath structure: user.id/creator_references/timestamp.extension
+      const filePath = `${user.id}/creator_references/${Date.now()}.${fileExtension}`;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('quest-completion-images') // Using the same bucket
