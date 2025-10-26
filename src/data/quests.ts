@@ -19,6 +19,7 @@ export interface Quest {
   latitude?: number; // New: Latitude for map
   longitude?: number; // New: Longitude for map
   verificationRadius?: number; // New: Optional radius for location verification in meters
+  creatorReferenceImageUrl?: string; // New: URL for creator's reference image
 }
 
 export const allDummyQuests: Quest[] = [

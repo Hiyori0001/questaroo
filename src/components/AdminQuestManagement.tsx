@@ -37,6 +37,7 @@ interface PendingImageSubmission {
   user_avatar_url: string;
   xp_reward: number;
   team_id: string | null;
+  creator_reference_image_url: string | null; // New: Creator's reference image URL
 }
 
 const getXpForDifficulty = (difficulty: Quest["difficulty"]) => {
@@ -88,6 +89,7 @@ const AdminQuestManagement = () => {
         latitude: dbQuest.latitude || undefined,
         longitude: dbQuest.longitude || undefined,
         completionImagePrompt: dbQuest.completion_image_prompt || undefined,
+        creatorReferenceImageUrl: dbQuest.creator_reference_image_url || undefined, // Include creatorReferenceImageUrl
         is_user_created: true,
       }));
 
@@ -107,7 +109,7 @@ const AdminQuestManagement = () => {
           quest_id,
           completion_image_url,
           profiles!user_id(first_name, last_name, avatar_url, team_id),
-          user_quests!quest_id(title, difficulty)
+          user_quests!quest_id(title, difficulty, creator_reference_image_url)
         `)
         .eq('verification_status', 'pending');
 
@@ -127,6 +129,7 @@ const AdminQuestManagement = () => {
           user_avatar_url: p.profiles?.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(p.user_id)}`,
           xp_reward: getXpForDifficulty(p.user_quests?.difficulty as Quest["difficulty"] || "Easy"),
           team_id: p.profiles?.team_id || null,
+          creator_reference_image_url: p.user_quests?.creator_reference_image_url || null, // Get reference image
         }));
       setPendingSubmissions(formattedPending);
 
@@ -231,8 +234,21 @@ const AdminQuestManagement = () => {
                   <p className="text-sm text-gray-600 dark:text-gray-400">submitted for "{submission.quest_title}"</p>
                 </div>
               </div>
-              <div className="mb-3">
-                <img src={submission.completion_image_url} alt="Quest Submission" className="w-full h-48 object-cover rounded-md border dark:border-gray-700" />
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Player's Submission:</p>
+                  <img src={submission.completion_image_url} alt="Player Submission" className="w-full h-48 object-cover rounded-md border dark:border-gray-700" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Creator's Reference:</p>
+                  {submission.creator_reference_image_url ? (
+                    <img src={submission.creator_reference_image_url} alt="Creator Reference" className="w-full h-48 object-cover rounded-md border dark:border-gray-700" />
+                  ) : (
+                    <div className="w-full h-48 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-md border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 text-center text-sm">
+                      No reference image provided by creator.
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="flex justify-center gap-2">
                 <Button

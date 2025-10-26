@@ -24,7 +24,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setLoadingUserQuests(true);
     const { data, error } = await supabase
       .from('user_quests')
-      .select('*, latitude, longitude, verification_radius, completion_image_prompt') // Select new columns
+      .select('*, latitude, longitude, verification_radius, completion_image_prompt, creator_reference_image_url') // Select new columns
       .eq('user_id', userId);
 
     if (error) {
@@ -49,6 +49,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         latitude: dbQuest.latitude || undefined, // Include latitude
         longitude: dbQuest.longitude || undefined, // Include longitude
         verificationRadius: dbQuest.verification_radius || undefined, // Include verificationRadius
+        creatorReferenceImageUrl: dbQuest.creator_reference_image_url || undefined, // Include creatorReferenceImageUrl
       }));
       setUserQuests(fetchedQuests);
     }
@@ -93,6 +94,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         latitude: newQuest.latitude,
         longitude: newQuest.longitude,
         verification_radius: newQuest.verificationRadius,
+        creator_reference_image_url: newQuest.creatorReferenceImageUrl, // Insert creator_reference_image_url
       })
       .select()
       .single();
@@ -117,6 +119,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         latitude: data.latitude || undefined,
         longitude: data.longitude || undefined,
         verificationRadius: data.verification_radius || undefined,
+        creatorReferenceImageUrl: data.creator_reference_image_url || undefined, // Include creatorReferenceImageUrl
       };
       setUserQuests((prevQuests) => [...prevQuests, addedQuest]);
       toast.success(`Quest "${newQuest.title}" created successfully!`);

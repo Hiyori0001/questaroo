@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { PlusCircle, MapPin, QrCode, HelpCircle, LocateFixed, Camera } from "lucide-react"; // Added Camera icon
+import { PlusCircle, MapPin, QrCode, HelpCircle, LocateFixed, Camera, Upload, Loader2 } from "lucide-react"; // Added Upload and Loader2 icons
 import { toast } from "sonner";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Quest } from "@/data/quests";
+import { supabase } from "@/lib/supabase"; // Import supabase client
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 
 // Define the schema for quest creation
 const formSchema = z.object({
@@ -31,6 +33,7 @@ const formSchema = z.object({
   completionAnswer: z.string().optional(),
   qrCode: z.string().optional(),
   completionImagePrompt: z.string().optional(), // New: Image prompt field
+  creatorReferenceImageFile: z.any().optional(), // New: For file input
 }).superRefine((data, ctx) => {
   if (data.completionMethod === "question") {
     if (!data.completionQuestion || data.completionQuestion.trim() === "") {
@@ -87,7 +90,12 @@ const formSchema = z.object({
 });
 
 const CreateQuestPage = () => {
+  const { user } = useAuth();
   const { addQuest } = useUserQuests();
+  const [selectedReferenceFile, setSelectedReferenceFile] = useState<File | null>(null);
+  const [referencePreviewUrl, setReferencePreviewUrl] = useState<string | null>(null);
+  const [isUploadingReference, setIsUploadingReference] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -103,24 +111,77 @@ const CreateQuestPage = () => {
       completionAnswer: "",
       qrCode: "",
       completionImagePrompt: "", // Initialize new field
+      creatorReferenceImageFile: undefined,
     },
   });
 
   const selectedCompletionMethod = form.watch("completionMethod");
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const handleReferenceFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setSelectedReferenceFile(file);
+      setReferencePreviewUrl(URL.createObjectURL(file));
+      form.setValue("creatorReferenceImageFile", file); // Update form state
+    } else {
+      setSelectedReferenceFile(null);
+      setReferencePreviewUrl(null);
+      form.setValue("creatorReferenceImageFile", undefined);
+    }
+  };
+
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!user) {
+      toast.error("You must be logged in to create a quest.");
+      return;
+    }
+
+    setIsUploadingReference(true); // Start loading for the whole submission process
+
+    let creatorReferenceImageUrl: string | undefined;
+    if (selectedReferenceFile) {
+      const fileExtension = selectedReferenceFile.name.split('.').pop();
+      const filePath = `creator_references/${user.id}/${Date.now()}.${fileExtension}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('quest-completion-images') // Using the same bucket
+        .upload(filePath, selectedReferenceFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.error("Error uploading creator reference image:", uploadError);
+        toast.error("Failed to upload reference image: " + uploadError.message);
+        setIsUploadingReference(false);
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('quest-completion-images')
+        .getPublicUrl(filePath);
+
+      if (!publicUrlData?.publicUrl) {
+        toast.error("Failed to get public URL for reference image.");
+        setIsUploadingReference(false);
+        return;
+      }
+      creatorReferenceImageUrl = publicUrlData.publicUrl;
+    }
+
     const newQuest: Quest = {
       id: `user-quest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       title: values.title,
       description: values.description,
       location: values.location,
-      difficulty: "Medium",
+      difficulty: "Medium", // Default difficulty for user-created quests
       reward: "User-Created XP",
       timeEstimate: "Variable",
       timeLimit: values.timeLimit || undefined,
       latitude: values.latitude,
       longitude: values.longitude,
       verificationRadius: values.verificationRadius,
+      creatorReferenceImageUrl: creatorReferenceImageUrl, // Include the uploaded URL
     };
 
     if (values.completionMethod === "question" && values.completionQuestion && values.completionAnswer) {
@@ -135,8 +196,11 @@ const CreateQuestPage = () => {
     }
     // No specific completionTask or qrCode needed for 'location' method, as it uses lat/lon/radius
 
-    addQuest(newQuest);
+    await addQuest(newQuest);
     form.reset();
+    setSelectedReferenceFile(null);
+    setReferencePreviewUrl(null);
+    setIsUploadingReference(false);
   };
 
   return (
@@ -385,32 +449,65 @@ const CreateQuestPage = () => {
               )}
 
               {selectedCompletionMethod === "imageUpload" && ( // New fields for image upload
-                <FormField
-                  control={form.control}
-                  name="completionImagePrompt"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                        <Camera className="h-4 w-4" /> Image Upload Prompt
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="e.g., Take a photo of yourself next to the fountain."
-                          className="resize-y min-h-[80px]"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Instruct players on what photo to take for quest completion.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <>
+                  <FormField
+                    control={form.control}
+                    name="completionImagePrompt"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                          <Camera className="h-4 w-4" /> Image Upload Prompt
+                        </FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., Take a photo of yourself next to the fountain."
+                            className="resize-y min-h-[80px]"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Instruct players on what photo to take for quest completion.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* New: Creator Reference Image Upload */}
+                  <FormItem>
+                    <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                      <Upload className="h-4 w-4" /> Creator Reference Image (Optional)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleReferenceFileChange}
+                        disabled={isUploadingReference}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Upload an image that admins can use as a reference when verifying player submissions.
+                    </FormDescription>
+                    <FormMessage />
+                    {referencePreviewUrl && (
+                      <div className="mt-2 flex justify-center">
+                        <img src={referencePreviewUrl} alt="Reference Preview" className="max-w-full h-48 object-contain rounded-md border dark:border-gray-700" />
+                      </div>
+                    )}
+                  </FormItem>
+                </>
               )}
 
-              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
-                <PlusCircle className="h-4 w-4 mr-2" /> Submit Quest
+              <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600" disabled={isUploadingReference}>
+                {isUploadingReference ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" /> Creating Quest...
+                  </>
+                ) : (
+                  <>
+                    <PlusCircle className="h-4 w-4 mr-2" /> Submit Quest
+                  </>
+                )}
               </Button>
             </form>
           </Form>
