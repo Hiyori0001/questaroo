@@ -47,7 +47,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch all teams with member counts
   const fetchTeams = useCallback(async () => {
     setLoadingTeams(true);
-    console.log("TeamContext: Fetching all teams...");
+    console.log("TeamContext: Starting fetchTeams...");
     const { data, error } = await supabase
       .from('teams')
       .select('*, profiles(count)') // Select teams and count profiles for each team
@@ -58,6 +58,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.error("Failed to load teams.");
       setTeams([]);
     } else {
+      console.log("TeamContext: Raw data from Supabase:", data);
       const formattedTeams: Team[] = data.map(team => ({
         id: team.id,
         name: team.name,
@@ -68,9 +69,10 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         member_count: team.profiles[0]?.count || 0, // Get member count from the aggregated data
       }));
       setTeams(formattedTeams);
-      console.log("TeamContext: Fetched all teams:", formattedTeams);
+      console.log("TeamContext: Formatted teams for state:", formattedTeams);
     }
     setLoadingTeams(false);
+    console.log("TeamContext: Finished fetchTeams.");
   }, []); // No dependencies, so this function is stable
 
   // Fetch the current user's team
