@@ -54,7 +54,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .order('score', { ascending: false });
 
     if (error) {
-      console.error("TeamContext: Error fetching all teams:", error);
+      console.error("TeamContext: Error fetching all teams:", error.message, error.details);
       toast.error("Failed to load teams.");
       setTeams([]);
     } else {
@@ -86,7 +86,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
 
     if (profileError && profileError.code !== 'PGRST116') { // PGRST116 means no rows found
-      console.error("TeamContext: Error fetching user profile for team_id:", profileError);
+      console.error("TeamContext: Error fetching user profile for team_id:", profileError.message, profileError.details);
       toast.error("Failed to load your team status.");
       setUserTeam(null);
     } else if (profileData?.team_id) {
@@ -99,7 +99,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (teamError) {
-        console.error("TeamContext: Error fetching user's team details:", teamError);
+        console.error("TeamContext: Error fetching user's team details:", teamError.message, teamError.details);
         toast.error("Failed to load your team details.");
         setUserTeam(null);
       } else {
@@ -134,7 +134,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('team_id', teamId);
 
     if (error) {
-      console.error("TeamContext: Error fetching team members:", error);
+      console.error("TeamContext: Error fetching team members:", error.message, error.details);
       toast.error("Failed to load team members.");
       return [];
     }
@@ -166,7 +166,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('id', user.id);
 
     if (error) {
-      console.error("TeamContext: Error joining team:", error);
+      console.error("TeamContext: Error joining team:", error.message, error.details);
       toast.error("Failed to join team.");
     } else {
       toast.success("Successfully joined the team!");
@@ -192,7 +192,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
 
     if (error) {
-      console.error("TeamContext: Error creating team:", error);
+      console.error("TeamContext: Error creating team:", error.message, error.details);
       toast.error(`Failed to create team "${name}". ${error.message}`);
     } else {
       await joinTeam(data.id); // Automatically join the created team
@@ -217,7 +217,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('id', user.id);
 
     if (error) {
-      console.error("TeamContext: Error leaving team:", error);
+      console.error("TeamContext: Error leaving team:", error.message, error.details);
       toast.error("Failed to leave team.");
     } else {
       toast.success("Successfully left the team.");
@@ -239,7 +239,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .single();
 
     if (fetchError || !currentTeam) {
-      console.error("TeamContext: Error fetching current team score for update:", fetchError);
+      console.error("TeamContext: Error fetching current team score for update:", fetchError.message, fetchError.details);
       toast.error("Failed to update team score: Could not retrieve current score.");
       return;
     }
@@ -252,7 +252,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .eq('id', teamId);
 
     if (error) {
-      console.error("TeamContext: Error adding team score:", error);
+      console.error("TeamContext: Error adding team score:", error.message, error.details);
       toast.error("Failed to update team score.");
     } else {
       toast.info(`Team score updated! +${scoreToAdd} points.`);
