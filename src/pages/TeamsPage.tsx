@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import CreateTeamForm from "@/components/CreateTeamForm";
 import JoinTeamDialog from "@/components/JoinTeamDialog";
+import { Badge } from "@/components/ui/badge"; // Import Badge component
 
 const TeamsPage = () => {
   const { teams, userTeam, loadingTeams, loadingUserTeam, leaveTeam } = useTeams();
