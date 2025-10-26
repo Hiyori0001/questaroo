@@ -42,7 +42,7 @@ const AdminUserManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch all profiles without embedding teams
+      // 1. Fetch all profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -71,14 +71,16 @@ const AdminUserManagement = () => {
       // Create a map for quick team name lookup
       const teamNameMap = new Map(teamsData.map(team => [team.id, team.name]));
 
-      // 3. Fetch emails from auth.users separately
-      const { data: authUsersData, error: authUsersError } = await supabase.auth.admin.listUsers();
+      // 3. Invoke Edge Function to fetch auth.users (requires service_role key)
+      const { data: authUsersResponse, error: edgeFunctionError } = await supabase.functions.invoke('list-users');
 
-      if (authUsersError) {
-        throw authUsersError;
+      if (edgeFunctionError) {
+        throw new Error(edgeFunctionError.message);
       }
-
-      const authUsersMap = new Map(authUsersData.users.map(u => [u.id, u.email]));
+      
+      // The Edge Function returns an array of user objects
+      const authUsers: any[] = authUsersResponse as any[]; 
+      const authUsersMap = new Map(authUsers.map(u => [u.id, u.email]));
 
       // 4. Combine data
       const formattedUsers: AdminProfile[] = profilesData.map(profile => ({
@@ -86,7 +88,7 @@ const AdminUserManagement = () => {
         first_name: profile.first_name,
         last_name: profile.last_name,
         avatar_url: profile.avatar_url,
-        email: authUsersMap.get(profile.id) || "N/A",
+        email: authUsersMap.get(profile.id) || "N/A", // Get email from auth.users
         experience: profile.experience || 0,
         is_admin: profile.is_admin || false,
         team_id: profile.team_id,
@@ -127,6 +129,10 @@ const AdminUserManagement = () => {
     setLoading(true);
     try {
       // Delete user from auth.users, which should cascade to profiles table
+      // This operation also needs to be done via an Edge Function if the client doesn't have service_role
+      // For now, we'll assume the admin user has the necessary RLS for profiles table,
+      // but deleting from auth.users directly from client is still an issue.
+      // A dedicated Edge Function for admin user deletion would be ideal here too.
       const { error: authError } = await supabase.auth.admin.deleteUser(userId);
 
       if (authError) {
