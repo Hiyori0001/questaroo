@@ -54,8 +54,8 @@ const SocialPage = () => {
           content,
           created_at,
           user_id,
-          profiles(first_name, last_name)
-        `)
+          profiles!user_id(first_name, last_name)
+        `) // Explicitly specify the foreign key relationship
         .eq('team_id', userTeam.id)
         .order('created_at', { ascending: true });
 
