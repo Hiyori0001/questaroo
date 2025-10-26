@@ -42,8 +42,8 @@ const AdminUserManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch profiles and explicitly join with teams for team name
-      const { data, error: profilesError } = await supabase
+      // 1. Fetch all profiles without embedding teams
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
           id,
@@ -52,15 +52,26 @@ const AdminUserManagement = () => {
           avatar_url,
           experience,
           is_admin,
-          team_id,
-          team:teams(name) // Explicitly alias the 'teams' relationship as 'team'
+          team_id
         `);
 
       if (profilesError) {
         throw profilesError;
       }
 
-      // Fetch emails from auth.users separately as it's not directly joinable in RLS context
+      // 2. Fetch all teams
+      const { data: teamsData, error: teamsError } = await supabase
+        .from('teams')
+        .select('id, name');
+
+      if (teamsError) {
+        throw teamsError;
+      }
+
+      // Create a map for quick team name lookup
+      const teamNameMap = new Map(teamsData.map(team => [team.id, team.name]));
+
+      // 3. Fetch emails from auth.users separately
       const { data: authUsersData, error: authUsersError } = await supabase.auth.admin.listUsers();
 
       if (authUsersError) {
@@ -69,16 +80,17 @@ const AdminUserManagement = () => {
 
       const authUsersMap = new Map(authUsersData.users.map(u => [u.id, u.email]));
 
-      const formattedUsers: AdminProfile[] = data.map(profile => ({
+      // 4. Combine data
+      const formattedUsers: AdminProfile[] = profilesData.map(profile => ({
         id: profile.id,
         first_name: profile.first_name,
         last_name: profile.last_name,
         avatar_url: profile.avatar_url,
-        email: authUsersMap.get(profile.id) || "N/A", // Get email from auth.users
+        email: authUsersMap.get(profile.id) || "N/A",
         experience: profile.experience || 0,
         is_admin: profile.is_admin || false,
         team_id: profile.team_id,
-        team_name: profile.team?.name || null, // Access the aliased 'team' object
+        team_name: profile.team_id ? teamNameMap.get(profile.team_id) || null : null,
       }));
       setUsers(formattedUsers);
     } catch (err: any) {
