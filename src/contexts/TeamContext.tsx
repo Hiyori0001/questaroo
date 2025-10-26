@@ -71,7 +71,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log("TeamContext: Fetched all teams:", formattedTeams);
     }
     setLoadingTeams(false);
-  }, []);
+  }, []); // No dependencies, so this function is stable
 
   // Fetch the current user's team
   const fetchUserTeam = useCallback(async (userId: string) => {
@@ -89,10 +89,10 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserTeam(null);
     } else if (profileData?.team_id) {
       console.log("TeamContext: User profile has team_id:", profileData.team_id);
-      // Temporarily simplify the select to rule out issues with profiles(count) for single team fetch
+      // Fetch team details AND its member count directly
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
-        .select('*') // Removed profiles(count) for now
+        .select('*, profiles(count)') // Fetch member count here
         .eq('id', profileData.team_id)
         .single();
 
@@ -101,8 +101,6 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.error("Failed to load your team details.");
         setUserTeam(null);
       } else {
-        // Find the member count from the 'teams' array that was fetched by fetchTeams
-        const fullTeamData = teams.find(t => t.id === teamData.id);
         setUserTeam({
           id: teamData.id,
           name: teamData.name,
@@ -110,7 +108,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_by: teamData.created_by,
           score: teamData.score,
           created_at: teamData.created_at,
-          member_count: fullTeamData?.member_count || 0, // Use count from all teams fetch
+          member_count: teamData.profiles[0]?.count || 0, // Get member count from this query
         });
         console.log("TeamContext: User's team data set:", teamData);
       }
@@ -119,7 +117,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUserTeam(null);
     }
     setLoadingUserTeam(false);
-  }, [user, teams]); // Added 'teams' to dependency array
+  }, [user]); // Now only depends on 'user', making it stable
 
   // New function to fetch members of a specific team
   const fetchTeamMembers = useCallback(async (teamId: string): Promise<TeamMemberProfile[]> => {
