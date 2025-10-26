@@ -103,23 +103,31 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoadingUserTeam(false);
   }, []);
 
-  // Effect to load teams and user's team on auth state change
-  useEffect(() => {
-    if (loadingAuth) {
-      setLoadingTeams(true);
-      setLoadingUserTeam(true);
+  // Define joinTeam before createTeam
+  const joinTeam = useCallback(async (teamId: string) => {
+    if (!user) {
+      toast.error("You must be logged in to join a team.");
+      return;
+    }
+    if (userTeam) {
+      toast.error("You are already part of a team. Please leave your current team first.");
       return;
     }
 
-    fetchTeams(); // Always fetch all teams
+    const { error } = await supabase
+      .from('profiles')
+      .update({ team_id: teamId })
+      .eq('id', user.id);
 
-    if (user) {
-      fetchUserTeam(user.id);
+    if (error) {
+      console.error("Error joining team:", error);
+      toast.error("Failed to join team.");
     } else {
-      setUserTeam(null); // Clear user team if no user is logged in
-      setLoadingUserTeam(false);
+      toast.success("Successfully joined the team!");
+      fetchUserTeam(user.id); // Refresh user's team status
+      fetchTeams(); // Refresh all teams to update member counts
     }
-  }, [user, loadingAuth, fetchTeams, fetchUserTeam]);
+  }, [user, userTeam, fetchUserTeam, fetchTeams]);
 
   const createTeam = useCallback(async (name: string, description: string) => {
     if (!user) {
@@ -146,32 +154,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success(`Team "${name}" created successfully!`);
       fetchTeams(); // Refresh all teams
     }
-  }, [user, userTeam, joinTeam, fetchTeams]);
-
-  const joinTeam = useCallback(async (teamId: string) => {
-    if (!user) {
-      toast.error("You must be logged in to join a team.");
-      return;
-    }
-    if (userTeam) {
-      toast.error("You are already part of a team. Please leave your current team first.");
-      return;
-    }
-
-    const { error } = await supabase
-      .from('profiles')
-      .update({ team_id: teamId })
-      .eq('id', user.id);
-
-    if (error) {
-      console.error("Error joining team:", error);
-      toast.error("Failed to join team.");
-    } else {
-      toast.success("Successfully joined the team!");
-      fetchUserTeam(user.id); // Refresh user's team status
-      fetchTeams(); // Refresh all teams to update member counts
-    }
-  }, [user, userTeam, fetchUserTeam, fetchTeams]);
+  }, [user, userTeam, joinTeam, fetchTeams]); // joinTeam is now in dependencies
 
   const leaveTeam = useCallback(async () => {
     if (!user) {
@@ -197,6 +180,24 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fetchTeams(); // Refresh all teams to update member counts
     }
   }, [user, userTeam, fetchTeams]);
+
+  // Effect to load teams and user's team on auth state change
+  useEffect(() => {
+    if (loadingAuth) {
+      setLoadingTeams(true);
+      setLoadingUserTeam(true);
+      return;
+    }
+
+    fetchTeams(); // Always fetch all teams
+
+    if (user) {
+      fetchUserTeam(user.id);
+    } else {
+      setUserTeam(null); // Clear user team if no user is logged in
+      setLoadingUserTeam(false);
+    }
+  }, [user, loadingAuth, fetchTeams, fetchUserTeam]);
 
   return (
     <TeamContext.Provider value={{ teams, userTeam, loadingTeams, loadingUserTeam, fetchTeams, createTeam, joinTeam, leaveTeam }}>
