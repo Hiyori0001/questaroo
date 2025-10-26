@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock } from "lucide-react";
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX } from "lucide-react"; // Added UserX icon
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
-import { useTeams } from "@/contexts/TeamContext"; // Import useTeams
+import { useTeams } from "@/contexts/TeamContext";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,7 +46,7 @@ const QuestDetailsPage = () => {
   const { user, loading: loadingAuth } = useAuth();
   const { profile, loadingProfile, addExperience, deductExperience, addAchievement } = useUserProfile();
   const { userQuests, loadingUserQuests, removeQuest } = useUserQuests();
-  const { userTeam, addTeamScore } = useTeams(); // Get userTeam and addTeamScore from TeamContext
+  const { userTeam, addTeamScore } = useTeams();
 
   const [quest, setQuest] = useState<Quest | null>(null);
   const [questStarted, setQuestStarted] = useState(false);
@@ -55,6 +55,7 @@ const QuestDetailsPage = () => {
   const [showCompletionInput, setShowCompletionInput] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
   const [isUserCreatedQuest, setIsUserCreatedQuest] = useState(false);
+  const [isCreator, setIsCreator] = useState(false); // New state for creator check
   const [isQuestUnlocked, setIsQuestUnlocked] = useState(false);
 
   const getRequiredXp = (difficulty: Quest["difficulty"]) => {
@@ -77,7 +78,16 @@ const QuestDetailsPage = () => {
 
       if (foundQuest) {
         setQuest(foundQuest);
-        setIsUserCreatedQuest(userQuests.some(uq => uq.id === foundQuest.id));
+        const isCreatedByUser = userQuests.some(uq => uq.id === foundQuest.id);
+        setIsUserCreatedQuest(isCreatedByUser);
+
+        if (user && isCreatedByUser) {
+          // Check if the logged-in user is the creator of this specific user-created quest
+          const creatorQuest = userQuests.find(uq => uq.id === foundQuest.id);
+          setIsCreator(creatorQuest?.user_id === user.id); // Assuming user_id is available on Quest type for user-created quests
+        } else {
+          setIsCreator(false);
+        }
 
         if (profile) {
           // Check if quest is already completed
@@ -94,7 +104,7 @@ const QuestDetailsPage = () => {
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile, userQuests]);
+  }, [id, navigate, profile, user, userQuests]); // Added user to dependencies
 
   if (loadingAuth || loadingProfile || loadingUserQuests || !quest) {
     return (
@@ -134,6 +144,10 @@ const QuestDetailsPage = () => {
       navigate("/auth");
       return;
     }
+    if (isCreator) {
+      toast.error("You cannot start a quest you created yourself.");
+      return;
+    }
     if (!isQuestUnlocked) {
       toast.error(`You need ${requiredXpToUnlock} XP to start this quest.`);
       return;
@@ -149,6 +163,10 @@ const QuestDetailsPage = () => {
     if (!user || !profile) {
       toast.error("You must be logged in to unlock quests.");
       navigate("/auth");
+      return;
+    }
+    if (isCreator) {
+      toast.error("You cannot unlock a quest you created yourself.");
       return;
     }
     if (profile.experience < requiredXpToUnlock) {
@@ -167,6 +185,10 @@ const QuestDetailsPage = () => {
     if (!user) {
       toast.error("You must be logged in to complete a quest.");
       navigate("/auth");
+      return;
+    }
+    if (isCreator) {
+      toast.error("You cannot complete a quest you created yourself.");
       return;
     }
     if (questCompleted) {
@@ -284,7 +306,13 @@ const QuestDetailsPage = () => {
             </p>
           )}
 
-          {user && !isQuestUnlocked && quest.difficulty !== "Easy" && (
+          {user && isCreator && (
+            <p className="text-lg font-semibold text-red-600 dark:text-red-400 mt-4 flex items-center justify-center gap-2">
+              <UserX className="h-5 w-5" /> You created this quest and cannot complete it yourself.
+            </p>
+          )}
+
+          {user && !isQuestUnlocked && quest.difficulty !== "Easy" && !isCreator && (
             <Button
               onClick={handleUnlockQuest}
               className="w-full mt-6 bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600 text-lg py-3"
@@ -294,20 +322,21 @@ const QuestDetailsPage = () => {
             </Button>
           )}
 
-          {user && isQuestUnlocked && !questStarted && !questCompleted && (
+          {user && isQuestUnlocked && !questStarted && !questCompleted && !isCreator && (
             <Button
               onClick={handleStartQuest}
               className="w-full mt-6 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-lg py-3"
-              disabled={!user}
+              disabled={!user || isCreator}
             >
               Start Quest
             </Button>
           )}
 
-          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && (
+          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && !isCreator && (
             <Button
               onClick={handleAttemptCompletion}
               className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
+              disabled={isCreator}
             >
               {quest.qrCode ? (
                 <>
@@ -321,7 +350,7 @@ const QuestDetailsPage = () => {
             </Button>
           )}
 
-          {questStarted && !questCompleted && showCompletionInput && quest.completionTask && (
+          {questStarted && !questCompleted && showCompletionInput && quest.completionTask && !isCreator && (
             <div className="mt-6 space-y-4">
               <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 Completion Task: {quest.completionTask.question}
@@ -341,7 +370,7 @@ const QuestDetailsPage = () => {
               <Button
                 onClick={handleQuestionAnswerSubmit}
                 className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-lg py-3"
-                disabled={completionAnswer.trim() === ""}
+                disabled={completionAnswer.trim() === "" || isCreator}
               >
                 <CheckCircle2 className="h-5 w-5 mr-2" /> Submit Answer & Complete Quest
               </Button>
