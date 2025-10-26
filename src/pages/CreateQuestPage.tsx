@@ -9,11 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { PlusCircle, MapPin, QrCode, HelpCircle } from "lucide-react";
+import { PlusCircle, MapPin, QrCode, HelpCircle, LocateFixed } from "lucide-react"; // Added LocateFixed icon
 import { toast } from "sonner";
-import { useUserQuests } from "@/contexts/UserQuestsContext"; // Import useUserQuests
+import { useUserQuests } from "@/contexts/UserQuestsContext";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Quest } from "@/data/quests"; // Import Quest interface
+import { Quest } from "@/data/quests";
 
 // Define the schema for quest creation
 const formSchema = z.object({
@@ -22,8 +22,9 @@ const formSchema = z.object({
   location: z.string().min(3, { message: "Location must be at least 3 characters." }).max(100, { message: "Location must not exceed 100 characters." }),
   latitude: z.number().min(-90, { message: "Latitude must be between -90 and 90." }).max(90, { message: "Latitude must be between -90 and 90." }).optional(),
   longitude: z.number().min(-180, { message: "Longitude must be between -180 and 180." }).max(180, { message: "Longitude must be between -180 and 180." }).optional(),
-  timeLimit: z.string().optional(), // New: Optional time limit field
-  completionMethod: z.enum(["question", "qrCode"], {
+  verificationRadius: z.number().min(1, { message: "Radius must be at least 1 meter." }).max(1000, { message: "Radius must not exceed 1000 meters." }).optional(), // New: verificationRadius
+  timeLimit: z.string().optional(),
+  completionMethod: z.enum(["question", "qrCode", "location"], { // Added 'location'
     required_error: "Please select a completion method.",
   }),
   completionQuestion: z.string().optional(),
@@ -53,6 +54,26 @@ const formSchema = z.object({
         path: ["qrCode"],
       });
     }
+  } else if (data.completionMethod === "location") { // New validation for location method
+    if (data.latitude === undefined || data.longitude === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Latitude and Longitude are required for 'Location' method.",
+        path: ["latitude"],
+      });
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Latitude and Longitude are required for 'Location' method.",
+        path: ["longitude"],
+      });
+    }
+    if (data.verificationRadius === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Verification Radius is required for 'Location' method.",
+        path: ["verificationRadius"],
+      });
+    }
   }
 });
 
@@ -66,8 +87,9 @@ const CreateQuestPage = () => {
       location: "",
       latitude: undefined,
       longitude: undefined,
-      timeLimit: "", // Default value for new field
-      completionMethod: "question", // Default to question
+      verificationRadius: undefined,
+      timeLimit: "",
+      completionMethod: "question",
       completionQuestion: "",
       completionAnswer: "",
       qrCode: "",
@@ -78,16 +100,17 @@ const CreateQuestPage = () => {
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     const newQuest: Quest = {
-      id: `user-quest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`, // Unique ID
+      id: `user-quest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       title: values.title,
       description: values.description,
       location: values.location,
-      difficulty: "Medium", // Default difficulty for user-created quests
-      reward: "User-Created XP", // Default reward
-      timeEstimate: "Variable", // Default time estimate
-      timeLimit: values.timeLimit || undefined, // Add timeLimit
-      latitude: values.latitude, // Add latitude
-      longitude: values.longitude, // Add longitude
+      difficulty: "Medium",
+      reward: "User-Created XP",
+      timeEstimate: "Variable",
+      timeLimit: values.timeLimit || undefined,
+      latitude: values.latitude,
+      longitude: values.longitude,
+      verificationRadius: values.verificationRadius, // Add verificationRadius
     };
 
     if (values.completionMethod === "question" && values.completionQuestion && values.completionAnswer) {
@@ -98,6 +121,7 @@ const CreateQuestPage = () => {
     } else if (values.completionMethod === "qrCode" && values.qrCode) {
       newQuest.qrCode = values.qrCode;
     }
+    // No specific completionTask or qrCode needed for 'location' method, as it uses lat/lon/radius
 
     addQuest(newQuest);
     form.reset();
@@ -244,6 +268,7 @@ const CreateQuestPage = () => {
                       <SelectContent>
                         <SelectItem value="question">Question & Answer</SelectItem>
                         <SelectItem value="qrCode">QR Code Scan</SelectItem>
+                        <SelectItem value="location">Location Verification</SelectItem> {/* New option */}
                       </SelectContent>
                     </Select>
                     <FormDescription>
@@ -312,6 +337,38 @@ const CreateQuestPage = () => {
                     </FormItem>
                   )}
                 />
+              )}
+
+              {selectedCompletionMethod === "location" && ( // New fields for location verification
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    For location verification, ensure you've provided Latitude and Longitude above.
+                  </p>
+                  <FormField
+                    control={form.control}
+                    name="verificationRadius"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                          <LocateFixed className="h-4 w-4" /> Verification Radius (meters)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            placeholder="e.g., 50"
+                            {...field}
+                            onChange={(e) => field.onChange(e.target.value === "" ? undefined : parseFloat(e.target.value))}
+                            value={field.value === undefined ? "" : field.value}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          The maximum distance (in meters) a player can be from the quest coordinates to complete it.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
               )}
 
               <Button type="submit" className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">

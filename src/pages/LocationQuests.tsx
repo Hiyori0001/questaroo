@@ -12,25 +12,10 @@ import { allDummyQuests, Quest } from "@/data/quests";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
 import { LatLngExpression } from "leaflet"; // Import LatLngExpression
 import ClientOnly from "@/components/ClientOnly"; // Import ClientOnly
+import { haversineDistance } from "@/utils/location"; // Import haversineDistance
 
 // Dynamically import QuestMap
 const QuestMap = React.lazy(() => import("@/components/QuestMap"));
-
-// Haversine formula to calculate distance between two lat/lon points in meters
-const haversineDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-  const R = 6371e3; // metres
-  const φ1 = lat1 * Math.PI / 180; // φ, λ in radians
-  const φ2 = lat2 * Math.PI / 180;
-  const Δφ = (lat2 - lat1) * Math.PI / 180;
-  const Δλ = (lon2 - lon1) * Math.PI / 180;
-
-  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c; // in metres
-};
 
 const LocationQuests = () => {
   const { userQuests, loadingUserQuests } = useUserQuests();
@@ -204,7 +189,7 @@ const LocationQuests = () => {
           <QuestList quests={filteredQuests} />
         ) : (
           <Suspense fallback={<div className="flex items-center justify-center h-[500px] text-lg text-gray-500 dark:text-gray-400">Loading map...</div>}>
-            <ClientOnly> {/* Wrap QuestMap with ClientOnly */}
+            <ClientOnly>
               <QuestMap
                 quests={filteredQuests}
                 userLocation={userLocation}

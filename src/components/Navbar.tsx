@@ -3,17 +3,18 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu, LogIn, LogOut, ListTodo } from "lucide-react"; // Added ListTodo icon
+import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu, LogIn, LogOut, ListTodo, Settings } from "lucide-react"; // Added Settings icon
 import { ThemeToggle } from "./ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
 
 // Define navigation items as an array of objects
 const navItems = [
   { to: "/about", icon: Info, label: "About" },
   { to: "/location-quests", icon: MapPin, label: "Quests" },
-  { to: "/quest-log", icon: ListTodo, label: "Quest Log" }, // New: Quest Log
+  { to: "/quest-log", icon: ListTodo, label: "Quest Log" },
   { to: "/mini-games", icon: Gamepad2, label: "Mini-Games" },
   { to: "/leaderboard", icon: Crown, label: "Leaderboard" },
   { to: "/create-quest", icon: PlusCircle, label: "Create Quest" },
@@ -25,14 +26,15 @@ const navItems = [
 
 const Navbar = () => {
   const isMobile = useIsMobile();
-  const [isSheetOpen, setIsSheetOpen] = useState(false); // State to control sheet open/close
-  const { user, signOut } = useAuth(); // Get user and signOut from AuthContext
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const { user, signOut } = useAuth();
+  const { profile, loadingProfile } = useUserProfile(); // Get profile to check isAdmin
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     await signOut();
-    setIsSheetOpen(false); // Close sheet after signing out
-    navigate("/"); // Redirect to home after logout
+    setIsSheetOpen(false);
+    navigate("/");
   };
 
   const renderNavLinks = () => (
@@ -43,7 +45,7 @@ const Navbar = () => {
           asChild
           variant="ghost"
           className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-          onClick={() => isMobile && setIsSheetOpen(false)} // Close sheet on link click in mobile
+          onClick={() => isMobile && setIsSheetOpen(false)}
         >
           <Link to={item.to}>
             <item.icon className="h-4 w-4 mr-2" /> {item.label}
@@ -52,6 +54,18 @@ const Navbar = () => {
       ))}
       {user ? (
         <>
+          {profile?.isAdmin && ( // Only show Admin Dashboard link if user is admin
+            <Button
+              asChild
+              variant="ghost"
+              className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              onClick={() => isMobile && setIsSheetOpen(false)}
+            >
+              <Link to="/admin">
+                <Settings className="h-4 w-4 mr-2" /> Admin
+              </Link>
+            </Button>
+          )}
           <Button
             asChild
             variant="ghost"
@@ -93,7 +107,7 @@ const Navbar = () => {
         </Link>
 
         {isMobile ? (
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}> {/* Control sheet state */}
+          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                 <Menu className="h-6 w-6" />

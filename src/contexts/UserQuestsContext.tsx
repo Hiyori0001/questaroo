@@ -24,7 +24,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     setLoadingUserQuests(true);
     const { data, error } = await supabase
       .from('user_quests')
-      .select('*, latitude, longitude') // Select new columns
+      .select('*, latitude, longitude, verification_radius') // Select new columns
       .eq('user_id', userId);
 
     if (error) {
@@ -47,6 +47,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         user_id: dbQuest.user_id, // Include user_id
         latitude: dbQuest.latitude || undefined, // Include latitude
         longitude: dbQuest.longitude || undefined, // Include longitude
+        verificationRadius: dbQuest.verification_radius || undefined, // Include verificationRadius
       }));
       setUserQuests(fetchedQuests);
     }
@@ -87,8 +88,9 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         time_limit: newQuest.timeLimit,
         completion_task: newQuest.completionTask,
         qr_code: newQuest.qrCode,
-        latitude: newQuest.latitude, // Insert latitude
-        longitude: newQuest.longitude, // Insert longitude
+        latitude: newQuest.latitude,
+        longitude: newQuest.longitude,
+        verification_radius: newQuest.verificationRadius, // Insert verification_radius
       })
       .select()
       .single();
@@ -108,9 +110,10 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         timeLimit: data.time_limit || undefined,
         completionTask: data.completion_task || undefined,
         qrCode: data.qr_code || undefined,
-        user_id: data.user_id, // Include user_id
-        latitude: data.latitude || undefined, // Include latitude
-        longitude: data.longitude || undefined, // Include longitude
+        user_id: data.user_id,
+        latitude: data.latitude || undefined,
+        longitude: data.longitude || undefined,
+        verificationRadius: data.verification_radius || undefined, // Include verificationRadius
       };
       setUserQuests((prevQuests) => [...prevQuests, addedQuest]);
       toast.success(`Quest "${newQuest.title}" created successfully!`);
@@ -127,7 +130,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       .from('user_quests')
       .delete()
       .eq('id', questId)
-      .eq('user_id', user.id); // Ensure only the owner can delete
+      .eq('user_id', user.id);
 
     if (error) {
       console.error("Error deleting quest:", error);

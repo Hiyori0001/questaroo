@@ -17,6 +17,7 @@ export interface Quest {
   user_id?: string; // Add optional user_id to track the creator
   latitude?: number; // New: Latitude for map
   longitude?: number; // New: Longitude for map
+  verificationRadius?: number; // New: Optional radius for location verification in meters
 }
 
 export const allDummyQuests: Quest[] = [
@@ -34,6 +35,7 @@ export const allDummyQuests: Quest[] = [
     },
     latitude: 40.785091, // Example coordinate for Central Park
     longitude: -73.968285,
+    verificationRadius: 50, // Example: 50 meters radius
   },
   {
     id: "q2",
@@ -46,6 +48,7 @@ export const allDummyQuests: Quest[] = [
     qrCode: "QUESTAROO-DT-789", // This will be the "QR code" to scan
     latitude: 34.0437, // Example coordinate for LA downtown
     longitude: -118.2645,
+    verificationRadius: 100, // Example: 100 meters radius
   },
   {
     id: "q3",
@@ -61,6 +64,7 @@ export const allDummyQuests: Quest[] = [
     },
     latitude: 34.0000, // Example coordinate for LA riverside
     longitude: -118.2000,
+    verificationRadius: 20, // Example: 20 meters radius
   },
   {
     id: "q4",
@@ -76,6 +80,7 @@ export const allDummyQuests: Quest[] = [
     },
     latitude: 34.0500, // Example coordinate for LA historic
     longitude: -118.2500,
+    verificationRadius: 75, // Example: 75 meters radius
   },
   {
     id: "q5",
@@ -91,6 +96,7 @@ export const allDummyQuests: Quest[] = [
     },
     latitude: 34.0600, // Example coordinate for LA museum
     longitude: -118.2800,
+    verificationRadius: 30, // Example: 30 meters radius
   },
   {
     id: "q6",
@@ -106,5 +112,6 @@ export const allDummyQuests: Quest[] = [
     },
     latitude: 34.0800, // Example coordinate for LA park
     longitude: -118.3000,
+    verificationRadius: 40, // Example: 40 meters radius
   },
 ];

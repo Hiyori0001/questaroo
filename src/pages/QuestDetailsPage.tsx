@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX } from "lucide-react"; // Added UserX icon
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX, LocateFixed, Compass } from "lucide-react"; // Added LocateFixed, Compass icons
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
 import { useTeams } from "@/contexts/TeamContext";
+import { haversineDistance } from "@/utils/location"; // Import haversineDistance
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,7 +45,7 @@ const QuestDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
-  const { profile, loadingProfile, addExperience, deductExperience, addAchievement, startQuest, completeQuest } = useUserProfile(); // Added startQuest, completeQuest
+  const { profile, loadingProfile, addExperience, deductExperience, addAchievement, startQuest, completeQuest } = useUserProfile();
   const { userQuests, loadingUserQuests, removeQuest } = useUserQuests();
   const { userTeam, addTeamScore } = useTeams();
 
@@ -55,8 +56,9 @@ const QuestDetailsPage = () => {
   const [showCompletionInput, setShowCompletionInput] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
   const [isUserCreatedQuest, setIsUserCreatedQuest] = useState(false);
-  const [isCreator, setIsCreator] = useState(false); // New state for creator check
+  const [isCreator, setIsCreator] = useState(false);
   const [isQuestUnlocked, setIsQuestUnlocked] = useState(false);
+  const [locationVerificationLoading, setLocationVerificationLoading] = useState(false); // New state for location loading
 
   const getRequiredXp = (difficulty: Quest["difficulty"]) => {
     switch (difficulty) {
@@ -82,20 +84,17 @@ const QuestDetailsPage = () => {
         setIsUserCreatedQuest(isCreatedByUser);
 
         if (user && isCreatedByUser) {
-          // Check if the logged-in user is the creator of this specific user-created quest
           const creatorQuest = userQuests.find(uq => uq.id === foundQuest.id);
-          setIsCreator(creatorQuest?.user_id === user.id); // Assuming user_id is available on Quest type for user-created quests
+          setIsCreator(creatorQuest?.user_id === user.id);
         } else {
           setIsCreator(false);
         }
 
         if (profile) {
-          // Check if quest is already completed
           if (profile.achievements.some(a => a.name === `Completed: ${foundQuest.title}`)) {
             setQuestCompleted(true);
           }
 
-          // Determine if quest is unlocked based on user's XP
           const requiredXp = getRequiredXp(foundQuest.difficulty);
           setIsQuestUnlocked(profile.experience >= requiredXp);
         }
@@ -104,7 +103,7 @@ const QuestDetailsPage = () => {
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile, user, userQuests]); // Added user to dependencies
+  }, [id, navigate, profile, user, userQuests]);
 
   if (loadingAuth || loadingProfile || loadingUserQuests || !quest) {
     return (
@@ -124,9 +123,8 @@ const QuestDetailsPage = () => {
       iconName: "Trophy",
       color: "bg-green-500",
     });
-    await completeQuest(quest.id); // Mark quest as completed in progress log
+    await completeQuest(quest.id);
 
-    // If user is part of a team, add score to the team
     if (userTeam) {
       await addTeamScore(userTeam.id, xpForDifficulty);
     }
@@ -153,7 +151,7 @@ const QuestDetailsPage = () => {
       toast.error(`You need ${requiredXpToUnlock} XP to start this quest.`);
       return;
     }
-    await startQuest(quest.id); // Mark quest as started in progress log
+    await startQuest(quest.id);
     setQuestStarted(true);
     setShowCompletionInput(false);
     setShowQrScanner(false);
@@ -202,6 +200,9 @@ const QuestDetailsPage = () => {
       setShowQrScanner(true);
     } else if (quest.completionTask) {
       setShowCompletionInput(true);
+    } else if (quest.latitude !== undefined && quest.longitude !== undefined && quest.verificationRadius !== undefined) {
+      // If location-based, trigger location verification directly
+      handleVerifyLocation();
     } else {
       toast.info("No specific completion task for this quest. Completing now!");
       completeQuestLogic();
@@ -224,15 +225,64 @@ const QuestDetailsPage = () => {
     }
   };
 
-  const handleDeleteQuest = () => {
-    if (quest) {
-      removeQuest(quest.id);
-      navigate("/location-quests"); // Redirect after deletion
+  const handleVerifyLocation = () => {
+    if (!user) {
+      toast.error("You must be logged in to verify location.");
+      navigate("/auth");
+      return;
+    }
+    if (isCreator) {
+      toast.error("You cannot complete a quest you created yourself.");
+      return;
+    }
+    if (questCompleted) {
+      toast.info("You've already completed this quest!");
+      return;
+    }
+    if (quest.latitude === undefined || quest.longitude === undefined || quest.verificationRadius === undefined) {
+      toast.error("Quest location details are missing for verification.");
+      return;
+    }
+
+    setLocationVerificationLoading(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const userLat = position.coords.latitude;
+          const userLon = position.coords.longitude;
+          const distance = haversineDistance(userLat, userLon, quest.latitude!, quest.longitude!);
+
+          if (distance <= quest.verificationRadius!) {
+            completeQuestLogic();
+            toast.success(`Location verified! You are ${distance.toFixed(2)} meters from the target.`);
+          } else {
+            toast.error(`You are too far! You are ${distance.toFixed(2)} meters away, but need to be within ${quest.verificationRadius} meters.`);
+          }
+          setLocationVerificationLoading(false);
+        },
+        (error) => {
+          console.error("Error getting user location for verification:", error);
+          toast.error("Failed to get your location for verification. Please enable location services.");
+          setLocationVerificationLoading(false);
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      toast.error("Geolocation is not supported by your browser for location verification.");
+      setLocationVerificationLoading(false);
     }
   };
 
-  // Determine if the delete button should be shown
+  const handleDeleteQuest = () => {
+    if (quest) {
+      removeQuest(quest.id);
+      navigate("/location-quests");
+    }
+  };
+
   const canDeleteQuest = user && (isUserCreatedQuest || profile?.isAdmin);
+
+  const isLocationCompletionMethod = quest.latitude !== undefined && quest.longitude !== undefined && quest.verificationRadius !== undefined;
 
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
@@ -300,6 +350,11 @@ const QuestDetailsPage = () => {
                 <Lock className="h-4 w-4" /> Locked: {requiredXpToUnlock} XP
               </Badge>
             )}
+            {isLocationCompletionMethod && (
+              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                <LocateFixed className="h-4 w-4" /> Location Verification ({quest.verificationRadius}m)
+              </Badge>
+            )}
           </div>
 
           {!user && (
@@ -328,11 +383,20 @@ const QuestDetailsPage = () => {
             <Button
               onClick={handleAttemptCompletion}
               className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
-              disabled={isCreator}
+              disabled={isCreator || locationVerificationLoading}
             >
               {quest.qrCode ? (
                 <>
                   <QrCode className="h-5 w-5 mr-2" /> Scan QR Code to Complete
+                </>
+              ) : isLocationCompletionMethod ? (
+                <>
+                  {locationVerificationLoading ? (
+                    <Compass className="h-5 w-5 mr-2 animate-spin" />
+                  ) : (
+                    <LocateFixed className="h-5 w-5 mr-2" />
+                  )}
+                  {locationVerificationLoading ? "Verifying Location..." : "Verify Location to Complete"}
                 </>
               ) : (
                 <>
