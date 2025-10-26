@@ -101,4 +101,13 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Accessibility Modes */
+  .high-contrast-mode {
+    filter: contrast(1.5); /* Increase contrast */
+  }
+
+  .larger-text-mode {
+    font-size: 1.125rem; /* Increase base font size (e.g., text-lg) */
+  }
 }

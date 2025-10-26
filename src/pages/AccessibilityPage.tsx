@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Accessibility, Settings, Palette, Volume2, Text, Contrast } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -8,24 +8,44 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { toast } from "sonner";
 
+const ACCESSIBILITY_SETTINGS_KEY = "questaroo_accessibility_settings";
+
+interface AccessibilitySettings {
+  highContrast: boolean;
+  largerText: boolean;
+  audioVolume: number;
+}
+
 const AccessibilityPage = () => {
-  const [highContrast, setHighContrast] = useState(false);
-  const [largerText, setLargerText] = useState(false);
-  const [audioVolume, setAudioVolume] = useState([50]); // Slider expects an array
+  const [settings, setSettings] = useState<AccessibilitySettings>(() => {
+    if (typeof window !== 'undefined') {
+      const savedSettings = localStorage.getItem(ACCESSIBILITY_SETTINGS_KEY);
+      return savedSettings ? JSON.parse(savedSettings) : { highContrast: false, largerText: false, audioVolume: 50 };
+    }
+    return { highContrast: false, largerText: false, audioVolume: 50 };
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ACCESSIBILITY_SETTINGS_KEY, JSON.stringify(settings));
+      // Apply global classes based on settings
+      document.documentElement.classList.toggle("high-contrast-mode", settings.highContrast);
+      document.documentElement.classList.toggle("larger-text-mode", settings.largerText);
+    }
+  }, [settings]);
 
   const handleHighContrastChange = (checked: boolean) => {
-    setHighContrast(checked);
+    setSettings(prev => ({ ...prev, highContrast: checked }));
     toast.info(`High Contrast Mode: ${checked ? "Enabled" : "Disabled"}`);
   };
 
   const handleLargerTextChange = (checked: boolean) => {
-    setLargerText(checked);
+    setSettings(prev => ({ ...prev, largerText: checked }));
     toast.info(`Larger Text: ${checked ? "Enabled" : "Disabled"}`);
   };
 
   const handleAudioVolumeChange = (value: number[]) => {
-    setAudioVolume(value);
-    // Only show toast when the user stops dragging the slider
+    setSettings(prev => ({ ...prev, audioVolume: value[0] }));
     // For simplicity, we'll show it on every change for now, but a debounce would be better
     // toast.info(`Audio Volume: ${value[0]}%`);
   };
@@ -57,7 +77,7 @@ const AccessibilityPage = () => {
               </div>
               <Switch
                 id="high-contrast"
-                checked={highContrast}
+                checked={settings.highContrast}
                 onCheckedChange={handleHighContrastChange}
               />
             </div>
@@ -72,7 +92,7 @@ const AccessibilityPage = () => {
               </div>
               <Switch
                 id="larger-text"
-                checked={largerText}
+                checked={settings.largerText}
                 onCheckedChange={handleLargerTextChange}
               />
             </div>
@@ -90,11 +110,11 @@ const AccessibilityPage = () => {
                 defaultValue={[50]}
                 max={100}
                 step={1}
-                value={audioVolume}
+                value={[settings.audioVolume]}
                 onValueChange={handleAudioVolumeChange}
                 className="w-[90%] mx-auto mt-2"
               />
-              <p className="text-sm text-muted-foreground text-center">{audioVolume[0]}%</p>
+              <p className="text-sm text-muted-foreground text-center">{settings.audioVolume}%</p>
             </div>
 
             {/* Existing placeholder features, now with updated descriptions */}
@@ -114,7 +134,7 @@ const AccessibilityPage = () => {
             </div>
           </div>
           <p className="text-sm text-muted-foreground mt-4">
-            (These controls are illustrative. Actual functionality will be implemented in future updates.)
+            (Audio volume, customizable difficulty, and inclusive game modes are illustrative. Actual functionality will be implemented in future updates.)
           </p>
         </CardContent>
       </Card>
