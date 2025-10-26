@@ -44,6 +44,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         timeLimit: dbQuest.time_limit || undefined,
         completionTask: dbQuest.completion_task || undefined,
         qrCode: dbQuest.qr_code || undefined,
+        user_id: dbQuest.user_id, // Include user_id
       }));
       setUserQuests(fetchedQuests);
     }
@@ -103,6 +104,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         timeLimit: data.time_limit || undefined,
         completionTask: data.completion_task || undefined,
         qrCode: data.qr_code || undefined,
+        user_id: data.user_id, // Include user_id
       };
       setUserQuests((prevQuests) => [...prevQuests, addedQuest]);
       toast.success(`Quest "${newQuest.title}" created successfully!`);

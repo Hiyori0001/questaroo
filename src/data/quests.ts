@@ -14,6 +14,7 @@ export interface Quest {
     answer: string;
   };
   qrCode?: string;
+  user_id?: string; // Add optional user_id to track the creator
 }
 
 export const allDummyQuests: Quest[] = [
