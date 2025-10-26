@@ -54,10 +54,11 @@ const MiniGames = () => {
     const game = miniGamesConfig.find(g => g.value === value);
     if (!game) return;
 
-    if (unlockedGames.has(value)) {
-      setActiveTab(value);
-    } else {
-      toast.error(`You need to unlock "${game.label}" for ${game.xpCost} XP.`);
+    // Always set the active tab, even if it's locked, so the unlock button is visible.
+    setActiveTab(value);
+
+    if (!unlockedGames.has(value)) {
+      toast.info(`"${game.label}" is locked. You need ${game.xpCost} XP to unlock it.`);
     }
   };
 
@@ -115,7 +116,8 @@ const MiniGames = () => {
               <TabsTrigger
                 key={game.value}
                 value={game.value}
-                disabled={isLocked && !profile} // Disable if locked and not logged in
+                // Only disable the trigger if the game is locked AND the user is NOT logged in
+                disabled={isLocked && !profile}
                 className="flex flex-col items-center justify-center p-2 h-auto data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <Icon className="h-5 w-5 mb-1" />
