@@ -128,7 +128,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fetchUserTeam(user.id); // Refresh user's team status
       fetchTeams(); // Refresh all teams to update member counts
     }
-  }, [user, userTeam, fetchUserTeam, fetchTeams]);
+  }, [user, fetchUserTeam, fetchTeams]); // Removed userTeam from dependencies
 
   const createTeam = useCallback(async (name: string, description: string) => {
     if (!user) {
@@ -155,7 +155,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success(`Team "${name}" created successfully!`);
       fetchTeams(); // Refresh all teams
     }
-  }, [user, userTeam, joinTeam, fetchTeams]); // joinTeam is now in dependencies
+  }, [user, joinTeam, fetchTeams]); // Removed userTeam from dependencies
 
   const leaveTeam = useCallback(async () => {
     if (!user) {
