@@ -34,13 +34,13 @@ interface UserProfile {
 // Define XP thresholds for unlocking content
 export const XP_THRESHOLDS = {
   EASY: 0, // Added this for consistency, Easy quests require 0 XP to unlock
-  QUEST_MEDIUM: 500,
-  QUEST_HARD: 1500,
-  MINIGAME_GUESS_NUMBER: 100,
-  MINIGAME_CLICKER_CHALLENGE: 200,
-  MINIGAME_MEMORY_MATCH: 300,
-  MINIGAME_REACTION_TIME: 400,
-  MINIGAME_LIGHTS_ON: 500,
+  QUEST_MEDIUM: 750, // Increased from 500
+  QUEST_HARD: 2000, // Increased from 1500
+  MINIGAME_GUESS_NUMBER: 250, // Increased from 100
+  MINIGAME_CLICKER_CHALLENGE: 400, // Increased from 200
+  MINIGAME_MEMORY_MATCH: 600, // Increased from 300
+  MINIGAME_REACTION_TIME: 800, // Increased from 400
+  MINIGAME_LIGHTS_ON: 1000, // Increased from 500
 };
 
 interface UserProfileContextType {
