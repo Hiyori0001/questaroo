@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX, LocateFixed, Compass, Camera } from "lucide-react"; // Added Camera icon
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX, LocateFixed, Compass, Camera } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -12,7 +12,7 @@ import { allDummyQuests, Quest } from "@/data/quests";
 import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
-import QuestImageUploader from "@/components/QuestImageUploader"; // Import new component
+import QuestImageUploader from "@/components/QuestImageUploader";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
 import { useTeams } from "@/contexts/TeamContext";
 import { haversineDistance } from "@/utils/location";
@@ -27,6 +27,10 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
+// IMPORTANT: This ID is for the Head Admin who can bypass certain restrictions for testing.
+// It should match the DEVELOPER_USER_ID in AdminUserManagement.tsx
+const HEAD_ADMIN_ID = "6187dac6-1eac-4d78-ab27-61e31c334a05";
 
 // Helper function to get XP reward for completing a quest based on difficulty
 const getXpForDifficulty = (difficulty: Quest["difficulty"]) => {
@@ -56,11 +60,13 @@ const QuestDetailsPage = () => {
   const [completionAnswer, setCompletionAnswer] = useState("");
   const [showCompletionInput, setShowCompletionInput] = useState(false);
   const [showQrScanner, setShowQrScanner] = useState(false);
-  const [showImageUploader, setShowImageUploader] = useState(false); // New state for image uploader
+  const [showImageUploader, setShowImageUploader] = useState(false);
   const [isUserCreatedQuest, setIsUserCreatedQuest] = useState(false);
   const [isCreator, setIsCreator] = useState(false);
   const [isQuestUnlocked, setIsQuestUnlocked] = useState(false);
   const [locationVerificationLoading, setLocationVerificationLoading] = useState(false);
+
+  const isCurrentUserHeadAdmin = user?.id === HEAD_ADMIN_ID;
 
   const getRequiredXp = (difficulty: Quest["difficulty"]) => {
     switch (difficulty) {
@@ -87,7 +93,9 @@ const QuestDetailsPage = () => {
 
         if (user && isCreatedByUser) {
           const creatorQuest = userQuests.find(uq => uq.id === foundQuest.id);
-          setIsCreator(creatorQuest?.user_id === user.id);
+          // A user is the creator if their ID matches the quest's user_id,
+          // UNLESS they are the Head Admin, in which case they can bypass this.
+          setIsCreator(creatorQuest?.user_id === user.id && !isCurrentUserHeadAdmin);
         } else {
           setIsCreator(false);
         }
@@ -105,7 +113,7 @@ const QuestDetailsPage = () => {
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile, user, userQuests]);
+  }, [id, navigate, profile, user, userQuests, isCurrentUserHeadAdmin]); // Added isCurrentUserHeadAdmin to dependencies
 
   if (loadingAuth || loadingProfile || loadingUserQuests || !quest) {
     return (
@@ -135,7 +143,7 @@ const QuestDetailsPage = () => {
     setQuestStarted(false);
     setShowCompletionInput(false);
     setShowQrScanner(false);
-    setShowImageUploader(false); // Close image uploader
+    setShowImageUploader(false);
     setCompletionAnswer("");
     toast.success(`Quest "${quest.title}" completed! You earned ${xpForDifficulty} XP!`);
   };
@@ -146,7 +154,8 @@ const QuestDetailsPage = () => {
       navigate("/auth");
       return;
     }
-    if (isCreator) {
+    // Allow Head Admin to start their own quests for testing
+    if (isCreator && !isCurrentUserHeadAdmin) {
       toast.error("You cannot start a quest you created yourself.");
       return;
     }
@@ -158,7 +167,7 @@ const QuestDetailsPage = () => {
     setQuestStarted(true);
     setShowCompletionInput(false);
     setShowQrScanner(false);
-    setShowImageUploader(false); // Ensure image uploader is closed
+    setShowImageUploader(false);
     setCompletionAnswer("");
     toast.success(`Starting quest: ${quest.title}! Good luck!`);
   };
@@ -169,7 +178,8 @@ const QuestDetailsPage = () => {
       navigate("/auth");
       return;
     }
-    if (isCreator) {
+    // Allow Head Admin to unlock their own quests for testing
+    if (isCreator && !isCurrentUserHeadAdmin) {
       toast.error("You cannot unlock a quest you created yourself.");
       return;
     }
@@ -191,7 +201,8 @@ const QuestDetailsPage = () => {
       navigate("/auth");
       return;
     }
-    if (isCreator) {
+    // Allow Head Admin to complete their own quests for testing
+    if (isCreator && !isCurrentUserHeadAdmin) {
       toast.error("You cannot complete a quest you created yourself.");
       return;
     }
@@ -204,7 +215,7 @@ const QuestDetailsPage = () => {
       setShowQrScanner(true);
     } else if (quest.completionTask) {
       setShowCompletionInput(true);
-    } else if (quest.completionImagePrompt) { // New: Handle image upload
+    } else if (quest.completionImagePrompt) {
       setShowImageUploader(true);
     } else if (quest.latitude !== undefined && quest.longitude !== undefined && quest.verificationRadius !== undefined) {
       handleVerifyLocation();
@@ -231,8 +242,6 @@ const QuestDetailsPage = () => {
   };
 
   const handleImageUploadSubmit = (imageUrl: string) => {
-    // For now, successful upload means completion.
-    // In a real app, an admin might review the image.
     console.log("Image uploaded for quest completion:", imageUrl);
     completeQuestLogic();
   };
@@ -243,7 +252,8 @@ const QuestDetailsPage = () => {
       navigate("/auth");
       return;
     }
-    if (isCreator) {
+    // Allow Head Admin to verify location for their own quests for testing
+    if (isCreator && !isCurrentUserHeadAdmin) {
       toast.error("You cannot complete a quest you created yourself.");
       return;
     }
@@ -380,27 +390,27 @@ const QuestDetailsPage = () => {
             </p>
           )}
 
-          {user && isCreator && (
+          {user && isCreator && !isCurrentUserHeadAdmin && ( // Only show this message if not Head Admin
             <p className="text-lg font-semibold text-red-600 dark:text-red-400 mt-4 flex items-center justify-center gap-2">
               <UserX className="h-5 w-5" /> You created this quest and cannot complete it yourself.
             </p>
           )}
 
-          {user && isQuestUnlocked && !questStarted && !questCompleted && !isCreator && (
+          {user && isQuestUnlocked && !questStarted && !questCompleted && (isCreator ? isCurrentUserHeadAdmin : true) && (
             <Button
               onClick={handleStartQuest}
               className="w-full mt-6 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-lg py-3"
-              disabled={!user || isCreator}
+              disabled={!user || (isCreator && !isCurrentUserHeadAdmin)}
             >
               Start Quest
             </Button>
           )}
 
-          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && !showImageUploader && !isCreator && (
+          {questStarted && !questCompleted && !showCompletionInput && !showQrScanner && !showImageUploader && (isCreator ? isCurrentUserHeadAdmin : true) && (
             <Button
               onClick={handleAttemptCompletion}
               className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
-              disabled={isCreator || locationVerificationLoading}
+              disabled={(isCreator && !isCurrentUserHeadAdmin) || locationVerificationLoading}
             >
               {quest.qrCode ? (
                 <>
@@ -427,7 +437,7 @@ const QuestDetailsPage = () => {
             </Button>
           )}
 
-          {questStarted && !questCompleted && showCompletionInput && quest.completionTask && !isCreator && (
+          {questStarted && !questCompleted && showCompletionInput && quest.completionTask && (isCreator ? isCurrentUserHeadAdmin : true) && (
             <div className="mt-6 space-y-4">
               <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
                 Completion Task: {quest.completionTask.question}
@@ -447,7 +457,7 @@ const QuestDetailsPage = () => {
               <Button
                 onClick={handleQuestionAnswerSubmit}
                 className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-lg py-3"
-                disabled={completionAnswer.trim() === "" || isCreator}
+                disabled={completionAnswer.trim() === "" || (isCreator && !isCurrentUserHeadAdmin)}
               >
                 <CheckCircle2 className="h-5 w-5 mr-2" /> Submit Answer & Complete Quest
               </Button>
