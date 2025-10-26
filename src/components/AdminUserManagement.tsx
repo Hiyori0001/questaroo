@@ -35,7 +35,7 @@ interface AdminProfile {
 }
 
 // IMPORTANT: Replace this with the actual Supabase user ID (UUID) of your developer account.
-// You can find this ID in your Supabase auth.users table.
+// This user will be considered the "Head Admin" with full control.
 const DEVELOPER_USER_ID = "$$DEVELOPER_USER_ID$$"; 
 
 const AdminUserManagement = () => {
@@ -48,7 +48,7 @@ const AdminUserManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch all profiles without embedding teams
+      // 1. Fetch all profiles
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -94,7 +94,7 @@ const AdminUserManagement = () => {
         first_name: profile.first_name,
         last_name: profile.last_name,
         avatar_url: profile.avatar_url,
-        email: authUsersMap.get(profile.id) || "N/A",
+        email: authUsersMap.get(profile.id) || "N/A", // Get email from auth.users
         experience: profile.experience || 0,
         is_admin: profile.is_admin || false,
         team_id: profile.team_id,
@@ -114,10 +114,15 @@ const AdminUserManagement = () => {
     fetchUsers();
   }, [fetchUsers]);
 
-  const handleToggleAdmin = async (userId: string, currentAdminStatus: boolean) => {
-    // Prevent other admins from toggling off the developer's admin status
-    if (userId === DEVELOPER_USER_ID && currentUser?.id !== DEVELOPER_USER_ID) {
-      toast.error("You cannot change the admin status of the developer account.");
+  const handleToggleAdmin = async (targetUserId: string, currentAdminStatus: boolean) => {
+    if (!currentUser) {
+      toast.error("You must be logged in to perform this action.");
+      return;
+    }
+
+    // Only the Head Admin (DEVELOPER_USER_ID) can toggle admin status
+    if (currentUser.id !== DEVELOPER_USER_ID) {
+      toast.error("Only the Head Administrator can change admin privileges.");
       return;
     }
 
@@ -125,35 +130,45 @@ const AdminUserManagement = () => {
     const { error } = await supabase
       .from('profiles')
       .update({ is_admin: !currentAdminStatus })
-      .eq('id', userId);
+      .eq('id', targetUserId);
 
     if (error) {
       console.error("Error toggling admin status:", error);
       toast.error("Failed to update admin status.");
     } else {
-      toast.success(`Admin status for user ${userId} updated.`);
+      toast.success(`Admin status for user ${targetUserId} updated.`);
       fetchUsers(); // Re-fetch to update UI
     }
     setLoading(false);
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    // Prevent other admins from deleting the developer's account
-    if (userId === DEVELOPER_USER_ID && currentUser?.id !== DEVELOPER_USER_ID) {
-      toast.error("You cannot delete the developer account.");
+  const handleDeleteUser = async (targetUserId: string, targetUserIsAdmin: boolean) => {
+    if (!currentUser) {
+      toast.error("You must be logged in to perform this action.");
       return;
     }
+
+    // If current user is not the Head Admin
+    if (currentUser.id !== DEVELOPER_USER_ID) {
+      // Regular admins cannot delete other admins
+      if (targetUserIsAdmin) {
+        toast.error("You cannot delete another administrator.");
+        return;
+      }
+      // Regular admins can delete non-admin users
+    }
+    // Head Admin can delete anyone
 
     setLoading(true);
     try {
       // Delete user from auth.users, which should cascade to profiles table
-      const { error: authError } = await supabase.auth.admin.deleteUser(userId);
+      const { error: authError } = await supabase.auth.admin.deleteUser(targetUserId);
 
       if (authError) {
         throw authError;
       }
 
-      toast.success(`User ${userId} deleted successfully.`);
+      toast.success(`User ${targetUserId} deleted successfully.`);
       fetchUsers(); // Re-fetch to update UI
     } catch (err: any) {
       console.error("Error deleting user:", err.message);
@@ -183,6 +198,8 @@ const AdminUserManagement = () => {
       </div>
     );
   }
+
+  const isCurrentUserHeadAdmin = currentUser?.id === DEVELOPER_USER_ID;
 
   return (
     <div className="overflow-x-auto">
@@ -222,8 +239,8 @@ const AdminUserManagement = () => {
                     id={`admin-switch-${userEntry.id}`}
                     checked={userEntry.is_admin}
                     onCheckedChange={() => handleToggleAdmin(userEntry.id, userEntry.is_admin)}
-                    // Disable switch if it's the developer account and current user is not the developer
-                    disabled={loading || (userEntry.id === DEVELOPER_USER_ID && currentUser?.id !== DEVELOPER_USER_ID)}
+                    // Only Head Admin can toggle admin status
+                    disabled={loading || !isCurrentUserHeadAdmin}
                   />
                   <Label htmlFor={`admin-switch-${userEntry.id}`} className="sr-only">Toggle Admin Status</Label>
                 </div>
@@ -234,7 +251,10 @@ const AdminUserManagement = () => {
                     <Button 
                       variant="destructive" 
                       size="sm" 
-                      disabled={loading || (userEntry.id === DEVELOPER_USER_ID && currentUser?.id !== DEVELOPER_USER_ID)} // Disable delete button
+                      disabled={
+                        loading || 
+                        (!isCurrentUserHeadAdmin && userEntry.is_admin) // Regular admin cannot delete other admins
+                      } 
                     >
                       <XCircle className="h-4 w-4" />
                     </Button>
@@ -248,7 +268,7 @@ const AdminUserManagement = () => {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleDeleteUser(userEntry.id)} className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">Delete</AlertDialogAction>
+                      <AlertDialogAction onClick={() => handleDeleteUser(userEntry.id, userEntry.is_admin)} className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">Delete</AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
