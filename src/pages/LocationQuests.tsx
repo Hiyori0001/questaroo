@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
 import { useUserQuests } from "@/contexts/UserQuestsContext";
 import { LatLngExpression } from "leaflet"; // Import LatLngExpression
+import ClientOnly from "@/components/ClientOnly"; // Import ClientOnly
 
 // Dynamically import QuestMap
 const QuestMap = React.lazy(() => import("@/components/QuestMap"));
@@ -203,12 +204,14 @@ const LocationQuests = () => {
           <QuestList quests={filteredQuests} />
         ) : (
           <Suspense fallback={<div className="flex items-center justify-center h-[500px] text-lg text-gray-500 dark:text-gray-400">Loading map...</div>}>
-            <QuestMap
-              quests={filteredQuests}
-              userLocation={userLocation}
-              onLocationFound={handleLocationFound}
-              locationLoading={locationLoading}
-            />
+            <ClientOnly> {/* Wrap QuestMap with ClientOnly */}
+              <QuestMap
+                quests={filteredQuests}
+                userLocation={userLocation}
+                onLocationFound={handleLocationFound}
+                locationLoading={locationLoading}
+              />
+            </ClientOnly>
           </Suspense>
         )}
       </div>
