@@ -41,7 +41,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoadingTeams(true);
     const { data, error } = await supabase
       .from('teams')
-      .select('*, profiles(count)') // Select teams and count of profiles for each team
+      .select('*') // Simplified: Removed 'profiles(count)'
       .order('score', { ascending: false });
 
     if (error) {
@@ -56,7 +56,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         created_by: team.created_by,
         score: team.score,
         created_at: team.created_at,
-        member_count: team.profiles[0]?.count || 0, // Extract member count
+        // member_count: team.profiles[0]?.count || 0, // Removed member count for now
       }));
       setTeams(formattedTeams);
     }
@@ -79,7 +79,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } else if (profileData?.team_id) {
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
-        .select('*, profiles(count)')
+        .select('*') // Simplified: Removed 'profiles(count)'
         .eq('id', profileData.team_id)
         .single();
 
@@ -95,7 +95,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_by: teamData.created_by,
           score: teamData.score,
           created_at: teamData.created_at,
-          member_count: teamData.profiles[0]?.count || 0,
+          // member_count: teamData.profiles[0]?.count || 0, // Removed member count for now
         });
       }
     } else {
@@ -110,6 +110,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.error("You must be logged in to join a team.");
       return;
     }
+    // Check if user is already in a team by checking the current userTeam state
     if (userTeam) {
       toast.error("You are already part of a team. Please leave your current team first.");
       return;
@@ -128,13 +129,14 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       fetchUserTeam(user.id); // Refresh user's team status
       fetchTeams(); // Refresh all teams to update member counts
     }
-  }, [user, fetchUserTeam, fetchTeams]); // Removed userTeam from dependencies
+  }, [user, userTeam, fetchUserTeam, fetchTeams]);
 
   const createTeam = useCallback(async (name: string, description: string) => {
     if (!user) {
       toast.error("You must be logged in to create a team.");
       return;
     }
+    // Check if user is already in a team by checking the current userTeam state
     if (userTeam) {
       toast.error("You are already part of a team. Please leave your current team first.");
       return;
@@ -155,7 +157,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success(`Team "${name}" created successfully!`);
       fetchTeams(); // Refresh all teams
     }
-  }, [user, joinTeam, fetchTeams]); // Removed userTeam from dependencies
+  }, [user, userTeam, joinTeam, fetchTeams]);
 
   const leaveTeam = useCallback(async () => {
     if (!user) {
