@@ -67,6 +67,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
         member_count: team.profiles[0]?.count || 0, // Get member count from the aggregated data
       }));
       setTeams(formattedTeams);
+      console.log("Fetched all teams:", formattedTeams);
     }
     setLoadingTeams(false);
   }, []);
@@ -74,6 +75,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Fetch the current user's team
   const fetchUserTeam = useCallback(async (userId: string) => {
     setLoadingUserTeam(true);
+    console.log("Fetching user team for userId:", userId);
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('team_id')
@@ -85,6 +87,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.error("Failed to load your team status.");
       setUserTeam(null);
     } else if (profileData?.team_id) {
+      console.log("User profile has team_id:", profileData.team_id);
       const { data: teamData, error: teamError } = await supabase
         .from('teams')
         .select('*, profiles(count)') // Also get member count for user's team
@@ -105,8 +108,10 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_at: teamData.created_at,
           member_count: teamData.profiles[0]?.count || 0,
         });
+        console.log("User's team data:", teamData);
       }
     } else {
+      console.log("User profile has no team_id or profile not found.");
       setUserTeam(null);
     }
     setLoadingUserTeam(false);
