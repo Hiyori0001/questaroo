@@ -50,6 +50,7 @@ interface UserProfileContextType {
   deductExperience: (xp: number) => Promise<boolean>; // New function to deduct XP
   addAchievement: (achievement: Achievement) => Promise<void>;
   updateProfileDetails: (name: string, email: string) => Promise<void>;
+  updateAvatar: () => Promise<void>; // New: Function to update avatar
   getAchievementIcon: (iconName: string) => LucideIcon | undefined;
   startQuest: (questId: string) => Promise<void>; // New: Mark quest as started
   completeQuest: (questId: string) => Promise<void>; // New: Mark quest as completed
@@ -234,12 +235,16 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const [firstName, ...lastNameParts] = name.split(' ');
     const lastName = lastNameParts.join(' ');
 
+    // Note: Avatar URL is still generated based on name here.
+    // The new updateAvatar function will allow independent randomization.
+    const newAvatarUrl = `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(name)}`;
+
     const { error } = await supabase
       .from('profiles')
       .update({
         first_name: firstName,
         last_name: lastName,
-        avatar_url: `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(name)}`,
+        avatar_url: newAvatarUrl,
       })
       .eq('id', user.id);
 
@@ -263,11 +268,34 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         ...prev,
         name,
         email,
-        avatarUrl: `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(name)}`,
+        avatarUrl: newAvatarUrl,
       } : null);
       toast.success("Profile updated successfully!");
     }
   }, [profile, user]);
+
+  const updateAvatar = useCallback(async () => {
+    if (!user || !profile) {
+      toast.error("You must be logged in to update your avatar.");
+      return;
+    }
+
+    const randomSeed = Math.random().toString(36).substring(2, 15); // Generate a random string for the seed
+    const newAvatarUrl = `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(randomSeed)}`;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ avatar_url: newAvatarUrl })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error("Error updating avatar:", error);
+      toast.error("Failed to update avatar.");
+    } else {
+      setProfile((prev) => prev ? { ...prev, avatarUrl: newAvatarUrl } : null);
+      toast.success("Avatar updated successfully!");
+    }
+  }, [user, profile]);
 
   const startQuest = useCallback(async (questId: string) => {
     if (!user) {
@@ -315,7 +343,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, getAchievementIcon, startQuest, completeQuest }}>
+    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, updateAvatar, getAchievementIcon, startQuest, completeQuest }}>
       {children}
     </UserProfileContext.Provider>
   );

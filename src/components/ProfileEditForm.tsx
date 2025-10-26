@@ -7,8 +7,9 @@ import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Save, X } from "lucide-react";
+import { Save, X, RefreshCw } from "lucide-react"; // Import RefreshCw icon
 import { toast } from "sonner";
+import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
 
 // Define the schema for profile editing
 const profileFormSchema = z.object({
@@ -26,6 +27,7 @@ interface ProfileEditFormProps {
 }
 
 const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, onCancel }) => {
+  const { updateAvatar } = useUserProfile(); // Use the new updateAvatar function
   const form = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: initialData,
@@ -65,13 +67,23 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, 
             </FormItem>
           )}
         />
-        <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">
-            <X className="h-4 w-4 mr-2" /> Cancel
+        <div className="flex justify-between items-center pt-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={updateAvatar} // Call updateAvatar when this button is clicked
+            className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+          >
+            <RefreshCw className="h-4 w-4 mr-2" /> Randomize Avatar
           </Button>
-          <Button type="submit" className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
-            <Save className="h-4 w-4 mr-2" /> Save Changes
-          </Button>
+          <div className="flex gap-3">
+            <Button type="button" variant="outline" onClick={onCancel} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">
+              <X className="h-4 w-4 mr-2" /> Cancel
+            </Button>
+            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600">
+              <Save className="h-4 w-4 mr-2" /> Save Changes
+            </Button>
+          </div>
         </div>
       </form>
     </Form>
