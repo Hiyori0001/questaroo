@@ -30,6 +30,7 @@ interface UserProfile {
   avatarUrl: string;
   level: number;
   experience: number;
+  currency: number; // New: Virtual currency
   achievements: Achievement[];
   isAdmin: boolean; // Add isAdmin to the profile interface
 }
@@ -51,6 +52,8 @@ interface UserProfileContextType {
   loadingProfile: boolean;
   addExperience: (xp: number) => Promise<void>;
   deductExperience: (xp: number) => Promise<boolean>; // New function to deduct XP
+  addCurrency: (amount: number) => Promise<void>; // New: Add currency
+  deductCurrency: (amount: number) => Promise<boolean>; // New: Deduct currency
   addAchievement: (achievement: Achievement) => Promise<void>;
   updateProfileDetails: (name: string, email: string) => Promise<void>;
   updateAvatar: () => Promise<void>; // Function to update avatar with a random one
@@ -80,7 +83,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setLoadingProfile(true);
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, avatar_url, experience, achievements, is_admin') // Select is_admin
+      .select('id, first_name, last_name, avatar_url, experience, currency, achievements, is_admin') // Select currency
       .eq('id', userId)
       .single();
 
@@ -96,6 +99,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         email: user?.email || "unknown@example.com", // Email comes from auth.user
         avatarUrl: data.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(data.id)}`,
         experience: data.experience || 0,
+        currency: data.currency || 0, // Set currency
         level: calculateLevel(data.experience || 0),
         achievements: data.achievements || [],
         isAdmin: data.is_admin || false, // Set isAdmin
@@ -109,6 +113,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         last_name: "Seeker",
         avatar_url: `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(userId)}`,
         experience: 0,
+        currency: 0, // Default currency for new profile
         achievements: [],
         is_admin: false, // Default to not admin
       };
@@ -129,6 +134,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           email: user?.email || "unknown@example.com",
           avatarUrl: newProfile.avatar_url,
           experience: newProfile.experience,
+          currency: newProfile.currency, // Set currency for new profile
           level: calculateLevel(newProfile.experience),
           achievements: newProfile.achievements,
           isAdmin: newProfile.is_admin,
@@ -208,6 +214,53 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel } : null);
       toast.success(`-${xp} XP spent.`);
       console.log(`Successfully deducted ${xp} XP. New profile experience: ${newExperience}`);
+      return true;
+    }
+  }, [profile, user]);
+
+  const addCurrency = useCallback(async (amount: number) => {
+    if (!profile || !user) return;
+
+    const newCurrency = profile.currency + amount;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ currency: newCurrency })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error("Error adding currency:", error);
+      toast.error("Failed to update currency.");
+    } else {
+      setProfile((prev) => prev ? { ...prev, currency: newCurrency } : null);
+      toast.info(`+${amount} Coins!`);
+    }
+  }, [profile, user]);
+
+  const deductCurrency = useCallback(async (amount: number): Promise<boolean> => {
+    if (!profile || !user) {
+      toast.error("You must be logged in to spend currency.");
+      return false;
+    }
+    if (profile.currency < amount) {
+      toast.error("Not enough coins.");
+      return false;
+    }
+
+    const newCurrency = profile.currency - amount;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ currency: newCurrency })
+      .eq('id', user.id);
+
+    if (error) {
+      console.error("Error deducting currency:", error);
+      toast.error("Failed to deduct coins.");
+      return false;
+    } else {
+      setProfile((prev) => prev ? { ...prev, currency: newCurrency } : null);
+      toast.success(`-${amount} Coins spent.`);
       return true;
     }
   }, [profile, user]);
@@ -470,7 +523,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // Grant XP and achievement to the target user
       const { data: targetProfile, error: fetchProfileError } = await supabase
         .from('profiles')
-        .select('experience, achievements')
+        .select('experience, currency, achievements') // Select currency
         .eq('id', targetUserId)
         .single();
 
@@ -481,6 +534,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       const newExperience = targetProfile.experience + xpReward;
+      const newCurrency = targetProfile.currency + 50; // Example: 50 coins per quest completion
       const newLevel = calculateLevel(newExperience);
       const newAchievement: Achievement = {
         name: `Completed: ${questTitle}`,
@@ -495,6 +549,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .from('profiles')
         .update({
           experience: newExperience,
+          currency: newCurrency, // Update currency
           achievements: updatedAchievements,
         })
         .eq('id', targetUserId);
@@ -503,10 +558,10 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         console.error("Error granting rewards:", rewardError);
         toast.error("Failed to grant XP and achievement.");
       } else {
-        toast.success(`Quest "${questTitle}" approved! ${targetUserId} received ${xpReward} XP.`);
+        toast.success(`Quest "${questTitle}" approved! ${targetUserId} received ${xpReward} XP and 50 Coins.`);
         // Optionally update the current user's profile if it's the target user
         if (user?.id === targetUserId) {
-          setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel, achievements: updatedAchievements } : null);
+          setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel, achievements: updatedAchievements, currency: newCurrency } : null);
         }
       }
 
@@ -554,7 +609,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // 2. Grant rewards based on rewardType
       const { data: targetProfile, error: fetchProfileError } = await supabase
         .from('profiles')
-        .select('experience, achievements')
+        .select('experience, currency, achievements') // Select currency
         .eq('id', targetUserId)
         .single();
 
@@ -565,14 +620,16 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
 
       let newExperience = targetProfile.experience;
+      let newCurrency = targetProfile.currency; // Initialize with current currency
       const updatedAchievements = [...targetProfile.achievements];
 
       if (rewardType === "Team XP") {
         newExperience += xpAmount; // Add XP to individual for now, or to team directly
+        newCurrency += 25; // Example: 25 coins for Team XP challenge
         // If we had a direct way to add to team XP from here, we'd use it.
         // For now, we'll assume 'Team XP' means individual XP contribution or a separate admin action.
         // A more robust system would involve a `useTeams` context function here.
-        toast.info(`User ${targetUserId} received ${xpAmount} XP for team contribution.`);
+        toast.info(`User ${targetUserId} received ${xpAmount} XP and 25 Coins for team contribution.`);
       } else if (rewardType === "Exclusive Badge") {
         const newAchievement: Achievement = {
           name: `Exclusive Badge: ${challengeName}`,
@@ -582,7 +639,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (!updatedAchievements.some((a: Achievement) => a.name === newAchievement.name)) {
           updatedAchievements.push(newAchievement);
         }
-        toast.success(`User ${targetUserId} earned the "${newAchievement.name}"!`);
+        newCurrency += 75; // Example: 75 coins for an exclusive badge
+        toast.success(`User ${targetUserId} earned the "${newAchievement.name}" and 75 Coins!`);
       } else if (rewardType === "Rare Item") {
         const newAchievement: Achievement = {
           name: `Rare Item: ${challengeName} Collectible`,
@@ -592,7 +650,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (!updatedAchievements.some((a: Achievement) => a.name === newAchievement.name)) {
           updatedAchievements.push(newAchievement);
         }
-        toast.success(`User ${targetUserId} found the "${newAchievement.name}"!`);
+        newCurrency += 100; // Example: 100 coins for a rare item
+        toast.success(`User ${targetUserId} found the "${newAchievement.name}" and 100 Coins!`);
       } else if (rewardType === "Title") {
         const newAchievement: Achievement = {
           name: `Title: ${challengeName} Champion`,
@@ -602,7 +661,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         if (!updatedAchievements.some((a: Achievement) => a.name === newAchievement.name)) {
           updatedAchievements.push(newAchievement);
         }
-        toast.success(`User ${targetUserId} earned the "${newAchievement.name}"!`);
+        newCurrency += 150; // Example: 150 coins for a title
+        toast.success(`User ${targetUserId} earned the "${newAchievement.name}" and 150 Coins!`);
       }
       // Add logic for other reward types (Rare Item, Title)
 
@@ -612,6 +672,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .from('profiles')
         .update({
           experience: newExperience,
+          currency: newCurrency, // Update currency
           achievements: updatedAchievements,
         })
         .eq('id', targetUserId);
@@ -626,7 +687,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
         // Update current user's profile if it's the target user
         if (user?.id === targetUserId) {
-          setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel, achievements: updatedAchievements } : null);
+          setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel, achievements: updatedAchievements, currency: newCurrency } : null);
         }
       }
 
@@ -650,7 +711,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, updateAvatar, uploadAvatar, getAchievementIcon, startQuest, completeQuest, submitImageForVerification, verifyQuestCompletion, grantChallengeReward }}>
+    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addCurrency, deductCurrency, addAchievement, updateProfileDetails, updateAvatar, uploadAvatar, getAchievementIcon, startQuest, completeQuest, submitImageForVerification, verifyQuestCompletion, grantChallengeReward }}>
       {children}
     </UserProfileContext.Provider>
   );
