@@ -47,26 +47,12 @@ const FriendSearchAndList: React.FC = () => {
       // Search profiles by first_name, last_name, or email
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, first_name, last_name, avatar_url')
-        .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%`);
+        .select('id, first_name, last_name, avatar_url, email') // Select email directly
+        .or(`first_name.ilike.%${searchTerm}%,last_name.ilike.%${searchTerm}%,email.ilike.%${searchTerm}%`); // Search by email too
 
       if (profilesError) {
         throw profilesError;
       }
-
-      // Fetch auth.users to get emails for the found profiles
-      // This is a simplified approach; in a real app, you might have emails directly in profiles or use an Edge Function for admin access.
-      const { data: authUsers, error: authUsersError } = await supabase
-        .from('users') // Assuming 'users' table in public schema for emails, or use an Edge Function
-        .select('id, email')
-        .in('id', profiles.map(p => p.id));
-
-      if (authUsersError) {
-        console.warn("Could not fetch emails for search results:", authUsersError.message);
-        // Proceed without emails if there's an error fetching them
-      }
-
-      const authUsersMap = new Map(authUsers?.map(u => [u.id, u.email]) || []);
 
       const results: UserSearchResult[] = profiles
         .filter(p => p.id !== user.id) // Exclude current user
@@ -75,7 +61,7 @@ const FriendSearchAndList: React.FC = () => {
           first_name: p.first_name,
           last_name: p.last_name,
           avatar_url: p.avatar_url,
-          email: authUsersMap.get(p.id) || "Email not available",
+          email: p.email || "Email not available", // Use email from profiles
         }));
 
       setSearchResults(results);

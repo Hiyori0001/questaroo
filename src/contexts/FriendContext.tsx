@@ -142,7 +142,11 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     if (error) {
       console.error("Error sending friend request:", error);
-      toast.error("Failed to send friend request.");
+      if (error.code === '23505') { // PostgreSQL unique_violation error code
+        toast.error("A friend request with this user already exists or is pending.");
+      } else {
+        toast.error("Failed to send friend request: " + error.message);
+      }
     } else {
       toast.success("Friend request sent!");
       fetchFriendData();
