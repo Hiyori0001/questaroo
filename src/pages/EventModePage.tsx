@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CalendarDays, Trophy, Users, Clock, Loader2, AlertCircle, CheckCircle2, MessageSquareText } from "lucide-react"; // Added MessageSquareText
+import { CalendarDays, Trophy, Users, Clock, Loader2, AlertCircle, CheckCircle2, MessageSquareText, XCircle } from "lucide-react"; // Added XCircle
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
