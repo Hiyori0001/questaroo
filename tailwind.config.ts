@@ -85,10 +85,20 @@ export default {
             height: "0",
           },
         },
+        "pop-in": { // New keyframe for a subtle pop-in effect
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "pop-out": { // New keyframe for a subtle pop-out effect
+          "0%": { transform: "scale(1)", opacity: "1" },
+          "100%": { transform: "scale(0.95)", opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "pop-in": "pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)", // Bouncy pop-in
+        "pop-out": "pop-out 0.2s ease-out",
       },
     },
   },
