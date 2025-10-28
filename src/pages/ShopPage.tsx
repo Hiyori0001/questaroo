@@ -17,6 +17,7 @@ interface ShopItem {
   price: number;
   icon: React.ElementType;
   action: (userId: string, profile: any) => Promise<boolean>; // Action to perform on purchase
+  achievementName?: string; // Optional: Name of the achievement granted for this item
 }
 
 const ShopPage = () => {
@@ -39,9 +40,15 @@ const ShopPage = () => {
       description: "Get a brand new random avatar to refresh your look!",
       price: 50,
       icon: RefreshCw,
+      achievementName: "Avatar Randomizer Unlocked", // Define the achievement name
       action: async (userId, currentProfile) => {
         if (!currentProfile) return false;
         await updateAvatar(); // Use the existing updateAvatar function
+        await addAchievement({ // Add the achievement upon purchase
+          name: "Avatar Randomizer Unlocked",
+          iconName: "RefreshCw",
+          color: "bg-blue-500",
+        });
         return true;
       },
     },
@@ -51,6 +58,7 @@ const ShopPage = () => {
       description: "A temporary badge that signifies your dedication to gaining XP!",
       price: 150,
       icon: Sparkles,
+      achievementName: "XP Boost Enthusiast",
       action: async (userId, currentProfile) => {
         if (!currentProfile) return false;
         await addAchievement({
@@ -67,6 +75,7 @@ const ShopPage = () => {
       description: "Add a shimmering rare gem to your achievement collection.",
       price: 250,
       icon: Gem,
+      achievementName: "Rare Gem Collector",
       action: async (userId, currentProfile) => {
         if (!currentProfile) return false;
         await addAchievement({
@@ -83,6 +92,7 @@ const ShopPage = () => {
       description: "Show off your protective spirit with this unique badge.",
       price: 300,
       icon: Shield,
+      achievementName: "Guardian of Questaroo",
       action: async (userId, currentProfile) => {
         if (!currentProfile) return false;
         await addAchievement({
@@ -98,6 +108,12 @@ const ShopPage = () => {
   const handlePurchase = async (item: ShopItem) => {
     if (!user || !profile) {
       toast.error("You must be logged in to make a purchase.");
+      return;
+    }
+
+    // Check if the item is already owned (if it grants an achievement)
+    if (item.achievementName && profile.achievements.some(a => a.name === item.achievementName)) {
+      toast.info(`You already own "${item.name}".`);
       return;
     }
 
@@ -147,7 +163,8 @@ const ShopPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {shopItems.map((item) => {
               const Icon = item.icon;
-              const hasItem = profile.achievements.some(a => a.name === item.name); // Simple check for badges
+              // Check if the item grants an achievement and if that achievement is present in the profile
+              const isOwned = item.achievementName && profile.achievements.some(a => a.name === item.achievementName);
               return (
                 <Card key={item.id} className="bg-gray-50 dark:bg-gray-800 p-4 flex flex-col items-center text-center">
                   <Icon className="h-12 w-12 text-purple-600 dark:text-purple-400 mb-3" />
@@ -159,7 +176,7 @@ const ShopPage = () => {
                     <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
                     <span className="text-lg font-bold text-gray-800 dark:text-gray-200">{item.price} Coins</span>
                   </div>
-                  {hasItem ? (
+                  {isOwned ? (
                     <Badge className="bg-green-500 dark:bg-green-700 text-white">Owned</Badge>
                   ) : (
                     <Button

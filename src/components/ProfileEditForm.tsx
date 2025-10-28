@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Save, X, RefreshCw, Upload, Loader2 } from "lucide-react"; // Import Upload and Loader2 icons
 import { toast } from "sonner";
 import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"; // Import Tooltip components
 
 // Define the schema for profile editing
 const profileFormSchema = z.object({
@@ -27,7 +28,7 @@ interface ProfileEditFormProps {
 }
 
 const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, onCancel }) => {
-  const { updateAvatar, uploadAvatar } = useUserProfile(); // Use the new updateAvatar and uploadAvatar functions
+  const { profile, updateAvatar, uploadAvatar } = useUserProfile(); // Use the new updateAvatar and uploadAvatar functions
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -65,6 +66,11 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, 
       setIsUploading(false);
     }
   };
+
+  // Check if the user has unlocked the Avatar Randomizer
+  const hasAvatarRandomizer = profile?.achievements.some(
+    (a) => a.name === "Avatar Randomizer Unlocked"
+  );
 
   return (
     <Form {...form}>
@@ -130,15 +136,24 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, 
         </div>
 
         <div className="flex justify-between items-center pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={updateAvatar} // Call updateAvatar when this button is clicked
-            className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
-            disabled={isUploading}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" /> Randomize Avatar
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={updateAvatar} // Call updateAvatar when this button is clicked
+                className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+                disabled={isUploading || !hasAvatarRandomizer} // Disable if not purchased
+              >
+                <RefreshCw className="h-4 w-4 mr-2" /> Randomize Avatar
+              </Button>
+            </TooltipTrigger>
+            {!hasAvatarRandomizer && (
+              <TooltipContent>
+                <p>Purchase "Avatar Randomizer" from the shop to enable this feature.</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
           <div className="flex gap-3">
             <Button type="button" variant="outline" onClick={onCancel} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600" disabled={isUploading}>
               <X className="h-4 w-4 mr-2" /> Cancel
