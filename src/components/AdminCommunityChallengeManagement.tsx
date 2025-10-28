@@ -46,6 +46,7 @@ interface CommunityChallenge {
   reward_type: string;
   status: string;
   created_at: string;
+  completion_criteria: string | null; // Added new field
 }
 
 const challengeFormSchema = z.object({
@@ -55,6 +56,7 @@ const challengeFormSchema = z.object({
   end_date: z.date({ required_error: "End date is required." }),
   reward_type: z.string().min(1, { message: "Reward type is required." }),
   status: z.enum(["upcoming", "active", "completed"], { required_error: "Status is required." }),
+  completion_criteria: z.string().min(10, { message: "Completion criteria must be at least 10 characters." }).max(500, { message: "Completion criteria must not exceed 500 characters." }).optional(), // New field
 }).superRefine((data, ctx) => {
   if (data.start_date && data.end_date && data.start_date > data.end_date) {
     ctx.addIssue({
@@ -81,6 +83,7 @@ const AdminCommunityChallengeManagement = () => {
       end_date: undefined,
       reward_type: "Team XP",
       status: "upcoming",
+      completion_criteria: "", // Initialize new field
     },
   });
 
@@ -116,6 +119,7 @@ const AdminCommunityChallengeManagement = () => {
         end_date: values.end_date.toISOString(),
         reward_type: values.reward_type,
         status: values.status,
+        completion_criteria: values.completion_criteria || null, // Include new field
       };
 
       if (editingChallenge) {
@@ -176,6 +180,7 @@ const AdminCommunityChallengeManagement = () => {
       end_date: undefined,
       reward_type: "Team XP",
       status: "upcoming",
+      completion_criteria: "", // Reset new field
     });
     setIsFormDialogOpen(true);
   };
@@ -189,6 +194,7 @@ const AdminCommunityChallengeManagement = () => {
       end_date: new Date(challenge.end_date),
       reward_type: challenge.reward_type,
       status: challenge.status as "upcoming" | "active" | "completed",
+      completion_criteria: challenge.completion_criteria || "", // Set new field
     });
     setIsFormDialogOpen(true);
   };
@@ -381,6 +387,19 @@ const AdminCommunityChallengeManagement = () => {
                     </FormItem>
                   )}
                 />
+                <FormField
+                  control={form.control}
+                  name="completion_criteria"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-800 dark:text-gray-200">Completion Criteria</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="e.g., Complete 3 'Easy' quests in Central Park, or achieve 500 clicks in the Clicker Challenge." className="resize-y min-h-[80px]" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsFormDialogOpen(false)} disabled={loading}>
                     Cancel
@@ -406,6 +425,7 @@ const AdminCommunityChallengeManagement = () => {
               <TableHead className="text-center">End Date</TableHead>
               <TableHead className="text-center">Reward</TableHead>
               <TableHead className="text-center">Status</TableHead>
+              <TableHead className="text-left">Criteria</TableHead> {/* New column */}
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -418,6 +438,7 @@ const AdminCommunityChallengeManagement = () => {
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{format(new Date(challenge.end_date), "PPP")}</TableCell>
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{challenge.reward_type}</TableCell>
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{challenge.status}</TableCell>
+                <TableCell className="text-gray-700 dark:text-gray-300 line-clamp-2 max-w-xs">{challenge.completion_criteria || "N/A"}</TableCell> {/* Display new field */}
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => openEditDialog(challenge)} disabled={loading}>

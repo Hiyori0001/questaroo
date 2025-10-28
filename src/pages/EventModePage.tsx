@@ -17,6 +17,7 @@ interface CommunityChallenge {
   end_date: string;
   reward_type: string;
   status: string;
+  completion_criteria: string | null; // Added new field
 }
 
 interface UserChallengeParticipation {
@@ -169,6 +170,11 @@ const EventModePage = () => {
                       <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 mb-3">
                         Reward: {event.reward_type}
                       </Badge>
+                      {event.completion_criteria && ( // Display completion criteria
+                        <p className="text-sm text-gray-800 dark:text-gray-200 mb-3">
+                          <span className="font-semibold">Objective:</span> {event.completion_criteria}
+                        </p>
+                      )}
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-auto line-clamp-2">{event.description}</p>
                       <div className="mt-4">
                         {user ? (
