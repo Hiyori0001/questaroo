@@ -57,6 +57,7 @@ interface UserProfileContextType {
   completeQuest: (questId: string) => Promise<void>; // New: Mark quest as completed (now only updates status)
   submitImageForVerification: (questId: string, imageFile: File) => Promise<void>; // New: Submit image for review
   verifyQuestCompletion: (userId: string, questId: string, status: 'approved' | 'rejected', xpReward: number, questTitle: string, teamId?: string) => Promise<void>; // New: Creator/Admin verification
+  grantChallengeReward: (userId: string, challengeId: string, status: 'completed' | 'failed', rewardType: string, xpAmount: number, challengeName: string, teamId: string | null) => Promise<void>; // New: Grant challenge rewards
 }
 
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
@@ -511,12 +512,108 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         // This would ideally call a function from TeamContext to update team score
         // For now, we'll just log it or add a placeholder
         console.log(`Team ${teamId} would receive ${xpReward} points for quest ${questTitle}.`);
-        // You would call addTeamScore here if it were available in this context
-        // await addTeamScore(teamId, xpReward);
+        // await addTeamScore(teamId, xpReward); // This needs to be imported or passed
       }
 
     } else {
       toast.info(`Quest "${questTitle}" rejected for ${targetUserId}.`);
+    }
+  }, [user, profile]);
+
+  const grantChallengeReward = useCallback(async (
+    targetUserId: string,
+    challengeId: string,
+    status: 'completed' | 'failed',
+    rewardType: string,
+    xpAmount: number,
+    challengeName: string,
+    teamId: string | null
+  ) => {
+    if (!user || !profile?.isAdmin) {
+      toast.error("You do not have permission to grant challenge rewards.");
+      return;
+    }
+
+    // 1. Update user_challenge_participation status
+    const { error: updateParticipationError } = await supabase
+      .from('user_challenge_participation')
+      .update({ status: status })
+      .eq('user_id', targetUserId)
+      .eq('challenge_id', challengeId);
+
+    if (updateParticipationError) {
+      console.error("Error updating challenge participation status:", updateParticipationError);
+      toast.error("Failed to update challenge participation status.");
+      return;
+    }
+
+    if (status === 'completed') {
+      // 2. Grant rewards based on rewardType
+      const { data: targetProfile, error: fetchProfileError } = await supabase
+        .from('profiles')
+        .select('experience, achievements')
+        .eq('id', targetUserId)
+        .single();
+
+      if (fetchProfileError || !targetProfile) {
+        console.error("Error fetching target user profile for challenge rewards:", fetchProfileError);
+        toast.error("Failed to grant challenge rewards: Could not fetch user profile.");
+        return;
+      }
+
+      let newExperience = targetProfile.experience;
+      const updatedAchievements = [...targetProfile.achievements];
+
+      if (rewardType === "Team XP") {
+        newExperience += xpAmount; // Add XP to individual for now, or to team directly
+        // If we had a direct way to add to team XP from here, we'd use it.
+        // For now, we'll assume 'Team XP' means individual XP contribution or a separate admin action.
+        // A more robust system would involve a `useTeams` context function here.
+        toast.info(`User ${targetUserId} received ${xpAmount} XP for team contribution.`);
+      } else if (rewardType === "Exclusive Badge") {
+        const newAchievement: Achievement = {
+          name: `Challenge Master: ${challengeName}`,
+          iconName: "Trophy", // Or a specific icon for challenges
+          color: "bg-purple-500",
+        };
+        if (!updatedAchievements.some((a: Achievement) => a.name === newAchievement.name)) {
+          updatedAchievements.push(newAchievement);
+        }
+      }
+      // Add logic for other reward types (Rare Item, Title)
+
+      const newLevel = calculateLevel(newExperience);
+
+      const { error: rewardError } = await supabase
+        .from('profiles')
+        .update({
+          experience: newExperience,
+          achievements: updatedAchievements,
+        })
+        .eq('id', targetUserId);
+
+      if (rewardError) {
+        console.error("Error granting challenge rewards:", rewardError);
+        toast.error("Failed to grant challenge rewards.");
+      } else {
+        toast.success(`Challenge "${challengeName}" completed and rewards granted to ${targetUserId}!`);
+        // Update current user's profile if it's the target user
+        if (user?.id === targetUserId) {
+          setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel, achievements: updatedAchievements } : null);
+        }
+      }
+
+      // If reward is Team XP and a teamId is provided, update team score
+      if (rewardType === "Team XP" && teamId) {
+        // This would ideally call a function from TeamContext to update team score
+        // For now, we'll just log it. In a real app, you'd import useTeams and call addTeamScore.
+        console.log(`Team ${teamId} would receive ${xpAmount} points for challenge ${challengeName}.`);
+        // To actually update team score, you'd need to pass `addTeamScore` from TeamContext
+        // or make a direct supabase call here (less ideal for context separation).
+      }
+
+    } else {
+      toast.info(`Challenge "${challengeName}" marked as failed for ${targetUserId}.`);
     }
   }, [user, profile]);
 
@@ -526,7 +623,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, []);
 
   return (
-    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, updateAvatar, uploadAvatar, getAchievementIcon, startQuest, completeQuest, submitImageForVerification, verifyQuestCompletion }}>
+    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addAchievement, updateProfileDetails, updateAvatar, uploadAvatar, getAchievementIcon, startQuest, completeQuest, submitImageForVerification, verifyQuestCompletion, grantChallengeReward }}>
       {children}
     </UserProfileContext.Provider>
   );

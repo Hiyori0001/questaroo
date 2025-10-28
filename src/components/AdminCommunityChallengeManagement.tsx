@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, PlusCircle, Edit, Trash2, CalendarDays, Trophy } from "lucide-react";
+import { Loader2, AlertCircle, PlusCircle, Edit, Trash2, CalendarDays, Trophy, Users } from "lucide-react"; // Added Users icon
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import {
@@ -36,6 +36,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import AdminChallengeParticipantsDialog from "./AdminChallengeParticipantsDialog"; // Import new component
 
 interface CommunityChallenge {
   id: string;
@@ -46,7 +47,7 @@ interface CommunityChallenge {
   reward_type: string;
   status: string;
   created_at: string;
-  completion_criteria: string | null; // Added new field
+  completion_criteria: string | null;
 }
 
 const challengeFormSchema = z.object({
@@ -56,7 +57,7 @@ const challengeFormSchema = z.object({
   end_date: z.date({ required_error: "End date is required." }),
   reward_type: z.string().min(1, { message: "Reward type is required." }),
   status: z.enum(["upcoming", "active", "completed"], { required_error: "Status is required." }),
-  completion_criteria: z.string().min(10, { message: "Completion criteria must be at least 10 characters." }).max(500, { message: "Completion criteria must not exceed 500 characters." }).optional(), // New field
+  completion_criteria: z.string().min(10, { message: "Completion criteria must be at least 10 characters." }).max(500, { message: "Completion criteria must not exceed 500 characters." }).optional(),
 }).superRefine((data, ctx) => {
   if (data.start_date && data.end_date && data.start_date > data.end_date) {
     ctx.addIssue({
@@ -74,6 +75,9 @@ const AdminCommunityChallengeManagement = () => {
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
   const [editingChallenge, setEditingChallenge] = useState<CommunityChallenge | null>(null);
 
+  const [isParticipantsDialogOpen, setIsParticipantsDialogOpen] = useState(false);
+  const [selectedChallengeForParticipants, setSelectedChallengeForParticipants] = useState<CommunityChallenge | null>(null);
+
   const form = useForm<z.infer<typeof challengeFormSchema>>({
     resolver: zodResolver(challengeFormSchema),
     defaultValues: {
@@ -83,7 +87,7 @@ const AdminCommunityChallengeManagement = () => {
       end_date: undefined,
       reward_type: "Team XP",
       status: "upcoming",
-      completion_criteria: "", // Initialize new field
+      completion_criteria: "",
     },
   });
 
@@ -119,7 +123,7 @@ const AdminCommunityChallengeManagement = () => {
         end_date: values.end_date.toISOString(),
         reward_type: values.reward_type,
         status: values.status,
-        completion_criteria: values.completion_criteria || null, // Include new field
+        completion_criteria: values.completion_criteria || null,
       };
 
       if (editingChallenge) {
@@ -155,6 +159,17 @@ const AdminCommunityChallengeManagement = () => {
   const handleDeleteChallenge = async (challengeId: string, challengeName: string) => {
     setLoading(true);
     try {
+      // First, delete all participations related to this challenge
+      const { error: deleteParticipationError } = await supabase
+        .from('user_challenge_participation')
+        .delete()
+        .eq('challenge_id', challengeId);
+
+      if (deleteParticipationError) {
+        console.error("Error deleting challenge participations:", deleteParticipationError);
+        // Don't throw, try to delete the challenge itself anyway
+      }
+
       const { error } = await supabase
         .from('community_challenges')
         .delete()
@@ -180,7 +195,7 @@ const AdminCommunityChallengeManagement = () => {
       end_date: undefined,
       reward_type: "Team XP",
       status: "upcoming",
-      completion_criteria: "", // Reset new field
+      completion_criteria: "",
     });
     setIsFormDialogOpen(true);
   };
@@ -194,9 +209,14 @@ const AdminCommunityChallengeManagement = () => {
       end_date: new Date(challenge.end_date),
       reward_type: challenge.reward_type,
       status: challenge.status as "upcoming" | "active" | "completed",
-      completion_criteria: challenge.completion_criteria || "", // Set new field
+      completion_criteria: challenge.completion_criteria || "",
     });
     setIsFormDialogOpen(true);
+  };
+
+  const openParticipantsDialog = (challenge: CommunityChallenge) => {
+    setSelectedChallengeForParticipants(challenge);
+    setIsParticipantsDialogOpen(true);
   };
 
   if (loading) {
@@ -425,7 +445,7 @@ const AdminCommunityChallengeManagement = () => {
               <TableHead className="text-center">End Date</TableHead>
               <TableHead className="text-center">Reward</TableHead>
               <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-left">Criteria</TableHead> {/* New column */}
+              <TableHead className="text-left">Criteria</TableHead>
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -438,11 +458,14 @@ const AdminCommunityChallengeManagement = () => {
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{format(new Date(challenge.end_date), "PPP")}</TableCell>
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{challenge.reward_type}</TableCell>
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{challenge.status}</TableCell>
-                <TableCell className="text-gray-700 dark:text-gray-300 line-clamp-2 max-w-xs">{challenge.completion_criteria || "N/A"}</TableCell> {/* Display new field */}
+                <TableCell className="text-gray-700 dark:text-gray-300 line-clamp-2 max-w-xs">{challenge.completion_criteria || "N/A"}</TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => openEditDialog(challenge)} disabled={loading}>
                       <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => openParticipantsDialog(challenge)} disabled={loading}>
+                      <Users className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -454,7 +477,7 @@ const AdminCommunityChallengeManagement = () => {
                         <AlertDialogHeader>
                           <AlertDialogTitle className="text-gray-900 dark:text-white">Confirm Deletion</AlertDialogTitle>
                           <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
-                            Are you sure you want to delete challenge "{challenge.name}"? This action cannot be undone.
+                            Are you sure you want to delete challenge "{challenge.name}"? This will also delete all associated user participations. This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -470,6 +493,15 @@ const AdminCommunityChallengeManagement = () => {
           </TableBody>
         </Table>
       </div>
+
+      {selectedChallengeForParticipants && (
+        <AdminChallengeParticipantsDialog
+          isOpen={isParticipantsDialogOpen}
+          onClose={() => setIsParticipantsDialogOpen(false)}
+          challenge={selectedChallengeForParticipants}
+          onChallengeUpdated={fetchChallenges} // Callback to refresh challenges after participant actions
+        />
+      )}
     </div>
   );
 };
