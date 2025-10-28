@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
-import { LucideIcon, Trophy, Star, Award, Gem, Crown } from "lucide-react"; // Added Award, Gem, Crown
+import { LucideIcon, Trophy, Star, Award, Gem, Crown, RefreshCw, Sparkles, Shield } from "lucide-react"; // Added RefreshCw, Sparkles, Shield
 import { supabase } from "@/lib/supabase"; // Import supabase client
 
 // Define the Achievement type
@@ -20,6 +20,9 @@ const LucideIconMap: { [key: string]: LucideIcon } = {
   Award: Award, // Added
   Gem: Gem,     // Added
   Crown: Crown, // Added
+  RefreshCw: RefreshCw, // Added
+  Sparkles: Sparkles, // Added
+  Shield: Shield, // Added
   // Add other icons here if they are used in achievements
 };
 
@@ -67,6 +70,7 @@ interface UserProfileContextType {
   submitImageForVerification: (questId: string, imageFile: File) => Promise<void>; // New: Submit image for review
   verifyQuestCompletion: (userId: string, questId: string, status: 'approved' | 'rejected', xpReward: number, questTitle: string, teamId?: string) => Promise<void>; // New: Creator/Admin verification
   grantChallengeReward: (userId: string, challengeId: string, status: 'completed' | 'failed', rewardType: string, xpAmount: number, challengeName: string, teamId: string | null) => Promise<void>; // New: Grant challenge rewards
+  submitChallengeCompletion: (challengeId: string, details: string, imageFile: File | null) => Promise<void>; // New: Submit challenge completion
 }
 
 const UserProfileContext = createContext<UserProfileContextType | undefined>(undefined);
@@ -788,13 +792,60 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [user, profile]);
 
+  const submitChallengeCompletion = useCallback(async (challengeId: string, details: string, imageFile: File | null) => {
+    if (!user) {
+      throw new Error("User not authenticated.");
+    }
+
+    let completionEvidenceUrl: string | null = null;
+
+    if (imageFile) {
+      const fileExtension = imageFile.name.split('.').pop();
+      const filePath = `${user.id}/challenge_completions/${challengeId}/${Date.now()}.${fileExtension}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('challenge-completion-evidence') // Assuming a new bucket for challenge evidence
+        .upload(filePath, imageFile, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from('challenge-completion-evidence')
+        .getPublicUrl(filePath);
+
+      if (!publicUrlData?.publicUrl) {
+        throw new Error("Failed to get public URL for uploaded image.");
+      }
+      completionEvidenceUrl = publicUrlData.publicUrl;
+    }
+
+    const { error: updateError } = await supabase
+      .from('user_challenge_participation')
+      .update({
+        status: 'pending_review',
+        completion_details: details,
+        completion_evidence_url: completionEvidenceUrl,
+      })
+      .eq('user_id', user.id)
+      .eq('challenge_id', challengeId);
+
+    if (updateError) {
+      throw updateError;
+    }
+  }, [user]);
+
 
   const getAchievementIcon = useCallback((iconName: string) => {
     return LucideIconMap[iconName];
   }, []);
 
   return (
-    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addCurrency, deductCurrency, addAchievement, updateProfileDetails, updateAvatar, uploadAvatar, getAchievementIcon, startQuest, completeQuest, submitImageForVerification, verifyQuestCompletion, grantChallengeReward }}>
+    <UserProfileContext.Provider value={{ profile, loadingProfile, addExperience, deductExperience, addCurrency, deductCurrency, addAchievement, updateProfileDetails, updateAvatar, uploadAvatar, getAchievementIcon, startQuest, completeQuest, submitImageForVerification, verifyQuestCompletion, grantChallengeReward, submitChallengeCompletion }}>
       {children}
     </UserProfileContext.Provider>
   );

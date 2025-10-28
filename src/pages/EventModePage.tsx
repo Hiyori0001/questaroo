@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CalendarDays, Trophy, Users, Clock, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"; // Added CheckCircle2
+import { CalendarDays, Trophy, Users, Clock, Loader2, AlertCircle, CheckCircle2, MessageSquareText } from "lucide-react"; // Added MessageSquareText
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import ChallengeCompletionSubmitter from "@/components/ChallengeCompletionSubmitter"; // Import new component
 
 interface CommunityChallenge {
   id: string;
@@ -22,15 +23,18 @@ interface CommunityChallenge {
 
 interface UserChallengeParticipation {
   challenge_id: string;
-  status: string;
+  status: 'participating' | 'pending_review' | 'completed' | 'withdrawn' | 'failed'; // Updated status types
 }
 
 const EventModePage = () => {
   const { user, loading: loadingAuth } = useAuth(); // Get user and loadingAuth from AuthContext
   const [upcomingEvents, setUpcomingEvents] = useState<CommunityChallenge[]>([]);
-  const [userParticipations, setUserParticipations] = useState<Set<string>>(new Set()); // Store IDs of challenges user has joined
+  const [userParticipations, setUserParticipations] = useState<Map<string, UserChallengeParticipation>>(new Map()); // Store full participation objects
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [isSubmitterOpen, setIsSubmitterOpen] = useState(false);
+  const [selectedChallengeForSubmission, setSelectedChallengeForSubmission] = useState<CommunityChallenge | null>(null);
 
   const fetchEvents = useCallback(async () => {
     setIsLoading(true);
@@ -59,7 +63,7 @@ const EventModePage = () => {
 
   const fetchUserParticipations = useCallback(async () => {
     if (!user) {
-      setUserParticipations(new Set());
+      setUserParticipations(new Map());
       return;
     }
     const { data, error } = await supabase
@@ -71,8 +75,8 @@ const EventModePage = () => {
       console.error("Error fetching user participations:", error);
       // Don't block the page, just log error
     } else {
-      const participated = new Set(data.map(p => p.challenge_id));
-      setUserParticipations(participated);
+      const participationsMap = new Map(data.map(p => [p.challenge_id, p as UserChallengeParticipation]));
+      setUserParticipations(participationsMap);
     }
   }, [user]);
 
@@ -105,7 +109,8 @@ const EventModePage = () => {
         toast.error(`Failed to join "${challengeName}".`);
       } else {
         toast.success(`You have joined "${challengeName}"!`);
-        setUserParticipations(prev => new Set(prev).add(challengeId)); // Update state
+        // Update state with the new participation
+        setUserParticipations(prev => new Map(prev).set(challengeId, { challenge_id: challengeId, status: 'participating' }));
       }
     } catch (err: any) {
       console.error("Unhandled error joining challenge:", err.message);
@@ -113,8 +118,37 @@ const EventModePage = () => {
     }
   };
 
-  const handleCommunityChallengesClick = () => {
-    toast.info("This section now displays real community challenges from the database!");
+  const handleOpenSubmitter = (challenge: CommunityChallenge) => {
+    if (!user) {
+      toast.error("You must be logged in to submit challenge completion.");
+      return;
+    }
+    const participation = userParticipations.get(challenge.id);
+    if (!participation || participation.status !== 'participating') {
+      toast.error("You can only submit for challenges you are actively participating in.");
+      return;
+    }
+    setSelectedChallengeForSubmission(challenge);
+    setIsSubmitterOpen(true);
+  };
+
+  const handleSubmissionSuccess = () => {
+    fetchUserParticipations(); // Re-fetch participations to update status
+  };
+
+  const getStatusBadge = (status: UserChallengeParticipation['status']) => {
+    switch (status) {
+      case 'participating':
+        return <Badge variant="outline" className="border-blue-500 text-blue-500 dark:border-blue-700 dark:text-blue-300 flex items-center justify-center gap-1"><Users className="h-4 w-4" /> Participating</Badge>;
+      case 'pending_review':
+        return <Badge className="bg-yellow-500 dark:bg-yellow-700 text-white flex items-center justify-center gap-1"><MessageSquareText className="h-4 w-4" /> Pending Review</Badge>;
+      case 'completed':
+        return <Badge className="bg-green-500 dark:bg-green-700 text-white flex items-center justify-center gap-1"><CheckCircle2 className="h-4 w-4" /> Completed</Badge>;
+      case 'failed':
+        return <Badge className="bg-red-500 dark:bg-red-700 text-white flex items-center justify-center gap-1"><XCircle className="h-4 w-4" /> Failed</Badge>;
+      default:
+        return <Badge variant="secondary">{status}</Badge>;
+    }
   };
 
   return (
@@ -134,12 +168,6 @@ const EventModePage = () => {
             Get ready for exciting limited-time events, special quests, and unique challenges with exclusive rewards.
             Check back here regularly to see what's new!
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" className="px-8 py-4 text-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600" onClick={handleCommunityChallengesClick}>
-              <Trophy className="h-5 w-5 mr-2" /> View Challenges
-            </Button>
-          </div>
-
           <div className="mt-8 text-left">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">Upcoming Challenges</h3>
             {isLoading || loadingAuth ? (
@@ -158,7 +186,12 @@ const EventModePage = () => {
             ) : upcomingEvents.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {upcomingEvents.map((event) => {
-                  const hasJoined = userParticipations.has(event.id);
+                  const participation = userParticipations.get(event.id);
+                  const hasJoined = !!participation;
+                  const isPendingReview = participation?.status === 'pending_review';
+                  const isCompleted = participation?.status === 'completed';
+                  const isFailed = participation?.status === 'failed';
+
                   return (
                     <Card key={event.id} className="bg-gray-50 dark:bg-gray-800 p-4 flex flex-col">
                       <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{event.name}</CardTitle>
@@ -179,21 +212,29 @@ const EventModePage = () => {
                       <p className="text-sm text-gray-600 dark:text-gray-400 mt-auto line-clamp-2">{event.description}</p>
                       <div className="mt-4">
                         {user ? (
-                          <Button
-                            onClick={() => handleJoinChallenge(event.id, event.name)}
-                            disabled={hasJoined}
-                            className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                          >
-                            {hasJoined ? (
-                              <>
-                                <CheckCircle2 className="h-4 w-4 mr-2" /> Joined
-                              </>
-                            ) : (
-                              <>
+                          <>
+                            {!hasJoined && (
+                              <Button
+                                onClick={() => handleJoinChallenge(event.id, event.name)}
+                                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                              >
                                 <Users className="h-4 w-4 mr-2" /> Join Challenge
-                              </>
+                              </Button>
                             )}
-                          </Button>
+                            {hasJoined && !isCompleted && !isFailed && !isPendingReview && (
+                              <Button
+                                onClick={() => handleOpenSubmitter(event)}
+                                className="w-full bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                              >
+                                <MessageSquareText className="h-4 w-4 mr-2" /> Submit Completion
+                              </Button>
+                            )}
+                            {hasJoined && (isPendingReview || isCompleted || isFailed) && (
+                              <div className="w-full text-center">
+                                {getStatusBadge(participation.status)}
+                              </div>
+                            )}
+                          </>
                         ) : (
                           <Button disabled className="w-full">
                             Log in to Join
@@ -210,6 +251,17 @@ const EventModePage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {selectedChallengeForSubmission && (
+        <ChallengeCompletionSubmitter
+          isOpen={isSubmitterOpen}
+          onClose={() => setIsSubmitterOpen(false)}
+          challengeId={selectedChallengeForSubmission.id}
+          challengeName={selectedChallengeForSubmission.name}
+          completionCriteria={selectedChallengeForSubmission.completion_criteria}
+          onSubmissionSuccess={handleSubmissionSuccess}
+        />
+      )}
     </div>
   );
 };

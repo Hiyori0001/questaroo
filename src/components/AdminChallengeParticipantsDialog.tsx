@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, X, Loader2, AlertCircle, User as UserIcon, CheckCircle2, XCircle } from "lucide-react";
+import { Users, X, Loader2, AlertCircle, User as UserIcon, CheckCircle2, XCircle, MessageSquareText, Image } from "lucide-react"; // Added MessageSquareText, Image
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -26,7 +26,9 @@ interface Participant {
   user_id: string;
   challenge_id: string;
   joined_at: string;
-  status: 'participating' | 'completed' | 'withdrawn' | 'failed';
+  status: 'participating' | 'pending_review' | 'completed' | 'withdrawn' | 'failed'; // Updated status types
+  completion_details: string | null; // New: Completion details from user
+  completion_evidence_url: string | null; // New: Evidence URL from user
   profiles: {
     id: string;
     first_name: string | null;
@@ -62,6 +64,8 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
           challenge_id,
           joined_at,
           status,
+          completion_details,
+          completion_evidence_url,
           profiles!user_id(id, first_name, last_name, avatar_url, experience, team_id)
         `)
         .eq('challenge_id', challenge.id);
@@ -170,6 +174,7 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
                 <TableRow>
                   <TableHead className="text-left">Player</TableHead>
                   <TableHead className="text-center">Joined At</TableHead>
+                  <TableHead className="text-left">Submission</TableHead> {/* New column */}
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
@@ -191,14 +196,36 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
                     <TableCell className="text-center text-gray-700 dark:text-gray-300">
                       {new Date(participant.joined_at).toLocaleDateString()}
                     </TableCell>
+                    <TableCell className="text-left text-gray-700 dark:text-gray-300 max-w-[150px] truncate"> {/* New cell */}
+                      {participant.status === 'pending_review' ? (
+                        <div className="flex flex-col gap-1">
+                          {participant.completion_details && (
+                            <p className="text-sm flex items-center gap-1">
+                              <MessageSquareText className="h-3 w-3 text-blue-500" /> {participant.completion_details}
+                            </p>
+                          )}
+                          {participant.completion_evidence_url && (
+                            <a href={participant.completion_evidence_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-sm flex items-center gap-1">
+                              <Image className="h-3 w-3" /> View Evidence
+                            </a>
+                          )}
+                          {!participant.completion_details && !participant.completion_evidence_url && (
+                            <span className="text-sm italic text-gray-500">No details provided.</span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-sm italic text-gray-500">N/A</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-center">
                       {participant.status === 'completed' && <span className="text-green-600 dark:text-green-400 flex items-center justify-center gap-1"><CheckCircle2 className="h-4 w-4" /> Completed</span>}
                       {participant.status === 'participating' && <span className="text-blue-600 dark:text-blue-400 flex items-center justify-center gap-1"><Users className="h-4 w-4" /> Participating</span>}
+                      {participant.status === 'pending_review' && <span className="text-yellow-600 dark:text-yellow-400 flex items-center justify-center gap-1"><MessageSquareText className="h-4 w-4" /> Pending Review</span>}
                       {participant.status === 'failed' && <span className="text-red-600 dark:text-red-400 flex items-center justify-center gap-1"><XCircle className="h-4 w-4" /> Failed</span>}
                     </TableCell>
                     <TableCell className="text-center">
                       <div className="flex justify-center gap-2">
-                        {participant.status === 'participating' && (
+                        {participant.status === 'pending_review' && (
                           <>
                             <Button size="sm" onClick={() => handleApproveCompletion(participant)} disabled={loading}>
                               <CheckCircle2 className="h-4 w-4" /> Approve
@@ -208,7 +235,7 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
                             </Button>
                           </>
                         )}
-                        {(participant.status === 'completed' || participant.status === 'failed') && (
+                        {(participant.status === 'participating' || participant.status === 'completed' || participant.status === 'failed') && (
                           <Button size="sm" variant="outline" disabled>
                             Reviewed
                           </Button>
