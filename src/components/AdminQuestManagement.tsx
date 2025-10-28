@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Added Card import
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, PlusCircle, Edit, Trash2, CalendarDays, Trophy, Users, Upload, Image as ImageIcon } from "lucide-react"; // Added CheckCircle2, XCircle, Hourglass
+import { Loader2, AlertCircle, PlusCircle, Edit, Trash2, CalendarDays, Trophy, Users, Upload, Image as ImageIcon, Eye } from "lucide-react"; // Added CheckCircle2, XCircle, Hourglass
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { allDummyQuests, Quest } from "@/data/quests";
