@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings, SwitchCamera } from "lucide-react"; // Import SwitchCamera
+import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings, SwitchCamera, ShoppingCart } from "lucide-react"; // Import ShoppingCart
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,6 +21,7 @@ const primaryNavItems = [
   { to: "/create-quest", icon: PlusCircle, label: "Create Quest" },
   { to: "/teams", icon: Users, label: "Teams" },
   { to: "/events", icon: CalendarDays, label: "Events" },
+  { to: "/shop", icon: ShoppingCart, label: "Shop" }, // New Shop link
 ];
 
 const Navbar = () => {

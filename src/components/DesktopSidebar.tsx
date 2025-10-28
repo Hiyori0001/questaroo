@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
-import { User, LogIn, LogOut, Share2, Accessibility, Settings, ListTodo, Crown, PlusCircle, Users, SwitchCamera } from "lucide-react"; // Import SwitchCamera for 'Switch Account'
+import { User, LogIn, LogOut, Share2, Accessibility, Settings, ListTodo, Crown, PlusCircle, Users, SwitchCamera, ShoppingCart } from "lucide-react"; // Import ShoppingCart
 
 interface DesktopSidebarProps {
   isOpen: boolean;
@@ -66,6 +66,13 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
           ) : null}
 
           {/* Other secondary navigation items */}
+          <Button
+            variant="ghost"
+            className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={() => handleNavigation("/shop")}
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" /> Shop
+          </Button>
           <Button
             variant="ghost"
             className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"

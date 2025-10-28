@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Trophy, Star, Edit, Users, Shield } from "lucide-react"; // Import Users and Shield icons
+import { User, Trophy, Star, Edit, Users, Shield, DollarSign } from "lucide-react"; // Import DollarSign icon
 
 import { Button } from "@/components/ui/button";
 import ProfileEditForm from "@/components/ProfileEditForm";
@@ -84,11 +84,17 @@ const ProfilePage = () => {
                   <p className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{profile.experience} XP</p>
                   <p className="text-sm text-muted-foreground">Experience</p>
                 </div>
+                <div className="text-center">
+                  <p className="text-2xl font-semibold text-gray-800 dark:text-gray-200 flex items-center justify-center gap-1">
+                    <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" /> {profile.currency}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Coins</p>
+                </div>
               </div>
 
               {userTeam && (
                 <div className="mt-6 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950 shadow-sm">
-                  <h3 className="text-xl font-bold text-blue-800 dark:text-blue-200 mb-2 flex items-center justify-center gap-2">
+                  <h3 className="text-xl font-bold text-blue-800 dark:text-blue-200 mb-3 flex items-center justify-center gap-2">
                     <Shield className="h-6 w-6" /> Your Team: {userTeam.name}
                   </h3>
                   <p className="text-blue-700 dark:text-blue-300 text-sm">{userTeam.description}</p>
