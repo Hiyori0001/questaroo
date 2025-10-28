@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react-router-dom";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useState } from "react"; // Corrected import for React and useState
+import { Link, useNavigate } from "react-router-dom"; // Corrected import for react-router-dom specific exports
 import { Button } from "@/components/ui/button";
 import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings, SwitchCamera, ShoppingCart } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
