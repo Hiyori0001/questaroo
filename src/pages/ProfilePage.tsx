@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { User, Trophy, Star, Edit, Users, Shield, DollarSign } from "lucide-react"; // Import DollarSign icon
+import { User, Trophy, Star, Edit, Users, Shield, DollarSign, Flame } from "lucide-react"; // Import DollarSign and Flame icon
 
 import { Button } from "@/components/ui/button";
 import ProfileEditForm from "@/components/ProfileEditForm";
@@ -89,6 +89,21 @@ const ProfilePage = () => {
                     <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" /> {profile.currency}
                   </p>
                   <p className="text-sm text-muted-foreground">Coins</p>
+                </div>
+              </div>
+
+              <div className="flex justify-center gap-8 mt-6">
+                <div className="text-center">
+                  <p className="text-2xl font-semibold text-gray-800 dark:text-gray-200 flex items-center justify-center gap-1">
+                    <Flame className="h-5 w-5 text-orange-600 dark:text-orange-400" /> {profile.loginStreak}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Login Streak</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-semibold text-gray-800 dark:text-gray-200 flex items-center justify-center gap-1">
+                    <Flame className="h-5 w-5 text-red-600 dark:text-red-400" /> {profile.maxLoginStreak}
+                  </p>
+                  <p className="text-sm text-muted-foreground">Max Streak</p>
                 </div>
               </div>
 

@@ -33,6 +33,9 @@ interface UserProfile {
   currency: number; // New: Virtual currency
   achievements: Achievement[];
   isAdmin: boolean; // Add isAdmin to the profile interface
+  lastLoginAt: string | null; // New: Last login timestamp for daily bonus
+  loginStreak: number; // New: Current login streak
+  maxLoginStreak: number; // New: Max login streak
 }
 
 // Define XP thresholds for unlocking content
@@ -79,11 +82,77 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
+  const checkAndGrantDailyBonus = useCallback(async (currentProfile: UserProfile, userId: string) => {
+    const now = new Date();
+    const lastLogin = currentProfile.lastLoginAt ? new Date(currentProfile.lastLoginAt) : null;
+
+    let newLoginStreak = currentProfile.loginStreak;
+    let newMaxLoginStreak = currentProfile.maxLoginStreak;
+    let bonusGranted = false;
+    let bonusCoins = 0;
+    let bonusXp = 0;
+
+    if (!lastLogin || now.toDateString() !== lastLogin.toDateString()) {
+      // It's a new day
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+
+      if (lastLogin && lastLogin.toDateString() === yesterday.toDateString()) {
+        // Consecutive day login
+        newLoginStreak += 1;
+        toast.success(`Daily Login Bonus! Streak: ${newLoginStreak} days!`);
+      } else {
+        // Streak broken or first login
+        newLoginStreak = 1;
+        toast.info("Daily Login Bonus! Your streak starts now!");
+      }
+
+      newMaxLoginStreak = Math.max(newMaxLoginStreak, newLoginStreak);
+
+      // Calculate bonus based on streak
+      bonusCoins = 10 + (newLoginStreak * 5); // Base 10 coins + 5 per streak day
+      bonusXp = 50 + (newLoginStreak * 10); // Base 50 XP + 10 per streak day
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          last_login_at: now.toISOString(),
+          login_streak: newLoginStreak,
+          max_login_streak: newMaxLoginStreak,
+          currency: currentProfile.currency + bonusCoins,
+          experience: currentProfile.experience + bonusXp,
+        })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error("Error updating daily login bonus:", updateError);
+        toast.error("Failed to grant daily bonus.");
+      } else {
+        setProfile((prev) => prev ? {
+          ...prev,
+          lastLoginAt: now.toISOString(),
+          loginStreak: newLoginStreak,
+          maxLoginStreak: newMaxLoginStreak,
+          currency: prev.currency + bonusCoins,
+          experience: prev.experience + bonusXp,
+          level: calculateLevel(prev.experience + bonusXp),
+        } : null);
+        toast.success(`You received ${bonusCoins} Coins and ${bonusXp} XP!`);
+        bonusGranted = true;
+      }
+    } else {
+      // Already logged in today
+      toast.info("You've already claimed your daily bonus today!");
+    }
+    return bonusGranted;
+  }, []);
+
+
   const fetchProfile = useCallback(async (userId: string) => {
     setLoadingProfile(true);
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, avatar_url, experience, currency, achievements, is_admin') // Select currency
+      .select('id, first_name, last_name, avatar_url, experience, currency, achievements, is_admin, last_login_at, login_streak, max_login_streak') // Select new fields
       .eq('id', userId)
       .single();
 
@@ -103,8 +172,14 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         level: calculateLevel(data.experience || 0),
         achievements: data.achievements || [],
         isAdmin: data.is_admin || false, // Set isAdmin
+        lastLoginAt: data.last_login_at, // Set new fields
+        loginStreak: data.login_streak || 0,
+        maxLoginStreak: data.max_login_streak || 0,
       };
       setProfile(fetchedProfile);
+      // After fetching, check for daily bonus
+      await checkAndGrantDailyBonus(fetchedProfile, userId);
+
     } else {
       // If no profile exists, create a default one in DB
       const newProfileData = {
@@ -116,6 +191,9 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         currency: 0, // Default currency for new profile
         achievements: [],
         is_admin: false, // Default to not admin
+        last_login_at: new Date().toISOString(), // Set initial login time
+        login_streak: 0, // Initial streak
+        max_login_streak: 0, // Initial max streak
       };
       const { data: newProfile, error: insertError } = await supabase
         .from('profiles')
@@ -138,12 +216,17 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           level: calculateLevel(newProfile.experience),
           achievements: newProfile.achievements,
           isAdmin: newProfile.is_admin,
+          lastLoginAt: newProfile.last_login_at, // Set new fields
+          loginStreak: newProfile.login_streak,
+          maxLoginStreak: newProfile.max_login_streak,
         };
         setProfile(createdProfile);
+        // Grant initial bonus for brand new profile
+        await checkAndGrantDailyBonus(createdProfile, userId);
       }
     }
     setLoadingProfile(false);
-  }, [user]); // Depend on user to get email
+  }, [user, checkAndGrantDailyBonus]); // Depend on user to get email and checkAndGrantDailyBonus
 
   // Load profile when user changes
   useEffect(() => {
