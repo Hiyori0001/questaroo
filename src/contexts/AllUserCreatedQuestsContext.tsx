@@ -6,31 +6,31 @@ import { toast } from "sonner";
 import { Quest } from "@/data/quests"; // Import the Quest interface
 import { supabase } from "@/lib/supabase"; // Import supabase client
 
-interface UserQuestsContextType {
-  userQuests: Quest[];
-  loadingUserQuests: boolean;
+interface AllUserCreatedQuestsContextType {
+  allUserCreatedQuests: Quest[]; // Renamed to reflect it holds all user-created quests
+  loadingAllUserCreatedQuests: boolean; // Renamed loading state
   addQuest: (newQuest: Quest) => void;
   removeQuest: (questId: string) => void;
 }
 
-const UserQuestsContext = createContext<UserQuestsContextType | undefined>(undefined);
+const AllUserCreatedQuestsContext = createContext<AllUserCreatedQuestsContextType | undefined>(undefined);
 
-export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AllUserCreatedQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading: loadingAuth } = useAuth();
-  const [userQuests, setUserQuests] = useState<Quest[]>([]);
-  const [loadingUserQuests, setLoadingUserQuests] = useState(true);
+  const [allUserCreatedQuests, setAllUserCreatedQuests] = useState<Quest[]>([]);
+  const [loadingAllUserCreatedQuests, setLoadingAllUserCreatedQuests] = useState(true);
 
-  const fetchUserQuests = useCallback(async (userId: string) => {
-    setLoadingUserQuests(true);
+  const fetchAllUserCreatedQuests = useCallback(async () => {
+    setLoadingAllUserCreatedQuests(true);
+    // IMPORTANT: Removed .eq('user_id', userId) to fetch ALL user-created quests
     const { data, error } = await supabase
       .from('user_quests')
-      .select('*, latitude, longitude, verification_radius, completion_image_prompt, creator_reference_image_url') // Select new columns
-      .eq('user_id', userId);
+      .select('*, latitude, longitude, verification_radius, completion_image_prompt, creator_reference_image_url, user_id'); // Select user_id as well
 
     if (error) {
-      console.error("Error fetching user quests:", error);
-      toast.error("Failed to load your created quests.");
-      setUserQuests([]);
+      console.error("Error fetching all user-created quests:", error);
+      toast.error("Failed to load user-created quests.");
+      setAllUserCreatedQuests([]);
     } else {
       // Map Supabase data to Quest interface
       const fetchedQuests: Quest[] = data.map(dbQuest => ({
@@ -44,32 +44,22 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         timeLimit: dbQuest.time_limit || undefined,
         completionTask: dbQuest.completion_task || undefined,
         qrCode: dbQuest.qr_code || undefined,
-        completionImagePrompt: dbQuest.completion_image_prompt || undefined, // Include completionImagePrompt
+        completionImagePrompt: dbQuest.completion_image_prompt || undefined,
         user_id: dbQuest.user_id, // Include user_id
-        latitude: dbQuest.latitude || undefined, // Include latitude
-        longitude: dbQuest.longitude || undefined, // Include longitude
-        verificationRadius: dbQuest.verification_radius || undefined, // Include verificationRadius
-        creatorReferenceImageUrl: dbQuest.creator_reference_image_url || undefined, // Include creatorReferenceImageUrl
+        latitude: dbQuest.latitude || undefined,
+        longitude: dbQuest.longitude || undefined,
+        verificationRadius: dbQuest.verification_radius || undefined,
+        creatorReferenceImageUrl: dbQuest.creator_reference_image_url || undefined,
       }));
-      setUserQuests(fetchedQuests);
+      setAllUserCreatedQuests(fetchedQuests);
     }
-    setLoadingUserQuests(false);
+    setLoadingAllUserCreatedQuests(false);
   }, []);
 
-  // Load user quests from Supabase when user changes or on mount
+  // Load all user-created quests on mount and when auth state changes
   useEffect(() => {
-    if (loadingAuth) {
-      setLoadingUserQuests(true);
-      return;
-    }
-
-    if (user) {
-      fetchUserQuests(user.id);
-    } else {
-      setUserQuests([]); // Clear quests if no user is logged in
-      setLoadingUserQuests(false);
-    }
-  }, [user, loadingAuth, fetchUserQuests]);
+    fetchAllUserCreatedQuests();
+  }, [fetchAllUserCreatedQuests]);
 
   const addQuest = useCallback(async (newQuest: Quest) => {
     if (!user) {
@@ -80,7 +70,7 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const { data, error } = await supabase
       .from('user_quests')
       .insert({
-        user_id: user.id,
+        user_id: user.id, // Still associate with the current user
         title: newQuest.title,
         description: newQuest.description,
         location: newQuest.location,
@@ -90,11 +80,11 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         time_limit: newQuest.timeLimit,
         completion_task: newQuest.completionTask,
         qr_code: newQuest.qrCode,
-        completion_image_prompt: newQuest.completionImagePrompt, // Insert completion_image_prompt
+        completion_image_prompt: newQuest.completionImagePrompt,
         latitude: newQuest.latitude,
         longitude: newQuest.longitude,
         verification_radius: newQuest.verificationRadius,
-        creator_reference_image_url: newQuest.creatorReferenceImageUrl, // Insert creator_reference_image_url
+        creator_reference_image_url: newQuest.creatorReferenceImageUrl,
       })
       .select()
       .single();
@@ -114,14 +104,14 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         timeLimit: data.time_limit || undefined,
         completionTask: data.completion_task || undefined,
         qrCode: data.qr_code || undefined,
-        completionImagePrompt: data.completion_image_prompt || undefined, // Include completionImagePrompt
+        completionImagePrompt: data.completion_image_prompt || undefined,
         user_id: data.user_id,
         latitude: data.latitude || undefined,
         longitude: data.longitude || undefined,
         verificationRadius: data.verification_radius || undefined,
-        creatorReferenceImageUrl: data.creator_reference_image_url || undefined, // Include creatorReferenceImageUrl
+        creatorReferenceImageUrl: data.creator_reference_image_url || undefined,
       };
-      setUserQuests((prevQuests) => [...prevQuests, addedQuest]);
+      setAllUserCreatedQuests((prevQuests) => [...prevQuests, addedQuest]); // Update the global list
       toast.success(`Quest "${newQuest.title}" created successfully!`);
     }
   }, [user]);
@@ -136,28 +126,28 @@ export const UserQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       .from('user_quests')
       .delete()
       .eq('id', questId)
-      .eq('user_id', user.id);
+      .eq('user_id', user.id); // Ensure only the creator can delete their quest
 
     if (error) {
       console.error("Error deleting quest:", error);
       toast.error("Failed to delete quest.");
     } else {
-      setUserQuests((prevQuests) => prevQuests.filter(quest => quest.id !== questId));
+      setAllUserCreatedQuests((prevQuests) => prevQuests.filter(quest => quest.id !== questId)); // Update the global list
       toast.info("Quest deleted successfully.");
     }
   }, [user]);
 
   return (
-    <UserQuestsContext.Provider value={{ userQuests, loadingUserQuests, addQuest, removeQuest }}>
+    <AllUserCreatedQuestsContext.Provider value={{ allUserCreatedQuests, loadingAllUserCreatedQuests, addQuest, removeQuest }}>
       {children}
-    </UserQuestsContext.Provider>
+    </AllUserCreatedQuestsContext.Provider>
   );
 };
 
-export const useUserQuests = () => {
-  const context = useContext(UserQuestsContext);
+export const useAllUserCreatedQuests = () => {
+  const context = useContext(AllUserCreatedQuestsContext);
   if (context === undefined) {
-    throw new Error("useUserQuests must be used within a UserQuestsProvider");
+    throw new Error("useAllUserCreatedQuests must be used within an AllUserCreatedQuestsProvider");
   }
   return context;
 };

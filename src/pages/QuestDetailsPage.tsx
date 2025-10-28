@@ -13,7 +13,7 @@ import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
 import QuestImageUploader from "@/components/QuestImageUploader";
-import { useUserQuests } from "@/contexts/UserQuestsContext";
+import { useAllUserCreatedQuests } from "@/contexts/AllUserCreatedQuestsContext"; // Updated import
 import { useTeams } from "@/contexts/TeamContext";
 import { haversineDistance } from "@/utils/location";
 import { supabase } from "@/lib/supabase"; // Import supabase client
@@ -61,7 +61,7 @@ const QuestDetailsPage = () => {
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
   const { profile, loadingProfile, addExperience, deductExperience, addAchievement, startQuest, completeQuest, submitImageForVerification } = useUserProfile();
-  const { userQuests, loadingUserQuests, removeQuest } = useUserQuests();
+  const { allUserCreatedQuests, loadingAllUserCreatedQuests, removeQuest } = useAllUserCreatedQuests(); // Updated hook and variable
   const { userTeam, addTeamScore } = useTeams();
 
   const [quest, setQuest] = useState<Quest | null>(null);
@@ -100,7 +100,7 @@ const QuestDetailsPage = () => {
       .eq('quest_id', questId)
       .single();
 
-    if (error && error.code !== 'PGRST116') {
+    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
       console.error("Error fetching user quest progress:", error);
       setUserQuestProgress(null);
     } else if (data) {
@@ -112,17 +112,16 @@ const QuestDetailsPage = () => {
 
   useEffect(() => {
     if (id) {
-      const allAvailableQuests = [...allDummyQuests, ...userQuests];
+      const allAvailableQuests = [...allDummyQuests, ...allUserCreatedQuests]; // Updated variable
       const foundQuest = allAvailableQuests.find((q) => q.id === id);
 
       if (foundQuest) {
         setQuest(foundQuest);
-        const isCreatedByUser = userQuests.some(uq => uq.id === foundQuest.id);
+        const isCreatedByUser = allUserCreatedQuests.some(uq => uq.id === foundQuest.id); // Check against allUserCreatedQuests
         setIsUserCreatedQuest(isCreatedByUser);
 
-        if (user && isCreatedByUser) {
-          const creatorQuest = userQuests.find(uq => uq.id === foundQuest.id);
-          setIsCreator(creatorQuest?.user_id === user.id && !canHeadAdminBypassCreatorRestriction);
+        if (user && foundQuest.user_id) { // Check foundQuest.user_id directly
+          setIsCreator(foundQuest.user_id === user.id && !canHeadAdminBypassCreatorRestriction);
         } else {
           setIsCreator(false);
         }
@@ -140,7 +139,7 @@ const QuestDetailsPage = () => {
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile, user, userQuests, canHeadAdminBypassCreatorRestriction, fetchUserQuestProgress]);
+  }, [id, navigate, profile, user, allUserCreatedQuests, canHeadAdminBypassCreatorRestriction, fetchUserQuestProgress]); // Updated dependency
 
   const questStarted = userQuestProgress?.status === 'started';
   const questCompleted = userQuestProgress?.status === 'completed';
@@ -148,7 +147,7 @@ const QuestDetailsPage = () => {
   const isPendingVerification = userQuestProgress?.verification_status === 'pending';
   const isRejectedVerification = userQuestProgress?.verification_status === 'rejected';
 
-  if (loadingAuth || loadingProfile || loadingUserQuests || !quest) {
+  if (loadingAuth || loadingProfile || loadingAllUserCreatedQuests || !quest) { // Updated loading state
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 flex-grow">
         <p className="text-lg text-gray-500 dark:text-gray-400">Loading quest details...</p>
@@ -437,6 +436,7 @@ const QuestDetailsPage = () => {
             <p className="text-lg font-semibold text-red-600 dark:text-red-400 mt-4 flex items-center justify-center gap-2">
               <UserX className="h-5 w-5" /> You created this quest and cannot complete it yourself.
             </p>
+          </p>
           )}
 
           {user && isQuestUnlocked && !questStarted && !questCompleted && !questFailed && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (

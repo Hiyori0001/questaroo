@@ -20,8 +20,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { useUserProfile } from "@/contexts/UserProfileContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAllUserCreatedQuests } from "@/contexts/AllUserCreatedQuestsContext"; // Updated import
 
 interface AdminQuest extends Quest {
   is_user_created: boolean;
@@ -56,6 +57,7 @@ const getXpForDifficulty = (difficulty: Quest["difficulty"]) => {
 const AdminQuestManagement = () => {
   const { user: currentUser } = useAuth();
   const { profile: currentUserProfile, verifyQuestCompletion } = useUserProfile();
+  const { allUserCreatedQuests, loadingAllUserCreatedQuests, removeQuest } = useAllUserCreatedQuests(); // Updated hook and variable
   const [quests, setQuests] = useState<AdminQuest[]>([]);
   const [pendingSubmissions, setPendingSubmissions] = useState<PendingImageSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,31 +67,8 @@ const AdminQuestManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      // Fetch all user-created quests
-      const { data: userQuestsData, error: userQuestsError } = await supabase
-        .from('user_quests')
-        .select('*');
-
-      if (userQuestsError) {
-        throw userQuestsError;
-      }
-
-      const userCreatedQuests: AdminQuest[] = userQuestsData.map(dbQuest => ({
-        id: dbQuest.id,
-        title: dbQuest.title,
-        description: dbQuest.description,
-        location: dbQuest.location,
-        difficulty: dbQuest.difficulty as Quest["difficulty"],
-        reward: dbQuest.reward,
-        timeEstimate: dbQuest.time_estimate,
-        timeLimit: dbQuest.time_limit || undefined,
-        completionTask: dbQuest.completion_task || undefined,
-        qrCode: dbQuest.qr_code || undefined,
-        user_id: dbQuest.user_id,
-        latitude: dbQuest.latitude || undefined,
-        longitude: dbQuest.longitude || undefined,
-        completionImagePrompt: dbQuest.completion_image_prompt || undefined,
-        creatorReferenceImageUrl: dbQuest.creator_reference_image_url || undefined, // Include creatorReferenceImageUrl
+      const userCreatedQuests: AdminQuest[] = allUserCreatedQuests.map(uq => ({
+        ...uq,
         is_user_created: true,
       }));
 
@@ -140,11 +119,13 @@ const AdminQuestManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUserProfile]); // Depend on currentUserProfile to ensure admin status is loaded
+  }, [currentUserProfile, allUserCreatedQuests]); // Depend on allUserCreatedQuests
 
   useEffect(() => {
-    fetchQuestsAndSubmissions();
-  }, [fetchQuestsAndSubmissions]);
+    if (!loadingAllUserCreatedQuests) { // Only fetch when allUserCreatedQuests are loaded
+      fetchQuestsAndSubmissions();
+    }
+  }, [fetchQuestsAndSubmissions, loadingAllUserCreatedQuests]);
 
   const handleDeleteQuest = async (questId: string, isUserCreated: boolean) => {
     if (!isUserCreated) {
@@ -154,16 +135,8 @@ const AdminQuestManagement = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('user_quests')
-        .delete()
-        .eq('id', questId);
-
-      if (error) {
-        throw error;
-      }
-
-      toast.success(`Quest ${questId} deleted successfully.`);
+      // The removeQuest function in the context already handles the user_id check
+      await removeQuest(questId);
       fetchQuestsAndSubmissions(); // Re-fetch to update UI
     } catch (err: any) {
       console.error("Error deleting quest:", err.message);
@@ -197,7 +170,7 @@ const AdminQuestManagement = () => {
     }
   };
 
-  if (loading) {
+  if (loading || loadingAllUserCreatedQuests) { // Include loadingAllUserCreatedQuests
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600 dark:text-blue-400" />

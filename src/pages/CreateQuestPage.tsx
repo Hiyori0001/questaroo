@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { PlusCircle, MapPin, QrCode, HelpCircle, LocateFixed, Camera, Upload, Loader2 } from "lucide-react"; // Added Upload and Loader2 icons
 import { toast } from "sonner";
-import { useUserQuests } from "@/contexts/UserQuestsContext";
+import { useAllUserCreatedQuests } from "@/contexts/AllUserCreatedQuestsContext"; // Updated import
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Quest } from "@/data/quests";
 import { supabase } from "@/lib/supabase"; // Import supabase client
@@ -91,7 +91,7 @@ const formSchema = z.object({
 
 const CreateQuestPage = () => {
   const { user } = useAuth();
-  const { addQuest } = useUserQuests();
+  const { addQuest } = useAllUserCreatedQuests(); // Updated hook
   const [selectedReferenceFile, setSelectedReferenceFile] = useState<File | null>(null);
   const [referencePreviewUrl, setReferencePreviewUrl] = useState<string | null>(null);
   const [isUploadingReference, setIsUploadingReference] = useState(false);
