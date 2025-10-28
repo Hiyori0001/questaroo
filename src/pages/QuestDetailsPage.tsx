@@ -436,7 +436,6 @@ const QuestDetailsPage = () => {
             <p className="text-lg font-semibold text-red-600 dark:text-red-400 mt-4 flex items-center justify-center gap-2">
               <UserX className="h-5 w-5" /> You created this quest and cannot complete it yourself.
             </p>
-          </p>
           )}
 
           {user && isQuestUnlocked && !questStarted && !questCompleted && !questFailed && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
