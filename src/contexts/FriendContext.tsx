@@ -96,9 +96,26 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
       console.log("FriendContext: All relationships after mapping:", allRelationships);
 
-      const newFriends = allRelationships.filter(rel => rel.status === 'accepted');
-      const newPendingRequests = allRelationships.filter(rel => rel.status === 'pending' && rel.friend_id === user.id);
-      const newSentRequests = allRelationships.filter(rel => rel.status === 'pending' && rel.user_id === user.id);
+      // Deduplicate friends based on the friend's profile ID
+      const uniqueFriendsMap = new Map<string, Friend>();
+      allRelationships.forEach(rel => {
+        const friendProfileId = rel.profiles.id;
+        if (!uniqueFriendsMap.has(friendProfileId)) {
+          uniqueFriendsMap.set(friendProfileId, rel);
+        } else {
+          // If a duplicate is found, prioritize 'accepted' status if one exists
+          const existingRel = uniqueFriendsMap.get(friendProfileId)!;
+          if (rel.status === 'accepted' && existingRel.status !== 'accepted') {
+            uniqueFriendsMap.set(friendProfileId, rel);
+          }
+        }
+      });
+
+      const deduplicatedRelationships = Array.from(uniqueFriendsMap.values());
+
+      const newFriends = deduplicatedRelationships.filter(rel => rel.status === 'accepted');
+      const newPendingRequests = deduplicatedRelationships.filter(rel => rel.status === 'pending' && rel.friend_id === user.id);
+      const newSentRequests = deduplicatedRelationships.filter(rel => rel.status === 'pending' && rel.user_id === user.id);
 
       setFriends(newFriends);
       setPendingRequests(newPendingRequests);

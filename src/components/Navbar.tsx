@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings } from "lucide-react";
+import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings, SwitchCamera } from "lucide-react"; // Import SwitchCamera
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,6 +36,13 @@ const Navbar = () => {
     setIsMobileSheetOpen(false);
     setIsDesktopSidebarOpen(false);
     navigate("/");
+  };
+
+  const handleSwitchAccount = async () => {
+    await signOut(); // Log out current user
+    setIsMobileSheetOpen(false);
+    setIsDesktopSidebarOpen(false);
+    navigate("/auth"); // Redirect to login page
   };
 
   // All navigation items for the mobile sheet
@@ -83,6 +90,13 @@ const Navbar = () => {
             <Link to="/profile">
               <User className="h-4 w-4 mr-2" /> Profile
             </Link>
+          </Button>
+          <Button
+            variant="ghost"
+            className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={handleSwitchAccount}
+          >
+            <SwitchCamera className="h-4 w-4 mr-2" /> Switch Account
           </Button>
           <Button
             variant="ghost"

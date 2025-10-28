@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
-import { User, LogIn, LogOut, Share2, Accessibility, Settings, ListTodo, Crown, PlusCircle, Users } from "lucide-react";
+import { User, LogIn, LogOut, Share2, Accessibility, Settings, ListTodo, Crown, PlusCircle, Users, SwitchCamera } from "lucide-react"; // Import SwitchCamera for 'Switch Account'
 
 interface DesktopSidebarProps {
   isOpen: boolean;
@@ -23,6 +23,12 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
     await signOut();
     onClose();
     navigate("/");
+  };
+
+  const handleSwitchAccount = async () => {
+    await signOut(); // Log out current user
+    onClose();
+    navigate("/auth"); // Redirect to login page
   };
 
   const handleNavigation = (path: string) => {
@@ -81,16 +87,25 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
             <ThemeToggle />
           </div>
 
-          {/* Login/Logout */}
+          {/* Login/Logout/Switch Account */}
           <div className="mt-auto pt-4 border-t dark:border-gray-700">
             {user ? (
-              <Button
-                variant="ghost"
-                className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={handleSignOut}
-              >
-                <LogOut className="h-4 w-4 mr-2" /> Logout
-              </Button>
+              <>
+                <Button
+                  variant="ghost"
+                  className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={handleSwitchAccount}
+                >
+                  <SwitchCamera className="h-4 w-4 mr-2" /> Switch Account
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={handleSignOut}
+                >
+                  <LogOut className="h-4 w-4 mr-2" /> Logout
+                </Button>
+              </>
             ) : (
               <Button
                 variant="ghost"
