@@ -52,6 +52,7 @@ const AuthPage = () => {
             theme="light" // Use light theme
             redirectTo={window.location.origin + "/auth"} // Redirect to current origin after auth
             magicLink={true} // Enable magic link for passwordless experience
+            view="magic_link" // Explicitly set view to magic_link
           />
         </CardContent>
       </Card>
