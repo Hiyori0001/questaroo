@@ -168,7 +168,7 @@ const Navbar = () => {
             </SheetContent>
           </Sheet>
         ) : (
-          <div className="flex items-center justify-start gap-x-1 overflow-x-auto pb-1 -mb-1 flex-grow">
+          <div className="flex items-center justify-start gap-x-2 flex-wrap flex-grow"> {/* Removed overflow-x-auto, added flex-wrap, increased gap-x */}
             {renderDesktopPrimaryNavLinks()}
             <Button
               variant="ghost"
