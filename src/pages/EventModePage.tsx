@@ -39,7 +39,8 @@ const EventModePage = () => {
       const { data, error: fetchError } = await supabase
         .from('community_challenges')
         .select('*')
-        .gte('end_date', new Date().toISOString()) // Filter for events that haven't ended yet
+        .or('status.eq.upcoming,status.eq.active') // Only show upcoming or active challenges
+        .gte('end_date', new Date().toISOString()) // And ensure they haven't ended yet
         .order('start_date', { ascending: true });
 
       if (fetchError) {
