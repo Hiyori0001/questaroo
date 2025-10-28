@@ -51,6 +51,8 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
 
     setLoadingFriends(true);
+    console.log("FriendContext: Starting fetchFriendData for user ID:", user.id);
+
     try {
       // Fetch all friend relationships involving the current user
       const { data, error } = await supabase
@@ -67,10 +69,12 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`);
 
       if (error) {
-        console.error("FriendContext: Error fetching friend data:", error.message, error.details);
+        console.error("FriendContext: Error fetching raw friend data:", error.message, error.details);
         toast.error("Failed to load friend data.");
         return;
       }
+
+      console.log("FriendContext: Raw data from 'friends' table:", data);
 
       const allRelationships: Friend[] = data.map((rel: any) => {
         // Determine which profile is the 'friend' from the current user's perspective
@@ -90,15 +94,26 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         };
       });
 
-      setFriends(allRelationships.filter(rel => rel.status === 'accepted'));
-      setPendingRequests(allRelationships.filter(rel => rel.status === 'pending' && rel.friend_id === user.id));
-      setSentRequests(allRelationships.filter(rel => rel.status === 'pending' && rel.user_id === user.id));
+      console.log("FriendContext: All relationships after mapping:", allRelationships);
+
+      const newFriends = allRelationships.filter(rel => rel.status === 'accepted');
+      const newPendingRequests = allRelationships.filter(rel => rel.status === 'pending' && rel.friend_id === user.id);
+      const newSentRequests = allRelationships.filter(rel => rel.status === 'pending' && rel.user_id === user.id);
+
+      setFriends(newFriends);
+      setPendingRequests(newPendingRequests);
+      setSentRequests(newSentRequests);
+
+      console.log("FriendContext: New Friends (after filter):", newFriends);
+      console.log("FriendContext: New Pending Requests (after filter):", newPendingRequests);
+      console.log("FriendContext: New Sent Requests (after filter):", newSentRequests);
 
     } catch (error: any) {
       console.error("FriendContext: Unhandled error in fetchFriendData:", error.message);
       toast.error("An unexpected error occurred while fetching friend data.");
     } finally {
       setLoadingFriends(false);
+      console.log("FriendContext: Finished fetchFriendData.");
     }
   }, [user]);
 
