@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useAuth } from "./AuthContext";
 import { toast } from "sonner";
-import { LucideIcon, Trophy, Star } from "lucide-react";
+import { LucideIcon, Trophy, Star, Award, Gem, Crown } from "lucide-react"; // Added Award, Gem, Crown
 import { supabase } from "@/lib/supabase"; // Import supabase client
 
 // Define the Achievement type
@@ -17,6 +17,9 @@ interface Achievement {
 const LucideIconMap: { [key: string]: LucideIcon } = {
   Trophy: Trophy,
   Star: Star,
+  Award: Award, // Added
+  Gem: Gem,     // Added
+  Crown: Crown, // Added
   // Add other icons here if they are used in achievements
 };
 
@@ -572,13 +575,34 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         toast.info(`User ${targetUserId} received ${xpAmount} XP for team contribution.`);
       } else if (rewardType === "Exclusive Badge") {
         const newAchievement: Achievement = {
-          name: `Challenge Master: ${challengeName}`,
-          iconName: "Trophy", // Or a specific icon for challenges
-          color: "bg-purple-500",
+          name: `Exclusive Badge: ${challengeName}`,
+          iconName: "Award", // Use Award icon for badges
+          color: "bg-indigo-500", // A distinct color for exclusive badges
         };
         if (!updatedAchievements.some((a: Achievement) => a.name === newAchievement.name)) {
           updatedAchievements.push(newAchievement);
         }
+        toast.success(`User ${targetUserId} earned the "${newAchievement.name}"!`);
+      } else if (rewardType === "Rare Item") {
+        const newAchievement: Achievement = {
+          name: `Rare Item: ${challengeName} Collectible`,
+          iconName: "Gem", // Use Gem icon for rare items
+          color: "bg-yellow-500", // A distinct color for rare items
+        };
+        if (!updatedAchievements.some((a: Achievement) => a.name === newAchievement.name)) {
+          updatedAchievements.push(newAchievement);
+        }
+        toast.success(`User ${targetUserId} found the "${newAchievement.name}"!`);
+      } else if (rewardType === "Title") {
+        const newAchievement: Achievement = {
+          name: `Title: ${challengeName} Champion`,
+          iconName: "Crown", // Use Crown icon for titles
+          color: "bg-red-500", // A distinct color for titles
+        };
+        if (!updatedAchievements.some((a: Achievement) => a.name === newAchievement.name)) {
+          updatedAchievements.push(newAchievement);
+        }
+        toast.success(`User ${targetUserId} earned the "${newAchievement.name}"!`);
       }
       // Add logic for other reward types (Rare Item, Title)
 
@@ -596,7 +620,10 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         console.error("Error granting challenge rewards:", rewardError);
         toast.error("Failed to grant challenge rewards.");
       } else {
-        toast.success(`Challenge "${challengeName}" completed and rewards granted to ${targetUserId}!`);
+        // Only show a generic success if specific toasts weren't shown above
+        if (rewardType === "Team XP") {
+          toast.success(`Challenge "${challengeName}" completed and rewards granted to ${targetUserId}!`);
+        }
         // Update current user's profile if it's the target user
         if (user?.id === targetUserId) {
           setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel, achievements: updatedAchievements } : null);
