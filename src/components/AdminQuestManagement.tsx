@@ -42,7 +42,7 @@ interface PendingImageSubmission {
 }
 
 // Refactored getXpForDifficulty to be more robust
-const getXpForDifficulty = (difficulty: string): number => {
+const getXpForDifficulty = (difficulty: "Easy" | "Medium" | "Hard"): number => { // Revert to specific types
   switch (difficulty) {
     case "Easy":
       return 100;
@@ -51,6 +51,7 @@ const getXpForDifficulty = (difficulty: string): number => {
     case "Hard":
       return 500;
     default:
+      // This case should ideally not be reached if difficulty is strictly typed
       console.warn(`Unknown difficulty: ${difficulty}. Defaulting to 0 XP.`);
       return 0;
   }
@@ -108,7 +109,7 @@ const AdminQuestManagement = () => {
           quest_title: p.user_quests?.title || "Unknown Quest",
           user_name: `${p.profiles?.first_name || 'Adventure'} ${p.profiles?.last_name || 'Seeker'}`.trim(),
           user_avatar_url: p.profiles?.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(p.user_id)}`,
-          xp_reward: getXpForDifficulty(p.user_quests?.difficulty || "Easy"), // Removed type assertion
+          xp_reward: getXpForDifficulty(p.user_quests?.difficulty as "Easy" | "Medium" | "Hard" || "Easy"), // Revert type assertion
           team_id: p.profiles?.team_id || null,
           creator_reference_image_url: p.user_quests?.creator_reference_image_url || null, // Get reference image
         }));
