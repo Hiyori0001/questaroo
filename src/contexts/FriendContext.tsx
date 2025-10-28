@@ -67,7 +67,7 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`);
 
       if (error) {
-        console.error("Error fetching friend data:", error);
+        console.error("FriendContext: Error fetching friend data:", error.message, error.details);
         toast.error("Failed to load friend data.");
         return;
       }
@@ -95,7 +95,7 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setSentRequests(allRelationships.filter(rel => rel.status === 'pending' && rel.user_id === user.id));
 
     } catch (error: any) {
-      console.error("Unhandled error in fetchFriendData:", error.message);
+      console.error("FriendContext: Unhandled error in fetchFriendData:", error.message);
       toast.error("An unexpected error occurred while fetching friend data.");
     } finally {
       setLoadingFriends(false);
@@ -141,7 +141,7 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       .insert({ user_id: user.id, friend_id: friendId, status: 'pending' });
 
     if (error) {
-      console.error("Error sending friend request:", error);
+      console.error("FriendContext: Error sending friend request:", error.message, error.details);
       if (error.code === '23505') { // PostgreSQL unique_violation error code
         toast.error("A friend request with this user already exists or is pending.");
       } else {
@@ -166,7 +166,7 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       .eq('friend_id', user.id); // Ensure only the recipient can accept
 
     if (error) {
-      console.error("Error accepting friend request:", error);
+      console.error("FriendContext: Error accepting friend request:", error.message, error.details);
       toast.error("Failed to accept friend request.");
     } else {
       toast.success("Friend request accepted!");
@@ -187,7 +187,7 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       .eq('friend_id', user.id); // Ensure only the recipient can reject
 
     if (error) {
-      console.error("Error rejecting friend request:", error);
+      console.error("FriendContext: Error rejecting friend request:", error.message, error.details);
       toast.error("Failed to reject friend request.");
     } else {
       toast.info("Friend request rejected.");
@@ -208,7 +208,7 @@ export const FriendProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       .or(`user_id.eq.${user.id},friend_id.eq.${user.id}`); // Ensure only one of the friends can delete
 
     if (error) {
-      console.error("Error removing friend:", error);
+      console.error("FriendContext: Error removing friend:", error.message, error.details);
       toast.error("Failed to remove friend.");
     } else {
       toast.info("Friend removed.");
