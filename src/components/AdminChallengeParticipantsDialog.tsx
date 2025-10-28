@@ -19,6 +19,7 @@ interface CommunityChallenge {
   reward_type: string;
   status: string;
   completion_criteria: string | null;
+  creator_reference_image_url: string | null; // New: Reference image URL
 }
 
 interface Participant {
@@ -156,6 +157,12 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
             <span className="mt-2 font-semibold block">Objective: {challenge.completion_criteria || "No specific criteria defined."}</span>
           </DialogDescription>
         </DialogHeader>
+        {challenge.creator_reference_image_url && (
+          <div className="flex flex-col items-center mt-4">
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Challenge Reference Image:</p>
+            <img src={challenge.creator_reference_image_url} alt="Challenge Reference" className="max-w-full h-48 object-contain rounded-md border dark:border-gray-700" />
+          </div>
+        )}
         <div className="py-4">
           {loading ? (
             <div className="flex justify-center items-center h-32">

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, PlusCircle, Edit, Trash2, CalendarDays, Trophy, Users } from "lucide-react"; // Added Users icon
+import { Loader2, AlertCircle, PlusCircle, Edit, Trash2, CalendarDays, Trophy, Users, Upload, Image as ImageIcon } from "lucide-react"; // Added Users icon, Upload, ImageIcon
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import {
@@ -28,7 +28,7 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,6 +48,7 @@ interface CommunityChallenge {
   status: string;
   created_at: string;
   completion_criteria: string | null;
+  creator_reference_image_url: string | null; // New: Reference image URL
 }
 
 const challengeFormSchema = z.object({
@@ -58,6 +59,7 @@ const challengeFormSchema = z.object({
   reward_type: z.string().min(1, { message: "Reward type is required." }),
   status: z.enum(["upcoming", "active", "completed"], { required_error: "Status is required." }),
   completion_criteria: z.string().min(10, { message: "Completion criteria must be at least 10 characters." }).max(500, { message: "Completion criteria must not exceed 500 characters." }).optional(),
+  creatorReferenceImageFile: z.any().optional(), // New: For file input
 }).superRefine((data, ctx) => {
   if (data.start_date && data.end_date && data.start_date > data.end_date) {
     ctx.addIssue({
@@ -78,6 +80,10 @@ const AdminCommunityChallengeManagement = () => {
   const [isParticipantsDialogOpen, setIsParticipantsDialogOpen] = useState(false);
   const [selectedChallengeForParticipants, setSelectedChallengeForParticipants] = useState<CommunityChallenge | null>(null);
 
+  const [selectedReferenceFile, setSelectedReferenceFile] = useState<File | null>(null);
+  const [referencePreviewUrl, setReferencePreviewUrl] = useState<string | null>(null);
+  const [isUploadingReference, setIsUploadingReference] = useState(false);
+
   const form = useForm<z.infer<typeof challengeFormSchema>>({
     resolver: zodResolver(challengeFormSchema),
     defaultValues: {
@@ -88,6 +94,7 @@ const AdminCommunityChallengeManagement = () => {
       reward_type: "Team XP",
       status: "upcoming",
       completion_criteria: "",
+      creatorReferenceImageFile: undefined,
     },
   });
 
@@ -113,9 +120,56 @@ const AdminCommunityChallengeManagement = () => {
     fetchChallenges();
   }, [fetchChallenges]);
 
+  const handleReferenceFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setSelectedReferenceFile(file);
+      setReferencePreviewUrl(URL.createObjectURL(file));
+      form.setValue("creatorReferenceImageFile", file); // Update form state
+    } else {
+      setSelectedReferenceFile(null);
+      setReferencePreviewUrl(null);
+      form.setValue("creatorReferenceImageFile", undefined);
+    }
+  };
+
   const handleCreateOrUpdateChallenge = async (values: z.infer<typeof challengeFormSchema>) => {
-    setLoading(true);
+    setIsUploadingReference(true); // Use this for overall form submission loading
     try {
+      let creatorReferenceImageUrl: string | null = editingChallenge?.creator_reference_image_url || null;
+
+      if (selectedReferenceFile) {
+        const fileExtension = selectedReferenceFile.name.split('.').pop();
+        const filePath = `challenge_references/${editingChallenge?.id || Date.now()}.${fileExtension}`; // Use challenge ID if editing, else timestamp
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('challenge-reference-images')
+          .upload(filePath, selectedReferenceFile, {
+            cacheControl: '3600',
+            upsert: true, // Overwrite if editing and re-uploading
+          });
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('challenge-reference-images')
+          .getPublicUrl(filePath);
+
+        if (!publicUrlData?.publicUrl) {
+          throw new Error("Failed to get public URL for reference image.");
+        }
+        creatorReferenceImageUrl = publicUrlData.publicUrl;
+      } else if (editingChallenge && !form.formState.dirtyFields.creatorReferenceImageFile) {
+        // If no new file selected and not explicitly cleared, keep existing URL
+        creatorReferenceImageUrl = editingChallenge.creator_reference_image_url;
+      } else if (!selectedReferenceFile && form.formState.dirtyFields.creatorReferenceImageFile) {
+        // If file input was cleared
+        creatorReferenceImageUrl = null;
+      }
+
+
       const challengeData = {
         name: values.name,
         description: values.description,
@@ -124,6 +178,7 @@ const AdminCommunityChallengeManagement = () => {
         reward_type: values.reward_type,
         status: values.status,
         completion_criteria: values.completion_criteria || null,
+        creator_reference_image_url: creatorReferenceImageUrl, // Save the URL
       };
 
       if (editingChallenge) {
@@ -145,6 +200,8 @@ const AdminCommunityChallengeManagement = () => {
         toast.success(`Challenge "${values.name}" created successfully!`);
       }
       form.reset();
+      setSelectedReferenceFile(null);
+      setReferencePreviewUrl(null);
       setEditingChallenge(null);
       setIsFormDialogOpen(false);
       fetchChallenges();
@@ -152,7 +209,7 @@ const AdminCommunityChallengeManagement = () => {
       console.error("Error saving challenge:", err.message);
       toast.error("Failed to save challenge: " + err.message);
     } finally {
-      setLoading(false);
+      setIsUploadingReference(false);
     }
   };
 
@@ -196,7 +253,10 @@ const AdminCommunityChallengeManagement = () => {
       reward_type: "Team XP",
       status: "upcoming",
       completion_criteria: "",
+      creatorReferenceImageFile: undefined,
     });
+    setSelectedReferenceFile(null);
+    setReferencePreviewUrl(null);
     setIsFormDialogOpen(true);
   };
 
@@ -210,7 +270,10 @@ const AdminCommunityChallengeManagement = () => {
       reward_type: challenge.reward_type,
       status: challenge.status as "upcoming" | "active" | "completed",
       completion_criteria: challenge.completion_criteria || "",
+      creatorReferenceImageFile: undefined, // Reset file input, but keep existing URL
     });
+    setSelectedReferenceFile(null); // Clear selected file for edit
+    setReferencePreviewUrl(challenge.creator_reference_image_url); // Show existing image
     setIsFormDialogOpen(true);
   };
 
@@ -420,12 +483,35 @@ const AdminCommunityChallengeManagement = () => {
                     </FormItem>
                   )}
                 />
+                {/* New: Creator Reference Image Upload */}
+                <FormItem>
+                  <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                    <Upload className="h-4 w-4" /> Reference Image (Optional)
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleReferenceFileChange}
+                      disabled={isUploadingReference}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Upload an image to serve as a visual reference for this challenge.
+                  </FormDescription>
+                  <FormMessage />
+                  {(referencePreviewUrl || editingChallenge?.creator_reference_image_url) && (
+                    <div className="mt-2 flex justify-center">
+                      <img src={referencePreviewUrl || editingChallenge?.creator_reference_image_url || ''} alt="Reference Preview" className="max-w-full h-48 object-contain rounded-md border dark:border-gray-700" />
+                    </div>
+                  )}
+                </FormItem>
                 <div className="flex justify-end gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsFormDialogOpen(false)} disabled={loading}>
+                  <Button type="button" variant="outline" onClick={() => setIsFormDialogOpen(false)} disabled={isUploadingReference}>
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+                  <Button type="submit" disabled={isUploadingReference}>
+                    {isUploadingReference ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                     {editingChallenge ? "Update Challenge" : "Create Challenge"}
                   </Button>
                 </div>
@@ -446,6 +532,7 @@ const AdminCommunityChallengeManagement = () => {
               <TableHead className="text-center">Reward</TableHead>
               <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-left">Criteria</TableHead>
+              <TableHead className="text-center">Reference Image</TableHead> {/* New column */}
               <TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -459,6 +546,15 @@ const AdminCommunityChallengeManagement = () => {
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{challenge.reward_type}</TableCell>
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{challenge.status}</TableCell>
                 <TableCell className="text-gray-700 dark:text-gray-300 line-clamp-2 max-w-xs">{challenge.completion_criteria || "N/A"}</TableCell>
+                <TableCell className="text-center"> {/* New cell */}
+                  {challenge.creator_reference_image_url ? (
+                    <a href={challenge.creator_reference_image_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                      <ImageIcon className="h-5 w-5 mx-auto" />
+                    </a>
+                  ) : (
+                    <span className="text-gray-500 dark:text-gray-400 text-sm">N/A</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-center">
                   <div className="flex justify-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => openEditDialog(challenge)} disabled={loading}>
