@@ -8,17 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { useTeams } from "@/contexts/TeamContext"; // Import useTeams
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
-import { supabase } from "@/lib/supabase"; // Import supabase client
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // Import Avatar components
-import { User } from "lucide-react"; // Import User icon for AvatarFallback
+import { useTeams } from "@/contexts/TeamContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { User } from "lucide-react";
+import FriendSearchAndList from "@/components/FriendSearchAndList"; // Import new component
 
 interface ChatMessage {
   id: string;
   sender_id: string;
   sender_name: string;
-  sender_avatar_url: string; // New: Avatar URL for the sender
+  sender_avatar_url: string;
   text: string;
   timestamp: string;
 }
@@ -58,7 +59,7 @@ const SocialPage = () => {
           created_at,
           user_id,
           profiles!user_id(first_name, last_name, avatar_url)
-        `) // Select avatar_url from profiles
+        `)
         .eq('team_id', userTeam.id)
         .order('created_at', { ascending: true });
 
@@ -203,6 +204,11 @@ const SocialPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-8 mt-6">
+          {/* Friend System Section */}
+          <FriendSearchAndList />
+
+          <Separator className="my-6" />
+
           {/* In-app Chat */}
           <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
             <div className="flex items-center justify-center gap-3 mb-4">
