@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings } from "lucide-react"; // Re-added User, LogIn, LogOut, Share2, Accessibility, Settings
+import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
-import DesktopSidebar from "./DesktopSidebar"; // Import the new DesktopSidebar
+import DesktopSidebar from "./DesktopSidebar";
 
-// Define primary navigation items for the main bar
+// Define primary navigation items for the main bar (desktop only)
 const primaryNavItems = [
   { to: "/about", icon: Info, label: "About" },
   { to: "/location-quests", icon: MapPin, label: "Quests" },
@@ -38,15 +38,15 @@ const Navbar = () => {
   };
 
   // All navigation items for the mobile sheet
-  const allNavItems = [
+  const allMobileNavItems = [
     ...primaryNavItems,
     { to: "/social", icon: Share2, label: "Social" },
     { to: "/accessibility", icon: Accessibility, label: "Accessibility" },
   ];
 
-  const renderMobileNavLinks = () => (
+  const renderMobileSheetLinks = () => (
     <>
-      {allNavItems.map((item) => (
+      {allMobileNavItems.map((item) => (
         <Button
           key={item.to}
           asChild
@@ -125,7 +125,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-md p-4 sticky top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center">
+      <div className="container mx-auto flex items-center gap-x-6"> {/* Changed to items-center and gap-x-6 */}
         <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white flex-shrink-0">
           Questaroo
         </Link>
@@ -133,7 +133,7 @@ const Navbar = () => {
         {isMobile ? (
           <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+              <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ml-auto"> {/* Added ml-auto to push menu to right */}
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Open menu</span>
               </Button>
@@ -141,10 +141,9 @@ const Navbar = () => {
             <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
               <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Navigation</h2>
               <div className="flex flex-col gap-2 flex-grow">
-                {renderMobileNavLinks()}
+                {renderMobileSheetLinks()}
               </div>
               <div className="mt-auto p-4 border-t dark:border-gray-700">
-                {/* ThemeToggle is now inside DesktopSidebar for desktop, but still here for mobile */}
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700 dark:text-gray-300">Theme</span>
                   <ThemeToggle />
@@ -153,12 +152,12 @@ const Navbar = () => {
             </SheetContent>
           </Sheet>
         ) : (
-          <div className="flex items-center justify-start gap-x-1 overflow-x-auto pb-1 -mb-1">
+          <div className="flex items-center justify-start gap-x-1 overflow-x-auto pb-1 -mb-1 flex-grow"> {/* Added flex-grow */}
             {renderDesktopPrimaryNavLinks()}
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
+              className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0 ml-auto" // Added ml-auto to push More button to right
               onClick={() => setIsDesktopSidebarOpen(true)}
             >
               <Menu className="h-6 w-6" />
