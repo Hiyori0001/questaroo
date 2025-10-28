@@ -17,10 +17,10 @@ import EventModePage from "./pages/EventModePage";
 import AccessibilityPage from "./pages/AccessibilityPage";
 import QuestDetailsPage from "./pages/QuestDetailsPage";
 import Navbar from "./components/Navbar";
-import AuthPage from "./pages/AuthPage"; // Import the new AuthPage
-import QuestLogPage from "./pages/QuestLogPage"; // Import the new QuestLogPage
-import AdminDashboardPage from "./pages/AdminDashboardPage"; // Import AdminDashboardPage
-import ShopPage from "./pages/ShopPage"; // Import the new ShopPage
+import AuthPage from "./pages/AuthPage";
+import QuestLogPage from "./pages/QuestLogPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
+import ShopPage from "./pages/ShopPage";
 
 const queryClient = new QueryClient();
 
@@ -30,9 +30,9 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <div className="flex flex-col min-h-screen"> {/* Main app container */}
+        <div className="flex flex-col min-h-screen">
           <Navbar />
-          <main className="flex-grow overflow-y-auto pt-16 max-w-full overflow-x-hidden"> {/* Added max-w-full and overflow-x-hidden */}
+          <main className="flex-grow overflow-y-auto pt-16 max-w-full overflow-x-hidden">
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
@@ -46,10 +46,10 @@ const App = () => (
               <Route path="/social" element={<SocialPage />} />
               <Route path="/events" element={<EventModePage />} />
               <Route path="/accessibility" element={<AccessibilityPage />} />
-              <Route path="/auth" element={<AuthPage />} /> {/* Add the new AuthPage route */}
-              <Route path="/quest-log" element={<QuestLogPage />} /> {/* Add the new QuestLogPage route */}
-              <Route path="/admin" element={<AdminDashboardPage />} /> {/* Add the new AdminDashboardPage route */}
-              <Route path="/shop" element={<ShopPage />} /> {/* Add the new ShopPage route */}
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/quest-log" element={<QuestLogPage />} />
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/shop" element={<ShopPage />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

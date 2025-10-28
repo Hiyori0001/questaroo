@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState } from "react-router-dom";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings, SwitchCamera, ShoppingCart } from "lucide-react"; // Import ShoppingCart
+import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings, SwitchCamera, ShoppingCart } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import DesktopSidebar from "./DesktopSidebar";
-import { ThemeToggle } from "./ThemeToggle"; // Import ThemeToggle
+import { ThemeToggle } from "./ThemeToggle";
 
-// Define primary navigation items for the main bar (desktop only)
 const primaryNavItems = [
   { to: "/about", icon: Info, label: "About" },
   { to: "/location-quests", icon: MapPin, label: "Quests" },
@@ -21,7 +20,7 @@ const primaryNavItems = [
   { to: "/create-quest", icon: PlusCircle, label: "Create Quest" },
   { to: "/teams", icon: Users, label: "Teams" },
   { to: "/events", icon: CalendarDays, label: "Events" },
-  { to: "/shop", icon: ShoppingCart, label: "Shop" }, // New Shop link
+  { to: "/shop", icon: ShoppingCart, label: "Shop" },
 ];
 
 const Navbar = () => {
@@ -40,13 +39,12 @@ const Navbar = () => {
   };
 
   const handleSwitchAccount = async () => {
-    await signOut(); // Log out current user
+    await signOut();
     setIsMobileSheetOpen(false);
     setIsDesktopSidebarOpen(false);
-    navigate("/auth"); // Redirect to login page
+    navigate("/auth");
   };
 
-  // All navigation items for the mobile sheet
   const allMobileNavItems = [
     ...primaryNavItems,
     { to: "/social", icon: Share2, label: "Social" },
@@ -162,13 +160,13 @@ const Navbar = () => {
               <div className="mt-auto p-4 border-t dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700 dark:text-gray-300">Theme</span>
-                  <ThemeToggle /> {/* ThemeToggle is used here */}
+                  <ThemeToggle />
                 </div>
               </div>
             </SheetContent>
           </Sheet>
         ) : (
-          <div className="flex items-center justify-start gap-x-2 flex-wrap flex-grow"> {/* Removed overflow-x-auto, added flex-wrap, increased gap-x */}
+          <div className="flex items-center justify-start gap-x-2 flex-wrap flex-grow">
             {renderDesktopPrimaryNavLinks()}
             <Button
               variant="ghost"
