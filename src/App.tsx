@@ -32,7 +32,7 @@ const App = () => (
       <BrowserRouter>
         <div className="flex flex-col min-h-screen"> {/* Main app container */}
           <Navbar />
-          <main className="flex-grow overflow-y-auto pt-16"> {/* Main content area, allows scrolling, with top padding for navbar */}
+          <main className="flex-grow overflow-y-auto pt-16 max-w-full overflow-x-hidden"> {/* Added max-w-full and overflow-x-hidden */}
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/about" element={<About />} />
