@@ -6,68 +6,45 @@ import { CalendarDays, Trophy, Users, Clock, Loader2, AlertCircle } from "lucide
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner"; // Import toast
+import { supabase } from "@/lib/supabase"; // Import supabase
 
-interface Event {
+interface CommunityChallenge {
   id: string;
   name: string;
-  date: string;
-  type: string;
-  reward: string;
+  description: string;
+  start_date: string;
+  end_date: string;
+  reward_type: string;
+  status: string;
 }
 
-// Dummy data for events
-const dummyEvents: Event[] = [
-  {
-    id: "e1",
-    name: "Spring Scavenger Hunt",
-    date: "April 15 - April 22",
-    type: "Location Quest",
-    reward: "Exclusive Badge",
-  },
-  {
-    id: "e2",
-    name: "Weekly Trivia Challenge",
-    date: "Every Friday",
-    type: "Mini-Game",
-    reward: "Bonus XP",
-  },
-  {
-    id: "e3",
-    name: "Community Photo Contest",
-    date: "May 1 - May 15",
-    type: "Creative Challenge",
-    reward: "Rare Item",
-  },
-  {
-    id: "e4",
-    name: "Summer Festival Quest",
-    date: "July 1 - July 15",
-    type: "Location Quest",
-    reward: "Summer Crown",
-  },
-  {
-    id: "e5",
-    name: "Autumn Puzzle Marathon",
-    date: "October 1 - October 7",
-    type: "Mini-Game",
-    reward: "Puzzle Master Title",
-  },
-];
-
 const EventModePage = () => {
-  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<CommunityChallenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchEvents = useCallback(() => {
+  const fetchEvents = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    // Simulate API call
-    setTimeout(() => {
-      // Removed random error simulation for a more consistent demo experience
-      setUpcomingEvents(dummyEvents);
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('community_challenges')
+        .select('*')
+        .gte('end_date', new Date().toISOString()) // Filter for events that haven't ended yet
+        .order('start_date', { ascending: true });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      setUpcomingEvents(data as CommunityChallenge[]);
+    } catch (err: any) {
+      console.error("Error fetching community challenges:", err.message);
+      setError("Failed to load community challenges. Please try again.");
+      toast.error("Failed to load community challenges.");
+    } finally {
       setIsLoading(false);
-    }, 1500); // Simulate network delay
+    }
   }, []);
 
   useEffect(() => {
@@ -75,7 +52,7 @@ const EventModePage = () => {
   }, [fetchEvents]);
 
   const handleCommunityChallengesClick = () => {
-    toast.info("Community Challenges are coming soon! Stay tuned for exciting team events.");
+    toast.info("This section now displays real community challenges from the database!");
   };
 
   return (
@@ -96,25 +73,26 @@ const EventModePage = () => {
             Check back here regularly to see what's new!
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" className="px-8 py-4 text-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600">
-              <Trophy className="h-5 w-5 mr-2" /> View Upcoming Events
+            <Button size="lg" className="px-8 py-4 text-lg font-semibold bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600" onClick={handleCommunityChallengesClick}>
+              <Trophy className="h-5 w-5 mr-2" /> View Challenges
             </Button>
-            <Button
+            {/* The "Community Challenges" button is now repurposed to show a toast, as the section below directly displays them. */}
+            {/* <Button
               size="lg"
               variant="outline"
               className="px-8 py-4 text-lg font-semibold border-orange-600 text-orange-600 hover:bg-orange-50 dark:border-orange-500 dark:text-orange-500 dark:hover:bg-gray-600"
               onClick={handleCommunityChallengesClick}
             >
               <Users className="h-5 w-5 mr-2" /> Community Challenges
-            </Button>
+            </Button> */}
           </div>
 
           <div className="mt-8 text-left">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">Upcoming Events</h3>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">Upcoming Challenges</h3>
             {isLoading ? (
               <div className="flex justify-center items-center h-32">
                 <Loader2 className="h-8 w-8 animate-spin text-orange-600 dark:text-orange-400" />
-                <p className="ml-3 text-lg text-gray-600 dark:text-gray-300">Loading events...</p>
+                <p className="ml-3 text-lg text-gray-600 dark:text-gray-300">Loading challenges...</p>
               </div>
             ) : error ? (
               <div className="flex flex-col items-center justify-center h-32 text-red-600 dark:text-red-400">
@@ -130,19 +108,20 @@ const EventModePage = () => {
                   <Card key={event.id} className="bg-gray-50 dark:bg-gray-800 p-4">
                     <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{event.name}</CardTitle>
                     <CardDescription className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-1">
-                      <CalendarDays className="h-4 w-4" /> {event.date}
+                      <CalendarDays className="h-4 w-4" /> {new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}
                     </CardDescription>
                     <CardDescription className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-2">
-                      <Clock className="h-4 w-4" /> Type: {event.type}
+                      <Clock className="h-4 w-4" /> Status: {event.status}
                     </CardDescription>
                     <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-                      Reward: {event.reward}
+                      Reward: {event.reward_type}
                     </Badge>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{event.description}</p>
                   </Card>
                 ))}
               </div>
             ) : (
-              <p className="text-lg text-gray-500 dark:text-gray-400 text-center mt-8">No upcoming events found.</p>
+              <p className="text-lg text-gray-500 dark:text-gray-400 text-center mt-8">No upcoming challenges found.</p>
             )}
           </div>
         </CardContent>

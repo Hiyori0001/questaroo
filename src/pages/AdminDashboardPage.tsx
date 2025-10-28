@@ -4,12 +4,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, MapPin, Shield, Settings, Loader2, AlertCircle } from "lucide-react";
+import { Users, MapPin, Shield, Settings, Loader2, AlertCircle, CalendarDays } from "lucide-react"; // Import CalendarDays
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import AdminUserManagement from "@/components/AdminUserManagement";
 import AdminQuestManagement from "@/components/AdminQuestManagement";
 import AdminTeamManagement from "@/components/AdminTeamManagement";
+import AdminCommunityChallengeManagement from "@/components/AdminCommunityChallengeManagement"; // Import new component
 
 const AdminDashboardPage = () => {
   const { user, loading: loadingAuth } = useAuth();
@@ -65,7 +66,7 @@ const AdminDashboardPage = () => {
         </CardHeader>
         <CardContent className="mt-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6 h-auto">
+            <TabsList className="grid w-full grid-cols-4 mb-6 h-auto"> {/* Changed grid-cols to 4 */}
               <TabsTrigger value="users" className="flex items-center justify-center gap-2 p-2">
                 <Users className="h-5 w-5" /> Users
               </TabsTrigger>
@@ -74,6 +75,9 @@ const AdminDashboardPage = () => {
               </TabsTrigger>
               <TabsTrigger value="teams" className="flex items-center justify-center gap-2 p-2">
                 <Shield className="h-5 w-5" /> Teams
+              </TabsTrigger>
+              <TabsTrigger value="challenges" className="flex items-center justify-center gap-2 p-2"> {/* New Tab */}
+                <CalendarDays className="h-5 w-5" /> Challenges
               </TabsTrigger>
             </TabsList>
 
@@ -85,6 +89,9 @@ const AdminDashboardPage = () => {
             </TabsContent>
             <TabsContent value="teams">
               <AdminTeamManagement />
+            </TabsContent>
+            <TabsContent value="challenges"> {/* New Tab Content */}
+              <AdminCommunityChallengeManagement />
             </TabsContent>
           </Tabs>
         </CardContent>
