@@ -9,6 +9,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import DesktopSidebar from "./DesktopSidebar";
+import { ThemeToggle } from "./ThemeToggle"; // Import ThemeToggle
 
 // Define primary navigation items for the main bar (desktop only)
 const primaryNavItems = [
@@ -125,7 +126,7 @@ const Navbar = () => {
 
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-md p-4 sticky top-0 z-50">
-      <div className="container mx-auto flex items-center gap-x-6"> {/* Changed to items-center and gap-x-6 */}
+      <div className="container mx-auto flex items-center gap-x-6">
         <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white flex-shrink-0">
           Questaroo
         </Link>
@@ -133,7 +134,7 @@ const Navbar = () => {
         {isMobile ? (
           <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ml-auto"> {/* Added ml-auto to push menu to right */}
+              <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ml-auto">
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">Open menu</span>
               </Button>
@@ -146,18 +147,18 @@ const Navbar = () => {
               <div className="mt-auto p-4 border-t dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-700 dark:text-gray-300">Theme</span>
-                  <ThemeToggle />
+                  <ThemeToggle /> {/* ThemeToggle is used here */}
                 </div>
               </div>
             </SheetContent>
           </Sheet>
         ) : (
-          <div className="flex items-center justify-start gap-x-1 overflow-x-auto pb-1 -mb-1 flex-grow"> {/* Added flex-grow */}
+          <div className="flex items-center justify-start gap-x-1 overflow-x-auto pb-1 -mb-1 flex-grow">
             {renderDesktopPrimaryNavLinks()}
             <Button
               variant="ghost"
               size="icon"
-              className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0 ml-auto" // Added ml-auto to push More button to right
+              className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0 ml-auto"
               onClick={() => setIsDesktopSidebarOpen(true)}
             >
               <Menu className="h-6 w-6" />
