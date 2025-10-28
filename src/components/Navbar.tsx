@@ -44,7 +44,7 @@ const Navbar = () => {
           key={item.to}
           asChild
           variant="ghost"
-          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-2 py-1 flex-shrink-0" // Added flex-shrink-0
+          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-2 py-1 flex-shrink-0"
           onClick={() => isMobile && setIsSheetOpen(false)}
         >
           <Link to={item.to}>
@@ -125,7 +125,7 @@ const Navbar = () => {
             </SheetContent>
           </Sheet>
         ) : (
-          <div className="flex items-center justify-end gap-x-2 overflow-x-auto pb-1 -mb-1"> {/* Added overflow-x-auto, pb-1, -mb-1 */}
+          <div className="flex items-center justify-start gap-x-1 overflow-x-auto pb-1 -mb-1"> {/* Changed to justify-start and gap-x-1 */}
             {renderNavLinks()}
             <ThemeToggle />
           </div>
