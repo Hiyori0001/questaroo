@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo } from "lucide-react"; // Removed User, LogIn, LogOut, Share2, Accessibility, Settings
+import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings } from "lucide-react"; // Re-added User, LogIn, LogOut, Share2, Accessibility, Settings
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
