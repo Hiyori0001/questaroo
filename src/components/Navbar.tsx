@@ -3,12 +3,12 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu, LogIn, LogOut, ListTodo, Settings } from "lucide-react"; // Added Settings icon
+import { MapPin, Info, Gamepad2, User, Crown, PlusCircle, Users, Share2, CalendarDays, Accessibility, Menu, LogIn, LogOut, ListTodo, Settings } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
-import { useUserProfile } from "@/contexts/UserProfileContext"; // Import useUserProfile
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserProfile } from "@/contexts/UserProfileContext";
 
 // Define navigation items as an array of objects
 const navItems = [
@@ -28,7 +28,7 @@ const Navbar = () => {
   const isMobile = useIsMobile();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { user, signOut } = useAuth();
-  const { profile, loadingProfile } = useUserProfile(); // Get profile to check isAdmin
+  const { profile, loadingProfile } = useUserProfile();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -44,55 +44,55 @@ const Navbar = () => {
           key={item.to}
           asChild
           variant="ghost"
-          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-2 py-1 flex-shrink-0" // Added flex-shrink-0
           onClick={() => isMobile && setIsSheetOpen(false)}
         >
           <Link to={item.to}>
-            <item.icon className="h-4 w-4 mr-2" /> {item.label}
+            <item.icon className="h-4 w-4 mr-1" /> {item.label}
           </Link>
         </Button>
       ))}
       {user ? (
         <>
-          {profile?.isAdmin && ( // Only show Admin Dashboard link if user is admin
+          {profile?.isAdmin && (
             <Button
               asChild
               variant="ghost"
-              className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-2 py-1 flex-shrink-0"
               onClick={() => isMobile && setIsSheetOpen(false)}
             >
               <Link to="/admin">
-                <Settings className="h-4 w-4 mr-2" /> Admin
+                <Settings className="h-4 w-4 mr-1" /> Admin
               </Link>
             </Button>
           )}
           <Button
             asChild
             variant="ghost"
-            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-2 py-1 flex-shrink-0"
             onClick={() => isMobile && setIsSheetOpen(false)}
           >
             <Link to="/profile">
-              <User className="h-4 w-4 mr-2" /> Profile
+              <User className="h-4 w-4 mr-1" /> Profile
             </Link>
           </Button>
           <Button
             variant="ghost"
-            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-2 py-1 flex-shrink-0"
             onClick={handleSignOut}
           >
-            <LogOut className="h-4 w-4 mr-2" /> Logout
+            <LogOut className="h-4 w-4 mr-1" /> Logout
           </Button>
         </>
       ) : (
         <Button
           asChild
           variant="ghost"
-          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-2 py-1 flex-shrink-0"
           onClick={() => isMobile && setIsSheetOpen(false)}
         >
           <Link to="/auth">
-            <LogIn className="h-4 w-4 mr-2" /> Login
+            <LogIn className="h-4 w-4 mr-1" /> Login
           </Link>
         </Button>
       )}
@@ -102,7 +102,7 @@ const Navbar = () => {
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-md p-4 sticky top-0 z-50">
       <div className="container mx-auto flex justify-between items-center">
-        <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white">
+        <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white flex-shrink-0">
           Questaroo
         </Link>
 
@@ -125,7 +125,7 @@ const Navbar = () => {
             </SheetContent>
           </Sheet>
         ) : (
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-end gap-x-2 overflow-x-auto pb-1 -mb-1"> {/* Added overflow-x-auto, pb-1, -mb-1 */}
             {renderNavLinks()}
             <ThemeToggle />
           </div>
