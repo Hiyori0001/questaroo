@@ -87,7 +87,7 @@
 }
 
 /* Google Font Import */
-@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap');
 
 @layer base {
   * {
@@ -95,7 +95,7 @@
   }
 
   body {
-    font-family: 'Comfortaa', cursive;
+    font-family: 'Inter', sans-serif; /* Changed to Inter with sans-serif fallback */
     @apply bg-background text-foreground overflow-x-hidden;
   }
 
