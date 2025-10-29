@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useLayoutEffect, useCallback } from 'react';
+import React, { useState, useRef, useLayoutEffect, useCallback, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 
 interface Sparkle {
@@ -12,13 +12,8 @@ interface Sparkle {
   animationDuration: number;
 }
 
-interface SparkleEffectProps {
-  children: React.ReactNode;
-}
-
-const SparkleEffect: React.FC<SparkleEffectProps> = ({ children }) => {
+const GlobalSparkleClickEffect: React.FC = () => {
   const [sparkles, setSparkles] = useState<Sparkle[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
 
   const generateSparkle = useCallback((x: number, y: number): Sparkle => {
@@ -36,19 +31,21 @@ const SparkleEffect: React.FC<SparkleEffectProps> = ({ children }) => {
     };
   }, [theme]);
 
-  const addSparkle = useCallback((event: React.MouseEvent) => {
-    if (!containerRef.current) return;
-
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    setSparkles((prevSparkles) => [...prevSparkles, generateSparkle(x, y)]);
+  const addSparkle = useCallback((event: MouseEvent) => {
+    setSparkles((prevSparkles) => [...prevSparkles, generateSparkle(event.clientX, event.clientY)]);
   }, [generateSparkle]);
 
   const removeSparkle = useCallback((id: string) => {
     setSparkles((prevSparkles) => prevSparkles.filter((s) => s.id !== id));
   }, []);
+
+  // Attach global click listener
+  useEffect(() => {
+    document.body.addEventListener('click', addSparkle);
+    return () => {
+      document.body.removeEventListener('click', addSparkle);
+    };
+  }, [addSparkle]);
 
   // Clean up sparkles after their animation
   useLayoutEffect(() => {
@@ -59,17 +56,11 @@ const SparkleEffect: React.FC<SparkleEffectProps> = ({ children }) => {
   }, [sparkles, removeSparkle]);
 
   return (
-    <div
-      ref={containerRef}
-      className="relative inline-block cursor-pointer overflow-hidden"
-      onMouseMove={addSparkle} // Add sparkles on hover
-      onClick={addSparkle} // Add sparkles on click
-    >
-      {children}
+    <div className="fixed inset-0 pointer-events-none z-[9999]"> {/* Ensure sparkles are on top */}
       {sparkles.map((s) => (
         <div
           key={s.id}
-          className="absolute rounded-full pointer-events-none"
+          className="absolute rounded-full"
           style={{
             left: s.x,
             top: s.y,
@@ -103,4 +94,4 @@ const SparkleEffect: React.FC<SparkleEffectProps> = ({ children }) => {
   );
 };
 
-export default SparkleEffect;
+export default GlobalSparkleClickEffect;

@@ -5,9 +5,8 @@ import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles";
 import type { Engine } from "tsparticles-engine";
 import { useTheme } from "next-themes";
-import RunningCharactersBackground from "./RunningCharactersBackground"; // Import the new component
 
-const CuteBackground: React.FC = () => { // Removed children prop as it will be a standalone background
+const CuteBackground: React.FC = () => {
   const { theme } = useTheme();
 
   const particlesInit = useCallback(async (engine: Engine) => {
@@ -27,7 +26,7 @@ const CuteBackground: React.FC = () => { // Removed children prop as it will be 
   }, [theme]);
 
   return (
-    <div className="fixed inset-0 z-0"> {/* Changed to fixed and z-0 to cover the entire viewport */}
+    <div className="fixed inset-0 z-0"> {/* Fixed and z-0 to cover the entire viewport behind everything */}
       <Particles
         id="tsparticles"
         init={particlesInit}
@@ -53,7 +52,7 @@ const CuteBackground: React.FC = () => { // Removed children prop as it will be 
             },
             modes: {
               push: {
-                quantity: 8, // Increased quantity for a more noticeable "gush"
+                quantity: 15, // Increased quantity for a more noticeable "gush"
               },
               repulse: {
                 distance: 100,
@@ -90,7 +89,7 @@ const CuteBackground: React.FC = () => { // Removed children prop as it will be 
                 enable: true,
                 area: 800,
               },
-              value: 80,
+              value: 80, // Base number of particles
             },
             opacity: {
               value: 0.8,
@@ -109,11 +108,17 @@ const CuteBackground: React.FC = () => { // Removed children prop as it will be 
             size: {
               value: { min: 1, max: 5 },
             },
+            life: { // Added life to make pushed particles fade out
+              count: 1,
+              duration: {
+                min: 0.5,
+                max: 1.5,
+              },
+            },
           },
           detectRetina: true,
         }}
       />
-      <RunningCharactersBackground /> {/* Render running characters on top of particles */}
     </div>
   );
 };
