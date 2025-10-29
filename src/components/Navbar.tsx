@@ -178,7 +178,7 @@ const Navbar = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
               <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Navigation</h2>
-              <div className="flex flex-col gap-2 flex-grow">
+              <div className="flex flex-col gap-2 flex-grow overflow-y-auto"> {/* Added overflow-y-auto here */}
                 {renderMobileSheetLinks()}
               </div>
               {/* Removed the old ThemeToggle container from here */}

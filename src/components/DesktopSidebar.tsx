@@ -42,7 +42,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
         <SheetHeader>
           <SheetTitle className="text-2xl font-bold text-gray-900 dark:text-white">More Options</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col gap-2 py-4 flex-grow">
+        <div className="flex flex-col gap-2 py-4 flex-grow overflow-y-auto"> {/* Added overflow-y-auto here */}
           {/* Profile and Admin links */}
           {user ? (
             <>
