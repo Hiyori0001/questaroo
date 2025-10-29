@@ -48,7 +48,7 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [theme]);
 
   const triggerSparkle = useCallback((x: number, y: number) => {
-    const numSparkles = Math.floor(Math.random() * 7) + 7; // Increased to 7-13 sparkles per trigger
+    const numSparkles = Math.floor(Math.random() * 13) + 14; // Doubled to 14-26 sparkles per trigger
     const newSparkles = Array.from({ length: numSparkles }).map(() =>
       generateSparkle(x, y)
     );
