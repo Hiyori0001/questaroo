@@ -52,7 +52,7 @@ const CuteBackground: React.FC = () => {
             },
             modes: {
               push: {
-                quantity: 15, // Increased quantity for a more noticeable "gush"
+                quantity: 5, // Reduced quantity for better performance
               },
               repulse: {
                 distance: 100,
