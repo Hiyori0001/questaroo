@@ -29,8 +29,6 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Toaster />
-      <Sonner />
       <BrowserRouter>
         <SparkleProvider> {/* Wrap the entire app with SparkleProvider */}
           <div className="relative min-h-screen flex flex-col">
@@ -62,6 +60,9 @@ const App = () => (
         </SparkleProvider>
       </BrowserRouter>
     </TooltipProvider>
+    {/* Toaster and Sonner are global components and can be rendered outside TooltipProvider */}
+    <Toaster />
+    <Sonner />
   </QueryClientProvider>
 );
 
