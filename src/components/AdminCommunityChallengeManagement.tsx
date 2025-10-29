@@ -314,7 +314,7 @@ const AdminCommunityChallengeManagement = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-800">
             <DialogHeader>
-              <DialogTitle className="text-gray-900 dark:text-white">{editingChallenge ? "Edit Community Challenge" : "Create New Community Challenge"}</DialogTitle>
+              <DialogTitle className="text-gray-900 dark:text-white font-heading">{editingChallenge ? "Edit Community Challenge" : "Create New Community Challenge"}</DialogTitle>
               <DialogDescription className="text-gray-700 dark:text-gray-300">
                 {editingChallenge ? "Update the details of this challenge." : "Fill in the details for your new community challenge."}
               </DialogDescription>
@@ -571,7 +571,7 @@ const AdminCommunityChallengeManagement = () => {
                       </AlertDialogTrigger>
                       <AlertDialogContent className="bg-white dark:bg-gray-800">
                         <AlertDialogHeader>
-                          <AlertDialogTitle className="text-gray-900 dark:text-white">Confirm Deletion</AlertDialogTitle>
+                          <AlertDialogTitle className="text-gray-900 dark:text-white font-heading">Confirm Deletion</AlertDialogTitle>
                           <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
                             Are you sure you want to delete challenge "{challenge.name}"? This will also delete all associated user participations. This action cannot be undone.
                           </AlertDialogDescription>

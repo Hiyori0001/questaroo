@@ -53,7 +53,7 @@ const About = () => {
       <div className="max-w-6xl mx-auto py-12">
         <Card className="bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 sm:p-10 mb-12">
           <CardHeader className="text-center">
-            <CardTitle className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">
+            <CardTitle className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4 font-heading">
               Welcome to Questaroo!
             </CardTitle>
             <CardDescription className="text-xl text-gray-700 dark:text-gray-300">
@@ -67,7 +67,7 @@ const About = () => {
           </CardContent>
         </Card>
 
-        <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-10">
+        <h2 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-10 font-heading">
           What’s Inside
         </h2>
 
@@ -75,7 +75,7 @@ const About = () => {
           {features.map((feature, index) => (
             <Card key={index} className="bg-white dark:bg-gray-700 shadow-lg rounded-lg p-6 flex flex-col items-center text-center">
               <feature.icon className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-4" />
-              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2 font-heading">
                 {feature.title}
               </CardTitle>
               <CardDescription className="text-gray-700 dark:text-gray-300">

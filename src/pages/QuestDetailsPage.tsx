@@ -369,7 +369,7 @@ const QuestDetailsPage = () => {
                 </AlertDialogTrigger>
                 <AlertDialogContent className="bg-white dark:bg-gray-800">
                   <AlertDialogHeader>
-                    <AlertDialogTitle className="text-gray-900 dark:text-white">Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle className="text-gray-900 dark:text-white font-heading">Are you absolutely sure?</AlertDialogTitle>
                     <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
                       This action cannot be undone. This will permanently delete your quest.
                     </AlertDialogDescription>
@@ -382,7 +382,7 @@ const QuestDetailsPage = () => {
               </AlertDialog>
             )}
           </div>
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2 font-heading">
             <MapPin className="h-7 w-7 text-green-600 dark:text-green-400" />
             {quest.title}
           </CardTitle>

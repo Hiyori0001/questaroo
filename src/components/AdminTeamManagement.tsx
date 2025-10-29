@@ -138,7 +138,7 @@ const AdminTeamManagement = () => {
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-white dark:bg-gray-800">
                       <AlertDialogHeader>
-                        <AlertDialogTitle className="text-gray-900 dark:text-white">Confirm Deletion</AlertDialogTitle>
+                        <AlertDialogTitle className="text-gray-900 dark:text-white font-heading">Confirm Deletion</AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
                           Are you sure you want to delete team "{team.name}"? This will also remove all members from this team. This action cannot be undone.
                         </AlertDialogDescription>

@@ -164,7 +164,7 @@ const Navbar = () => {
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-md p-4 sticky top-0 z-50">
       <div className="container mx-auto flex items-center gap-x-6">
-        <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white flex-shrink-0">
+        <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white flex-shrink-0 font-heading">
           Questaroo
         </Link>
 

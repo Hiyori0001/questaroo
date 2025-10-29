@@ -57,7 +57,7 @@ const AdminDashboardPage = () => {
       <Card className="w-full max-w-5xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center mb-8">
         <CardHeader className="flex flex-col items-center">
           <Settings className="h-16 w-16 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
             Admin Dashboard
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">

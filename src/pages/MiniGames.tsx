@@ -93,7 +93,7 @@ const MiniGames = () => {
       <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center mb-8">
         <CardHeader>
           <Gamepad2 className="h-16 w-16 text-purple-600 dark:text-purple-400 mx-auto mb-4" />
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
             Mini-Games & Challenges
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
@@ -140,7 +140,7 @@ const MiniGames = () => {
                 <Card className="w-full max-w-md mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
                   <CardHeader>
                     <Lock className="h-16 w-16 text-red-600 dark:text-red-400 mx-auto mb-4" />
-                    <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
                       {game.label} is Locked!
                     </CardTitle>
                     <CardDescription className="text-lg text-gray-700 dark:text-gray-300">

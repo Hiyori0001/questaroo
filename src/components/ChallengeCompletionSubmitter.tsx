@@ -78,7 +78,7 @@ const ChallengeCompletionSubmitter: React.FC<ChallengeCompletionSubmitterProps> 
       <DialogContent className="sm:max-w-[475px] bg-white dark:bg-gray-800">
         <DialogHeader className="flex flex-col items-center">
           <MessageSquareText className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-3" />
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">Submit Completion for "{challengeName}"</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white font-heading">Submit Completion for "{challengeName}"</DialogTitle>
           <DialogDescription className="text-md text-gray-700 dark:text-gray-300 text-center">
             Tell us how you completed the challenge and provide any evidence.
             <span className="mt-2 font-semibold block">Objective: {completionCriteria || "No specific criteria defined."}</span>

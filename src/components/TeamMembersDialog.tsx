@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -51,7 +51,7 @@ const TeamMembersDialog: React.FC<TeamMembersDialogProps> = ({ isOpen, onClose, 
       <DialogContent className="sm:max-w-[500px] bg-white dark:bg-gray-800">
         <DialogHeader className="flex flex-col items-center">
           <Users className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-3" />
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">Members of {teamName}</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white font-heading">Members of {teamName}</DialogTitle>
           <DialogDescription className="text-md text-gray-700 dark:text-gray-300 text-center">
             {loading ? "Loading members..." : error ? error : "Here are the members of this team."}
           </DialogDescription>

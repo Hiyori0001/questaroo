@@ -81,7 +81,7 @@ const QuestMap: React.FC<QuestMapProps> = ({ quests, userLocation, onLocationFou
   return (
     <Card className="w-full h-[500px] bg-gray-100 dark:bg-gray-800 flex flex-col rounded-lg shadow-inner border-2 border-gray-300 dark:border-gray-600 overflow-hidden">
       <CardHeader className="p-4 pb-2 flex-row items-center justify-between">
-        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+        <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2 font-heading">
           <MapPin className="h-6 w-6 text-blue-600 dark:text-blue-400" /> Interactive Quest Map
         </CardTitle>
         <Button
@@ -119,7 +119,7 @@ const QuestMap: React.FC<QuestMapProps> = ({ quests, userLocation, onLocationFou
                     <Popup>
                       <Card className="w-64">
                         <CardHeader className="p-3 pb-1">
-                          <CardTitle className="text-lg font-bold">{quest.title}</CardTitle>
+                          <CardTitle className="text-lg font-bold font-heading">{quest.title}</CardTitle>
                           <CardDescription className="text-sm">{quest.location}</CardDescription>
                         </CardHeader>
                         <CardContent className="p-3 pt-1">

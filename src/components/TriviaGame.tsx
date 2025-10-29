@@ -73,7 +73,7 @@ const TriviaGame = () => {
     return (
       <Card className="w-full max-w-md mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Game Over!</CardTitle>
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">Game Over!</CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
             You completed the trivia challenge.
           </CardDescription>
@@ -93,7 +93,7 @@ const TriviaGame = () => {
   return (
     <Card className="w-full max-w-md mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+        <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
           Question {currentQuestionIndex + 1} of {shuffledQuestions.length}
         </CardTitle>
         <CardDescription className="text-lg text-gray-800 dark:text-gray-200">

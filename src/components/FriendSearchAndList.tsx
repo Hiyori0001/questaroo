@@ -118,7 +118,7 @@ const FriendSearchAndList: React.FC = () => {
     <div className="space-y-6">
       <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
         <CardHeader className="pb-3">
-          <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-heading">
             <Search className="h-6 w-6 text-blue-600 dark:text-blue-400" /> Find New Friends
           </CardTitle>
           <CardDescription className="text-md text-gray-700 dark:text-gray-300">
@@ -147,7 +147,7 @@ const FriendSearchAndList: React.FC = () => {
           {searchError && <p className="text-red-500 text-sm text-center">{searchError}</p>}
           {searchResults.length > 0 && (
             <div className="space-y-3 mt-4">
-              <h4 className="font-semibold text-gray-900 dark:text-white">Search Results:</h4>
+              <h4 className="font-semibold text-gray-900 dark:text-white font-heading">Search Results:</h4>
               {searchResults.map((result) => {
                 const status = getFriendshipStatus(result.id);
                 return (
@@ -212,7 +212,7 @@ const FriendSearchAndList: React.FC = () => {
         <TabsContent value="friends">
           <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
             <CardHeader className="pb-3">
-              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-heading">
                 <User className="h-6 w-6 text-green-600 dark:text-green-400" /> Your Friends
               </CardTitle>
               <CardDescription className="text-md text-gray-700 dark:text-gray-300">
@@ -247,7 +247,7 @@ const FriendSearchAndList: React.FC = () => {
         <TabsContent value="pending">
           <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
             <CardHeader className="pb-3">
-              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-heading">
                 <UserPlus className="h-6 w-6 text-orange-600 dark:text-orange-400" /> Pending Requests
               </CardTitle>
               <CardDescription className="text-md text-gray-700 dark:text-gray-300">
@@ -287,7 +287,7 @@ const FriendSearchAndList: React.FC = () => {
         <TabsContent value="sent">
           <Card className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4">
             <CardHeader className="pb-3">
-              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-heading">
                 <UserPlus className="h-6 w-6 text-purple-600 dark:text-purple-400" /> Sent Requests
               </CardTitle>
               <CardDescription className="text-md text-gray-700 dark:text-gray-300">

@@ -56,7 +56,7 @@ const QuestList: React.FC<QuestListProps> = ({ quests }) => {
         return (
           <Card key={quest.id} className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 flex flex-col">
             <CardHeader className="pb-2">
-              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-heading">
                 <MapPin className="h-5 w-5 text-green-600 dark:text-green-400" />
                 {quest.title}
               </CardTitle>

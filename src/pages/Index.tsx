@@ -6,7 +6,7 @@ const Index = () => {
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4">
       <div className="text-center bg-white dark:bg-gray-700 p-10 rounded-lg shadow-xl max-w-2xl mx-auto animate-pop-in">
-        <h1 className="text-5xl font-extrabold mb-6 text-gray-900 dark:text-white">Welcome to Questaroo!</h1>
+        <h1 className="text-5xl font-extrabold mb-6 text-gray-900 dark:text-white font-heading">Welcome to Questaroo!</h1>
         <p className="text-xl text-gray-700 dark:text-gray-300 mb-8">
           Your adventure begins here. Explore the world, complete quests, and create your own stories!
         </p>

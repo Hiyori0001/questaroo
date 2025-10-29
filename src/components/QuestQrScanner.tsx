@@ -36,7 +36,7 @@ const QuestQrScanner: React.FC<QuestQrScannerProps> = ({ isOpen, onClose, onScan
       <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
         <DialogHeader className="flex flex-col items-center">
           <QrCode className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-3" />
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">Scan QR Code</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white font-heading">Scan QR Code</DialogTitle>
           <DialogDescription className="text-md text-gray-700 dark:text-gray-300 text-center">
             Imagine you've found a QR code at the quest location. Enter the code below to proceed!
             (Hint: The code is "{expectedQrCode}")

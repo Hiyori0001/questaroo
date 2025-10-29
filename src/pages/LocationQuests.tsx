@@ -105,7 +105,7 @@ const LocationQuests = () => {
       <Card className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center mb-8">
         <CardHeader>
           <MapPin className="h-16 w-16 text-green-600 dark:text-green-400 mx-auto mb-4" />
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
             Location-Based Quests
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
@@ -142,7 +142,7 @@ const LocationQuests = () => {
 
       <div className="w-full max-w-4xl mx-auto mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center sm:text-left">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white text-center sm:text-left font-heading">
             {viewMode === "list" ? "Available Quests" : "Quests Map View"}
           </h2>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">

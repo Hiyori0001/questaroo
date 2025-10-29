@@ -151,7 +151,7 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
       <DialogContent className="sm:max-w-[700px] bg-white dark:bg-gray-800">
         <DialogHeader className="flex flex-col items-center">
           <Users className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-3" />
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">Participants for "{challenge.name}"</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white font-heading">Participants for "{challenge.name}"</DialogTitle>
           <DialogDescription className="text-md text-gray-700 dark:text-gray-300 text-center">
             Review and manage the completion status of users participating in this challenge.
             <span className="mt-2 font-semibold block">Objective: {challenge.completion_criteria || "No specific criteria defined."}</span>

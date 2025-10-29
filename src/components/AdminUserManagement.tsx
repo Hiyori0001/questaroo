@@ -224,9 +224,7 @@ const AdminUserManagement = () => {
                     <UserIcon className="h-5 w-5" />
                   </AvatarFallback>
                 </Avatar>
-                <span className="font-semibold text-gray-800 dark:text-gray-200">
-                  {`${userEntry.first_name || ''} ${userEntry.last_name || ''}`.trim() || "Anonymous"}
-                </span>
+                <span className="font-semibold text-gray-800 dark:text-gray-200">{`${userEntry.first_name || ''} ${userEntry.last_name || ''}`.trim() || "Anonymous"}</span>
               </TableCell>
               <TableCell className="text-gray-700 dark:text-gray-300">{userEntry.email}</TableCell>
               <TableCell className="text-right text-gray-700 dark:text-gray-300">{userEntry.experience}</TableCell>
@@ -262,7 +260,7 @@ const AdminUserManagement = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-white dark:bg-gray-800">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-gray-900 dark:text-white">Confirm Deletion</AlertDialogTitle>
+                      <AlertDialogTitle className="text-gray-900 dark:text-white font-heading">Confirm Deletion</AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
                         Are you sure you want to delete user "{userEntry.email}"? This action cannot be undone.
                       </AlertDialogDescription>

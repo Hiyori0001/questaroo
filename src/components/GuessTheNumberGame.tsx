@@ -93,7 +93,7 @@ const GuessTheNumberGame = () => {
     <Card className="w-full max-w-md mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
       <CardHeader>
         <Lightbulb className="h-16 w-16 text-orange-600 dark:text-orange-400 mx-auto mb-4" />
-        <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
           Guess the Number!
         </CardTitle>
         <CardDescription className="text-lg text-gray-700 dark:text-gray-300">

@@ -156,7 +156,7 @@ const EventModePage = () => {
       <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center mb-8">
         <CardHeader className="flex flex-col items-center">
           <CalendarDays className="h-16 w-16 text-orange-600 dark:text-orange-400 mx-auto mb-4" />
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
             Event Mode
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
@@ -169,7 +169,7 @@ const EventModePage = () => {
             Check back here regularly to see what's new!
           </p>
           <div className="mt-8 text-left">
-            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center">Upcoming Challenges</h3>
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 text-center font-heading">Upcoming Challenges</h3>
             {isLoading || loadingAuth ? (
               <div className="flex justify-center items-center h-32">
                 <Loader2 className="h-8 w-8 animate-spin text-orange-600 dark:text-orange-400" />
@@ -194,7 +194,7 @@ const EventModePage = () => {
 
                   return (
                     <Card key={event.id} className="bg-gray-50 dark:bg-gray-800 p-4 flex flex-col">
-                      <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{event.name}</CardTitle>
+                      <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2 font-heading">{event.name}</CardTitle>
                       <CardDescription className="text-gray-700 dark:text-gray-300 flex items-center gap-2 mb-1">
                         <CalendarDays className="h-4 w-4" /> {new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}
                       </CardDescription>

@@ -82,7 +82,7 @@ const TeamsPage = () => {
       <Card className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
         <CardHeader className="flex flex-col items-center">
           <Users className="h-16 w-16 text-blue-600 dark:text-blue-400 mx-auto mb-4" />
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
             Teams & Community
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
@@ -92,7 +92,7 @@ const TeamsPage = () => {
         <CardContent className="mt-6">
           {userTeam ? (
             <div className="mb-8 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950 shadow-sm">
-              <h3 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-3">Your Team: {userTeam.name}</h3>
+              <h3 className="text-2xl font-bold text-blue-800 dark:text-blue-200 mb-3 font-heading">Your Team: {userTeam.name}</h3>
               <p className="text-blue-700 dark:text-blue-300 mb-2">{userTeam.description}</p>
               <div className="flex justify-center items-center gap-4 text-blue-700 dark:text-blue-300 text-lg">
                 <p className="flex items-center gap-1"><Users className="h-5 w-5" /> Members: {userTeam.member_count}</p>
@@ -115,7 +115,7 @@ const TeamsPage = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent className="bg-white dark:bg-gray-800">
                     <AlertDialogHeader>
-                      <AlertDialogTitle className="text-gray-900 dark:text-white">Are you sure you want to leave your team?</AlertDialogTitle>
+                      <AlertDialogTitle className="text-gray-900 dark:text-white font-heading">Are you sure you want to leave your team?</AlertDialogTitle>
                       <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
                         You will no longer be part of "{userTeam.name}" and will lose team benefits.
                       </AlertDialogDescription>
@@ -142,7 +142,7 @@ const TeamsPage = () => {
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
                     <DialogHeader>
-                      <DialogTitle className="text-gray-900 dark:text-white">Create Your Team</DialogTitle>
+                      <DialogTitle className="text-gray-900 dark:text-white font-heading">Create Your Team</DialogTitle>
                       <CardDescription className="text-gray-700 dark:text-gray-300">
                         Give your team a name and a description.
                       </CardDescription>
@@ -159,7 +159,7 @@ const TeamsPage = () => {
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-800">
                     <DialogHeader>
-                      <DialogTitle className="text-gray-900 dark:text-white">Join a Team</DialogTitle>
+                      <DialogTitle className="text-gray-900 dark:text-white font-heading">Join a Team</DialogTitle>
                       <CardDescription className="text-gray-700 dark:text-gray-300">
                         Select a team from the list below to join.
                       </CardDescription>
@@ -171,7 +171,7 @@ const TeamsPage = () => {
             </div>
           )}
 
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">All Teams</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 font-heading">All Teams</h2>
           {teams.length === 0 ? (
             <p className="text-lg text-gray-500 dark:text-gray-400">No teams available yet. Be the first to create one!</p>
           ) : (

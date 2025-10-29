@@ -148,7 +148,7 @@ const ShopPage = () => {
       <Card className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center mb-8">
         <CardHeader className="flex flex-col items-center">
           <ShoppingCart className="h-16 w-16 text-orange-600 dark:text-orange-400 mx-auto mb-4" />
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
             Questaroo Shop
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
@@ -168,7 +168,7 @@ const ShopPage = () => {
               return (
                 <Card key={item.id} className="bg-gray-50 dark:bg-gray-800 p-4 flex flex-col items-center text-center">
                   <Icon className="h-12 w-12 text-purple-600 dark:text-purple-400 mb-3" />
-                  <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{item.name}</CardTitle>
+                  <CardTitle className="text-xl font-semibold text-gray-900 dark:text-white mb-2 font-heading">{item.name}</CardTitle>
                   <CardDescription className="text-gray-700 dark:text-gray-300 flex-grow mb-3">
                     {item.description}
                   </CardDescription>

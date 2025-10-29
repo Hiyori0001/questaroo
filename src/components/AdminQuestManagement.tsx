@@ -196,7 +196,7 @@ const AdminQuestManagement = () => {
 
   return (
     <div className="space-y-8">
-      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Pending Image Submissions</h3>
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 font-heading">Pending Image Submissions</h3>
       {pendingSubmissions.length === 0 ? (
         <p className="text-lg text-gray-500 dark:text-gray-400 text-center">No pending image submissions.</p>
       ) : (
@@ -250,7 +250,7 @@ const AdminQuestManagement = () => {
         </div>
       )}
 
-      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 mt-8">All Quests</h3>
+      <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 mt-8 font-heading">All Quests</h3>
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -287,7 +287,7 @@ const AdminQuestManagement = () => {
                         </AlertDialogTrigger>
                         <AlertDialogContent className="bg-white dark:bg-gray-800">
                           <AlertDialogHeader>
-                            <AlertDialogTitle className="text-gray-900 dark:text-white">Confirm Deletion</AlertDialogTitle>
+                            <AlertDialogTitle className="text-gray-900 dark:text-white font-heading">Confirm Deletion</AlertDialogTitle>
                             <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
                               Are you sure you want to delete quest "{questEntry.title}"? This action cannot be undone.
                             </AlertDialogDescription>

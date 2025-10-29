@@ -55,7 +55,7 @@ const AccessibilityPage = () => {
       <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
         <CardHeader className="flex flex-col items-center">
           <Accessibility className="h-16 w-16 text-teal-600 dark:text-teal-400 mx-auto mb-4" />
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
             Accessibility Options
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">

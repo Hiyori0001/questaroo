@@ -196,7 +196,7 @@ const SocialPage = () => {
       <Card className="w-full max-w-2xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
         <CardHeader className="flex flex-col items-center">
           <Share2 className="h-16 w-16 text-red-600 dark:text-red-400 mx-auto mb-4" />
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
             Connect & Share
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
@@ -213,7 +213,7 @@ const SocialPage = () => {
           <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
             <div className="flex items-center justify-center gap-3 mb-4">
               <MessageSquareText className="h-7 w-7 text-blue-600 dark:text-blue-400" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Team Chat</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white font-heading">Team Chat</h3>
             </div>
             <div className="h-48 overflow-y-auto bg-white dark:bg-gray-900 rounded-md p-3 mb-4 border dark:border-gray-700">
               {loadingMessages ? (
@@ -278,7 +278,7 @@ const SocialPage = () => {
           <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
             <div className="flex items-center justify-center gap-3 mb-4">
               <Share2 className="h-7 w-7 text-green-600 dark:text-green-400" />
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Share Your Adventures!</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white font-heading">Share Your Adventures!</h3>
             </div>
             <p className="text-md text-gray-800 dark:text-gray-200 leading-relaxed mb-4">
               Share your latest quest achievements and game progress with friends on social media.

@@ -72,7 +72,7 @@ const QuestImageUploader: React.FC<QuestImageUploaderProps> = ({ isOpen, onClose
       <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
         <DialogHeader className="flex flex-col items-center">
           <Camera className="h-12 w-12 text-purple-600 dark:text-purple-400 mb-3" />
-          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white">Upload Image for Quest</DialogTitle>
+          <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white font-heading">Upload Image for Quest</DialogTitle>
           <DialogDescription className="text-md text-gray-700 dark:text-gray-300 text-center">
             {completionImagePrompt}
           </DialogDescription>

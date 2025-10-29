@@ -50,7 +50,7 @@ const ProfilePage = () => {
               {profile.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-heading">
             {profile.name}
           </CardTitle>
           <CardDescription className="text-lg text-gray-700 dark:text-gray-300">
@@ -109,7 +109,7 @@ const ProfilePage = () => {
 
               {userTeam && (
                 <div className="mt-6 p-4 border rounded-lg bg-blue-50 dark:bg-blue-950 shadow-sm">
-                  <h3 className="text-xl font-bold text-blue-800 dark:text-blue-200 mb-3 flex items-center justify-center gap-2">
+                  <h3 className="text-xl font-bold text-blue-800 dark:text-blue-200 mb-3 flex items-center justify-center gap-2 font-heading">
                     <Shield className="h-6 w-6" /> Your Team: {userTeam.name}
                   </h3>
                   <p className="text-blue-700 dark:text-blue-300 text-sm">{userTeam.description}</p>
@@ -120,7 +120,7 @@ const ProfilePage = () => {
               )}
 
               <div className="mt-8">
-                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Achievements</h3>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 font-heading">Achievements</h3>
                 {profile.achievements.length > 0 ? (
                   <div className="flex flex-wrap justify-center gap-3">
                     {profile.achievements.map((achievement, index) => {
