@@ -25,9 +25,6 @@ const AdminTeamManagement = () => {
   const [loading, setLoading] = useState(false); // Local loading for actions
   const [error, setError] = useState<string | null>(null);
 
-  const [isTeamMembersDialogOpen, setIsTeamMembersDialogOpen] = useState(false);
-  const [selectedTeamForMembers, setSelectedTeamForMembers] = useState<{ id: string; name: string } | null>(null);
-
   // Use the global fetchTeams from context, but manage local loading/error for specific actions
   useEffect(() => {
     if (!loadingTeams) {
