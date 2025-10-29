@@ -10,6 +10,7 @@ interface Sparkle {
   size: number;
   color: string;
   animationDuration: number;
+  rotation: number; // Add rotation
 }
 
 const GlobalSparkleClickEffect: React.FC = () => {
@@ -24,17 +25,18 @@ const GlobalSparkleClickEffect: React.FC = () => {
 
     return {
       id: Math.random().toString(36).substring(2, 9),
-      x: x + (Math.random() - 0.5) * 10, // Slight random offset
-      y: y + (Math.random() - 0.5) * 10,
-      size: Math.random() * 3 + 3, // Smaller size between 3 and 6
+      x: x + (Math.random() - 0.5) * 15, // Slightly more random offset
+      y: y + (Math.random() - 0.5) * 15,
+      size: Math.random() * 2 + 2, // Smaller size between 2 and 4
       color: colors[Math.floor(Math.random() * colors.length)],
-      animationDuration: Math.random() * 0.4 + 0.4, // Shorter duration between 0.4s and 0.8s
+      animationDuration: Math.random() * 0.3 + 0.3, // Shorter duration between 0.3s and 0.6s
+      rotation: Math.random() * 360, // Random initial rotation
     };
   }, [theme]);
 
   const addSparkle = useCallback((event: MouseEvent) => {
     // Create multiple sparkles for a "burst" effect
-    const numSparkles = Math.floor(Math.random() * 3) + 3; // 3 to 5 sparkles per click
+    const numSparkles = Math.floor(Math.random() * 5) + 5; // 5 to 9 sparkles per click
     const newSparkles = Array.from({ length: numSparkles }).map(() =>
       generateSparkle(event.clientX, event.clientY)
     );
@@ -66,7 +68,7 @@ const GlobalSparkleClickEffect: React.FC = () => {
       {sparkles.map((s) => (
         <div
           key={s.id}
-          className="absolute rounded-full"
+          className="absolute" // Removed rounded-full
           style={{
             left: s.x,
             top: s.y,
@@ -74,9 +76,9 @@ const GlobalSparkleClickEffect: React.FC = () => {
             height: s.size,
             backgroundColor: s.color,
             opacity: 0, // Start invisible
-            transform: 'translate(-50%, -50%) scale(0)', // Start small
+            transform: `translate(-50%, -50%) scale(0) rotate(${s.rotation}deg)`, // Apply initial rotation
             animation: `sparkle-fade-out ${s.animationDuration}s ease-out forwards`,
-            filter: 'blur(0.5px)', // Slightly less blur for a sharper sparkle
+            filter: 'blur(0.2px)', // Even less blur for sharper look
             boxShadow: `0 0 ${s.size / 2}px ${s.color}`, // Add a glow effect
           }}
         />
@@ -85,15 +87,15 @@ const GlobalSparkleClickEffect: React.FC = () => {
         @keyframes sparkle-fade-out {
           0% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(0.5);
+            transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
           }
           50% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(1.2);
+            transform: translate(-50%, -50%) scale(1.2) rotate(180deg); /* Rotate during animation */
           }
           100% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0) translateY(-15px); /* Float up slightly */
+            transform: translate(-50%, -50%) scale(0) translateY(-20px) rotate(360deg); /* Float up more, complete rotation */
           }
         }
       `}</style>
