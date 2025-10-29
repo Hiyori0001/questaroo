@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -40,7 +40,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
         <SheetHeader>
-          <SheetTitle className="text-2xl font-bold text-gray-900 dark:text-white">More Options</SheetTitle>
+          <SheetTitle className="text-2xl font-bold text-gray-900 dark:text-white font-heading">More Options</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col gap-2 py-4 flex-grow overflow-y-auto"> {/* Added overflow-y-auto here */}
           {/* Profile and Admin links */}
