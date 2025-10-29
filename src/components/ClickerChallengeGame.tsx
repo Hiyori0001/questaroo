@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MousePointerClick, RefreshCw, Timer } from "lucide-react";
@@ -13,7 +13,14 @@ const ClickerChallengeGame = () => {
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION_SECONDS);
   const [isRunning, setIsRunning] = useState(false);
   const [gameOver, setGameOver] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const clicksRef = useRef(clicks); // Use a ref to store the latest clicks value
+
+  // Update clicksRef whenever clicks state changes
+  useEffect(() => {
+    clicksRef.current = clicks;
+  }, [clicks]);
 
   const startGame = () => {
     setClicks(0);
@@ -23,35 +30,58 @@ const ClickerChallengeGame = () => {
     toast.info("Clicker Challenge started! Click as fast as you can!");
   };
 
-  const resetGame = () => {
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
+  const resetGame = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
     setClicks(0);
     setTimeLeft(GAME_DURATION_SECONDS);
     setIsRunning(false);
     setGameOver(false);
     toast.info("Clicker Challenge reset.");
-  };
+  }, []);
 
+  // Main timer logic
   useEffect(() => {
-    if (isRunning && timeLeft > 0) {
-      timerRef.current = setTimeout(() => {
-        setTimeLeft((prevTime) => prevTime - 1);
+    if (isRunning) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 1) {
+            // Time is up
+            if (intervalRef.current) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
+            }
+            setIsRunning(false);
+            setGameOver(true);
+            // The toast for game over will be handled by the separate useEffect below
+            return 0;
+          }
+          return prevTime - 1;
+        });
       }, 1000);
-    } else if (timeLeft === 0 && isRunning) {
-      setIsRunning(false);
-      setGameOver(true);
-      // The 'clicks' value here will be the final value when the timer hits 0
-      toast.success(`Time's up! You clicked ${clicks} times!`);
+    } else if (intervalRef.current) {
+      // If game is stopped (not running) and an interval is active, clear it
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
     }
 
+    // Cleanup function: clear interval when component unmounts or isRunning changes to false
     return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [isRunning, timeLeft]); // Removed 'clicks' from dependency array
+  }, [isRunning]); // Only re-run when isRunning changes
+
+  // Effect to handle game over state and display final score
+  useEffect(() => {
+    if (gameOver) {
+      toast.success(`Time's up! You clicked ${clicksRef.current} times!`);
+    }
+  }, [gameOver]); // Only re-run when gameOver changes
 
   const handleClick = () => {
     if (isRunning) {
