@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react"; // Corrected import for React and useState
-import { Link, useNavigate } from "react-router-dom"; // Corrected import for react-router-dom specific exports
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { MapPin, Info, Gamepad2, Crown, PlusCircle, Users, CalendarDays, Menu, ListTodo, User, LogIn, LogOut, Share2, Accessibility, Settings, SwitchCamera, ShoppingCart } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -130,6 +130,7 @@ const Navbar = () => {
           </Button>
         </>
       ) : (
+        // The login button inside the sheet is now redundant with the top-level one, but kept for consistency if user opens sheet
         <Button
           asChild
           variant="ghost"
@@ -169,33 +170,52 @@ const Navbar = () => {
         </Link>
 
         {isMobile ? (
-          <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 ml-auto">
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">Open menu</span>
+          <div className="flex items-center ml-auto"> {/* Wrapper div for right-aligned items */}
+            {!user && (
+              <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <Link to="/auth">
+                  <LogIn className="h-6 w-6" />
+                  <span className="sr-only">Login</span>
+                </Link>
               </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
-              <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Navigation</h2>
-              <div className="flex flex-col gap-2 flex-grow overflow-y-auto"> {/* Added overflow-y-auto here */}
-                {renderMobileSheetLinks()}
-              </div>
-              {/* Removed the old ThemeToggle container from here */}
-            </SheetContent>
-          </Sheet>
+            )}
+            <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
+                <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">Navigation</h2>
+                <div className="flex flex-col gap-2 flex-grow overflow-y-auto">
+                  {renderMobileSheetLinks()}
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         ) : (
           <div className="flex items-center justify-start gap-x-2 flex-wrap flex-grow">
             {renderDesktopPrimaryNavLinks()}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0 ml-auto"
-              onClick={() => setIsDesktopSidebarOpen(true)}
-            >
-              <Menu className="h-6 w-6" />
-              <span className="sr-only">More options</span>
-            </Button>
+            <div className="flex items-center gap-x-2 ml-auto"> {/* Wrapper div for right-aligned items */}
+              {!user && (
+                <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                  <Link to="/auth">
+                    <LogIn className="h-6 w-6" />
+                    <span className="sr-only">Login</span>
+                  </Link>
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
+                onClick={() => setIsDesktopSidebarOpen(true)}
+              >
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">More options</span>
+              </Button>
+            </div>
             <DesktopSidebar isOpen={isDesktopSidebarOpen} onClose={() => setIsDesktopSidebarOpen(false)} />
           </div>
         )}
