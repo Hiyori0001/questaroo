@@ -10,7 +10,11 @@ interface Sparkle {
   size: number;
   color: string;
   animationDuration: number;
-  rotation: number; // Add rotation
+  rotationStart: number;
+  rotationEnd: number;
+  finalOffsetX: number;
+  finalOffsetY: number;
+  shape: 'circle' | 'square'; // Sticking to these for simplicity and performance
 }
 
 const GlobalSparkleClickEffect: React.FC = () => {
@@ -18,25 +22,32 @@ const GlobalSparkleClickEffect: React.FC = () => {
   const { theme } = useTheme();
 
   const generateSparkle = useCallback((x: number, y: number): Sparkle => {
-    // More golden/yellow/white colors for click sparkles
-    const colors = theme === 'dark'
-      ? ['#FFD700', '#FFFF00', '#FFFFFF', '#FFEC8B', '#FFC125'] // Gold, Yellow, White, Light Gold, Dark Gold
-      : ['#FFD700', '#FFFF00', '#FFFFFF', '#FFEC8B']; // Similar, slightly softer for light mode
+    // A wider, more vibrant range of colors for confetti
+    const colors = [
+      '#FF6B6B', '#FFD166', '#06D6A0', '#118AB2', '#FFC0CB', // Bright primary-like colors
+      '#87CEFA', '#90EE90', '#FFA07A', '#DA70D6', '#BA55D3', // Pastel and secondary colors
+      '#FF4500', '#ADFF2F', '#4682B4', '#FFD700', '#EE82EE'  // Stronger, more festive colors
+    ];
+
+    const shapes: ('circle' | 'square')[] = ['circle', 'square'];
 
     return {
       id: Math.random().toString(36).substring(2, 9),
-      x: x + (Math.random() - 0.5) * 15, // Slightly more random offset
-      y: y + (Math.random() - 0.5) * 15,
-      size: Math.random() * 2 + 2, // Smaller size between 2 and 4
+      x: x,
+      y: y,
+      size: Math.random() * 6 + 4, // Size between 4 and 10 pixels
       color: colors[Math.floor(Math.random() * colors.length)],
-      animationDuration: Math.random() * 0.3 + 0.3, // Shorter duration between 0.3s and 0.6s
-      rotation: Math.random() * 360, // Random initial rotation
+      animationDuration: Math.random() * 0.7 + 0.8, // Duration between 0.8s and 1.5s
+      rotationStart: Math.random() * 360,
+      rotationEnd: Math.random() * 720 + 360, // Rotate more for a dynamic fall
+      finalOffsetX: (Math.random() - 0.5) * 300, // Spread horizontally -150 to 150 pixels
+      finalOffsetY: Math.random() * 200 + 100, // Fall downwards 100 to 300 pixels
+      shape: shapes[Math.floor(Math.random() * shapes.length)],
     };
-  }, [theme]);
+  }, []);
 
   const addSparkle = useCallback((event: MouseEvent) => {
-    // Create multiple sparkles for a "burst" effect
-    const numSparkles = Math.floor(Math.random() * 5) + 5; // 5 to 9 sparkles per click
+    const numSparkles = Math.floor(Math.random() * 10) + 10; // 10 to 19 sparkles per click for a denser burst
     const newSparkles = Array.from({ length: numSparkles }).map(() =>
       generateSparkle(event.clientX, event.clientY)
     );
@@ -64,38 +75,39 @@ const GlobalSparkleClickEffect: React.FC = () => {
   }, [sparkles, removeSparkle]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-[9999]"> {/* Ensure sparkles are on top */}
+    <div className="fixed inset-0 pointer-events-none z-[9999]"> {/* Ensure confetti is on top */}
       {sparkles.map((s) => (
         <div
           key={s.id}
-          className="absolute" // Removed rounded-full
+          className="absolute"
           style={{
             left: s.x,
             top: s.y,
             width: s.size,
             height: s.size,
             backgroundColor: s.color,
-            opacity: 0, // Start invisible
-            transform: `translate(-50%, -50%) scale(0) rotate(${s.rotation}deg)`, // Apply initial rotation
-            animation: `sparkle-fade-out ${s.animationDuration}s ease-out forwards`,
-            filter: 'blur(0.2px)', // Even less blur for sharper look
-            boxShadow: `0 0 ${s.size / 2}px ${s.color}`, // Add a glow effect
-          }}
+            // Custom CSS properties for animation values
+            '--sparkle-final-offset-x': `${s.finalOffsetX}px`,
+            '--sparkle-final-offset-y': `${s.finalOffsetY}px`,
+            '--sparkle-rotation-start': `${s.rotationStart}deg`,
+            '--sparkle-rotation-end': `${s.rotationEnd}deg`,
+            animation: `confetti-fall ${s.animationDuration}s ease-out forwards`,
+            filter: 'blur(0.1px)', // Slight blur for a softer look
+            boxShadow: `0 0 ${s.size / 4}px ${s.color}`, // Subtle glow
+            borderRadius: s.shape === 'circle' ? '50%' : '0%', // Apply shape (circle or square)
+            transform: `translate(-50%, -50%) rotate(${s.rotationStart}deg)`, // Initial transform to center and rotate
+          } as React.CSSProperties} // Type assertion for custom CSS properties
         />
       ))}
       <style jsx="true">{`
-        @keyframes sparkle-fade-out {
+        @keyframes confetti-fall {
           0% {
             opacity: 1;
-            transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
-          }
-          50% {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1.2) rotate(180deg); /* Rotate during animation */
+            transform: translate(-50%, -50%) scale(0.8) rotate(var(--sparkle-rotation-start));
           }
           100% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0) translateY(-20px) rotate(360deg); /* Float up more, complete rotation */
+            transform: translate(calc(-50% + var(--sparkle-final-offset-x)), calc(-50% + var(--sparkle-final-offset-y))) scale(0) rotate(var(--sparkle-rotation-end));
           }
         }
       `}</style>
