@@ -21,6 +21,7 @@ import AuthPage from "./pages/AuthPage";
 import QuestLogPage from "./pages/QuestLogPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ShopPage from "./pages/ShopPage";
+import CuteBackground from "./components/CuteBackground"; // Import CuteBackground
 
 const queryClient = new QueryClient();
 
@@ -32,28 +33,30 @@ const App = () => (
       <BrowserRouter>
         <div className="flex flex-col min-h-screen">
           <Navbar />
-          <main className="flex-grow overflow-y-auto pt-16 max-w-full overflow-x-hidden">
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/location-quests" element={<LocationQuests />} />
-              <Route path="/location-quests/:id" element={<QuestDetailsPage />} />
-              <Route path="/mini-games" element={<MiniGames />} />
-              <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/leaderboard" element={<LeaderboardPage />} />
-              <Route path="/create-quest" element={<CreateQuestPage />} />
-              <Route path="/teams" element={<TeamsPage />} />
-              <Route path="/social" element={<SocialPage />} />
-              <Route path="/events" element={<EventModePage />} />
-              <Route path="/accessibility" element={<AccessibilityPage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/quest-log" element={<QuestLogPage />} />
-              <Route path="/admin" element={<AdminDashboardPage />} />
-              <Route path="/shop" element={<ShopPage />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </main>
+          <CuteBackground> {/* Wrap main content with CuteBackground */}
+            <main className="flex-grow overflow-y-auto pt-16 max-w-full overflow-x-hidden">
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/location-quests" element={<LocationQuests />} />
+                <Route path="/location-quests/:id" element={<QuestDetailsPage />} />
+                <Route path="/mini-games" element={<MiniGames />} />
+                <Route path="/profile" element={<ProfilePage />} />
+                <Route path="/leaderboard" element={<LeaderboardPage />} />
+                <Route path="/create-quest" element={<CreateQuestPage />} />
+                <Route path="/teams" element={<TeamsPage />} />
+                <Route path="/social" element={<SocialPage />} />
+                <Route path="/events" element={<EventModePage />} />
+                <Route path="/accessibility" element={<AccessibilityPage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/quest-log" element={<QuestLogPage />} />
+                <Route path="/admin" element={<AdminDashboardPage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </main>
+          </CuteBackground>
         </div>
       </BrowserRouter>
     </TooltipProvider>

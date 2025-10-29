@@ -7,7 +7,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%; /* Very light background */
+    --background: 210 20% 98%; /* Very light blue-gray */
     --foreground: 210 10% 20%; /* Soft dark gray text */
 
     --card: 0 0% 100%;
@@ -16,75 +16,78 @@
     --popover: 0 0% 100%;
     --popover-foreground: 210 10% 20%;
 
-    --primary: 210 60% 70%; /* Soft blue */
-    --primary-foreground: 210 60% 20%; /* Darker blue for contrast */
+    --primary: 240 70% 70%; /* Soft Lavender */
+    --primary-foreground: 240 70% 20%; /* Deep Lavender */
 
-    --secondary: 340 80% 90%; /* Gentle pink */
-    --secondary-foreground: 340 80% 30%; /* Darker pink/gray */
+    --secondary: 330 80% 85%; /* Gentle Rose Pink */
+    --secondary-foreground: 330 80% 30%; /* Darker Rose */
 
-    --muted: 210 20% 90%; /* Light gray for muted elements */
+    --muted: 210 20% 95%; /* Lighter gray for muted elements */
     --muted-foreground: 210 10% 40%; /* Medium gray */
 
-    --accent: 45 100% 70%; /* Cheerful yellow */
-    --accent-foreground: 45 100% 30%; /* Darker yellow/brown */
+    --accent: 45 100% 75%; /* Sunny Yellow */
+    --accent-foreground: 45 100% 30%; /* Deep Yellow */
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 210 20% 85%; /* Light gray border */
-    --input: 210 20% 90%;
-    --ring: 210 60% 70%; /* Primary color for ring */
+    --border: 210 20% 90%; /* Light blue-gray border */
+    --input: 210 20% 95%;
+    --ring: 240 70% 70%; /* Primary color for ring */
 
-    --radius: 0.75rem; /* Increased default border-radius */
+    --radius: 1rem; /* Even more rounded */
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 210 20% 98%;
     --sidebar-foreground: 210 10% 20%;
-    --sidebar-primary: 210 60% 70%;
-    --sidebar-primary-foreground: 210 60% 20%;
-    --sidebar-accent: 210 20% 90%;
+    --sidebar-primary: 240 70% 70%;
+    --sidebar-primary-foreground: 240 70% 20%;
+    --sidebar-accent: 210 20% 95%;
     --sidebar-accent-foreground: 210 10% 20%;
-    --sidebar-border: 210 20% 85%;
-    --sidebar-ring: 210 60% 70%;
+    --sidebar-border: 210 20% 90%;
+    --sidebar-ring: 240 70% 70%;
   }
 
   .dark {
-    --background: 220 20% 15%; /* Deeper dark background */
+    --background: 240 10% 18%; /* Darker Blue-Gray */
     --foreground: 210 40% 98%; /* Light text */
 
-    --card: 220 20% 20%;
+    --card: 240 10% 25%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 220 20% 20%;
+    --popover: 240 10% 25%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 60% 50%; /* Slightly darker soft blue */
+    --primary: 240 70% 55%; /* Medium Lavender */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 340 80% 70%; /* Slightly darker gentle pink */
+    --secondary: 330 80% 65%; /* Medium Rose Pink */
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 20% 30%;
+    --muted: 240 10% 35%;
     --muted-foreground: 210 10% 60%;
 
-    --accent: 45 100% 50%; /* Slightly darker cheerful yellow */
+    --accent: 45 100% 55%; /* Medium Sunny Yellow */
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 210 20% 25%;
-    --input: 210 20% 30%;
-    --ring: 210 60% 50%;
-    --sidebar-background: 220 20% 15%;
+    --border: 240 10% 30%;
+    --input: 240 10% 35%;
+    --ring: 240 70% 55%;
+    --sidebar-background: 240 10% 18%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 210 60% 50%;
+    --sidebar-primary: 240 70% 55%;
     --sidebar-primary-foreground: 210 40% 98%;
-    --sidebar-accent: 210 20% 30%;
+    --sidebar-accent: 240 10% 35%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 210 20% 25%;
-    --sidebar-ring: 210 60% 50%;
+    --sidebar-border: 240 10% 30%;
+    --sidebar-ring: 240 70% 55%;
   }
 }
+
+/* Google Font Import */
+@import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@300..700&display=swap');
 
 @layer base {
   * {
@@ -92,6 +95,7 @@
   }
 
   body {
+    font-family: 'Comfortaa', cursive;
     @apply bg-background text-foreground overflow-x-hidden;
   }
 
