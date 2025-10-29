@@ -67,42 +67,33 @@ const Navbar = () => {
       {primaryNavItems.map((item) => (
         <Button
           key={item.to}
-          asChild
           variant="ghost"
           className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={(e) => handleNavigation(item.to, e)} // Add sparkle trigger
         >
-          <Link to={item.to}>
-            <span> {/* Wrap children in a single span */}
-              <item.icon className="h-4 w-4 mr-2" /> {item.label}
-            </span>
-          </Link>
+          <span> {/* Wrap children in a single span */}
+            <item.icon className="h-4 w-4 mr-2" /> {item.label}
+          </span>
         </Button>
       ))}
       {/* Other secondary navigation items */}
       <Button
-        asChild
         variant="ghost"
         className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
         onClick={(e) => handleNavigation("/social", e)} // Add sparkle trigger
       >
-        <Link to="/social">
-          <span> {/* Wrap children in a single span */}
-            <Share2 className="h-4 w-4 mr-2" /> Social
-          </span>
-        </Link>
+        <span> {/* Wrap children in a single span */}
+          <Share2 className="h-4 w-4 mr-2" /> Social
+        </span>
       </Button>
       <Button
-        asChild
         variant="ghost"
         className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
         onClick={(e) => handleNavigation("/accessibility", e)} // Add sparkle trigger
       >
-        <Link to="/accessibility">
-          <span> {/* Wrap children in a single span */}
-            <Accessibility className="h-4 w-4 mr-2" /> Accessibility
-          </span>
-        </Link>
+        <span> {/* Wrap children in a single span */}
+          <Accessibility className="h-4 w-4 mr-2" /> Accessibility
+        </span>
       </Button>
 
       {/* Theme Toggle for mobile */}
@@ -115,29 +106,23 @@ const Navbar = () => {
       {user ? (
         <>
           <Button
-            asChild
             variant="ghost"
             className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={(e) => handleNavigation("/profile", e)} // Add sparkle trigger
           >
-            <Link to="/profile">
-              <span> {/* Wrap children in a single span */}
-                <User className="h-4 w-4 mr-2" /> Profile
-              </span>
-            </Link>
+            <span> {/* Wrap children in a single span */}
+              <User className="h-4 w-4 mr-2" /> Profile
+            </span>
           </Button>
           {profile?.isAdmin && (
             <Button
-              asChild
               variant="ghost"
               className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               onClick={(e) => handleNavigation("/admin", e)} // Add sparkle trigger
             >
-              <Link to="/admin">
-                <span> {/* Wrap children in a single span */}
-                  <Settings className="h-4 w-4 mr-2" /> Admin
-                </span>
-              </Link>
+              <span> {/* Wrap children in a single span */}
+                <Settings className="h-4 w-4 mr-2" /> Admin
+              </span>
             </Button>
           )}
           <Button
@@ -162,16 +147,13 @@ const Navbar = () => {
       ) : (
         // The login button inside the sheet is now redundant with the top-level one, but kept for consistency if user opens sheet
         <Button
-          asChild
           variant="ghost"
           className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
           onClick={(e) => handleNavigation("/auth", e)} // Add sparkle trigger
         >
-          <Link to="/auth">
-            <span> {/* Wrap children in a single span */}
-              <LogIn className="h-4 w-4 mr-2" /> Login
-            </span>
-          </Link>
+          <span> {/* Wrap children in a single span */}
+            <LogIn className="h-4 w-4 mr-2" /> Login
+          </span>
         </Button>
       )}
     </>
@@ -182,16 +164,13 @@ const Navbar = () => {
       {primaryNavItems.map((item) => (
         <Button
           key={item.to}
-          asChild
           variant="ghost"
           className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-2 py-1 flex-shrink-0"
           onClick={(e) => handleNavigation(item.to, e)} // Add sparkle trigger
         >
-          <Link to={item.to}>
-            <span> {/* Wrap children in a single span */}
-              <item.icon className="h-4 w-4 mr-1" /> {item.label}
-            </span>
-          </Link>
+          <span> {/* Wrap children in a single span */}
+            <item.icon className="h-4 w-4 mr-1" /> {item.label}
+          </span>
         </Button>
       ))}
     </>
@@ -207,13 +186,11 @@ const Navbar = () => {
         {isMobile ? (
           <div className="flex items-center ml-auto"> {/* Wrapper div for right-aligned items */}
             {!user && (
-              <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick}> {/* Add sparkle trigger */}
-                <Link to="/auth">
-                  <span> {/* Wrap children in a single span */}
-                    <LogIn className="h-6 w-6" />
-                    <span className="sr-only">Login</span>
-                  </span>
-                </Link>
+              <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={(e) => handleNavigation("/auth", e)}> {/* Add sparkle trigger */}
+                <span> {/* Wrap children in a single span */}
+                  <LogIn className="h-6 w-6" />
+                  <span className="sr-only">Login</span>
+                </span>
               </Button>
             )}
             <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
@@ -239,13 +216,11 @@ const Navbar = () => {
             {renderDesktopPrimaryNavLinks()}
             <div className="flex items-center gap-x-2 ml-auto"> {/* Wrapper div for right-aligned items */}
               {!user && (
-                <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick}> {/* Add sparkle trigger */}
-                  <Link to="/auth">
-                    <span> {/* Wrap children in a single span */}
-                      <LogIn className="h-6 w-6" />
-                      <span className="sr-only">Login</span>
-                    </span>
-                  </Link>
+                <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={(e) => handleNavigation("/auth", e)}> {/* Add sparkle trigger */}
+                  <span> {/* Wrap children in a single span */}
+                    <LogIn className="h-6 w-6" />
+                    <span className="sr-only">Login</span>
+                  </span>
                 </Button>
               )}
               <Button
@@ -253,6 +228,7 @@ const Navbar = () => {
                 size="icon"
                 className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
                 onClick={(e) => { handleSparkleClick(e); setIsDesktopSidebarOpen(true); }} // Add sparkle trigger
+                asChild
               >
                 <span> {/* Wrap children in a single span */}
                   <Menu className="h-6 w-6" />
