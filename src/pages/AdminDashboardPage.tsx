@@ -66,7 +66,7 @@ const AdminDashboardPage = () => {
         </CardHeader>
         <CardContent className="mt-6">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-6 h-auto"> {/* Changed grid-cols to 4 */}
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 h-auto"> {/* Changed grid-cols to 2 on mobile */}
               <TabsTrigger value="users" className="flex items-center justify-center gap-2 p-2">
                 <Users className="h-5 w-5" /> Users
               </TabsTrigger>

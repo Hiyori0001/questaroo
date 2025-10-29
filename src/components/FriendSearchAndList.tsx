@@ -151,7 +151,7 @@ const FriendSearchAndList: React.FC = () => {
               {searchResults.map((result) => {
                 const status = getFriendshipStatus(result.id);
                 return (
-                  <div key={result.id} className="flex items-center justify-between p-2 border rounded-md bg-gray-100 dark:bg-gray-700">
+                  <div key={result.id} className="flex flex-col sm:flex-row items-center justify-between p-2 border rounded-md bg-gray-100 dark:bg-gray-700 gap-2 sm:gap-0"> {/* Added flex-col sm:flex-row and gap */}
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={result.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(result.id)}`} alt={`${result.first_name} ${result.last_name}`} />
@@ -159,12 +159,12 @@ const FriendSearchAndList: React.FC = () => {
                           <User className="h-5 w-5" />
                         </AvatarFallback>
                       </Avatar>
-                      <div>
+                      <div className="text-center sm:text-left"> {/* Centered text on mobile */}
                         <p className="font-medium text-gray-900 dark:text-white">{`${result.first_name || ''} ${result.last_name || ''}`.trim() || "Anonymous"}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">{result.email}</p>
                       </div>
                     </div>
-                    <div>
+                    <div className="flex gap-2 mt-2 sm:mt-0"> {/* Added margin top for mobile */}
                       {status === "none" && (
                         <Button size="sm" onClick={() => sendFriendRequest(result.id)}>
                           <UserPlus className="h-4 w-4 mr-1" /> Add Friend
@@ -224,7 +224,7 @@ const FriendSearchAndList: React.FC = () => {
                 <p className="text-gray-500 dark:text-gray-400 text-center">You don't have any friends yet. Send some requests!</p>
               ) : (
                 friends.map((friend) => (
-                  <div key={friend.id} className="flex items-center justify-between p-2 border rounded-md bg-gray-100 dark:bg-gray-700">
+                  <div key={friend.id} className="flex flex-col sm:flex-row items-center justify-between p-2 border rounded-md bg-gray-100 dark:bg-gray-700 gap-2 sm:gap-0"> {/* Added flex-col sm:flex-row and gap */}
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={friend.profiles.avatar_url} alt={`${friend.profiles.first_name} ${friend.profiles.last_name}`} />
@@ -259,7 +259,7 @@ const FriendSearchAndList: React.FC = () => {
                 <p className="text-gray-500 dark:text-gray-400 text-center">No pending friend requests.</p>
               ) : (
                 pendingRequests.map((request) => (
-                  <div key={request.id} className="flex items-center justify-between p-2 border rounded-md bg-gray-100 dark:bg-gray-700">
+                  <div key={request.id} className="flex flex-col sm:flex-row items-center justify-between p-2 border rounded-md bg-gray-100 dark:bg-gray-700 gap-2 sm:gap-0"> {/* Added flex-col sm:flex-row and gap */}
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={request.profiles.avatar_url} alt={`${request.profiles.first_name} ${request.profiles.last_name}`} />
@@ -269,7 +269,7 @@ const FriendSearchAndList: React.FC = () => {
                       </Avatar>
                       <p className="font-medium text-gray-900 dark:text-white">{`${request.profiles.first_name} ${request.profiles.last_name}`.trim()}</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 mt-2 sm:mt-0"> {/* Added margin top for mobile */}
                       <Button size="sm" onClick={() => acceptFriendRequest(request.id)}>
                         <Check className="h-4 w-4" /> Accept
                       </Button>
@@ -299,7 +299,7 @@ const FriendSearchAndList: React.FC = () => {
                 <p className="text-gray-500 dark:text-gray-400 text-center">You haven't sent any friend requests yet.</p>
               ) : (
                 sentRequests.map((request) => (
-                  <div key={request.id} className="flex items-center justify-between p-2 border rounded-md bg-gray-100 dark:bg-gray-700">
+                  <div key={request.id} className="flex flex-col sm:flex-row items-center justify-between p-2 border rounded-md bg-gray-100 dark:bg-gray-700 gap-2 sm:gap-0"> {/* Added flex-col sm:flex-row and gap */}
                     <div className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
                         <AvatarImage src={request.profiles.avatar_url} alt={`${request.profiles.first_name} ${request.profiles.last_name}`} />

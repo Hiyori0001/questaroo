@@ -506,11 +506,11 @@ const AdminCommunityChallengeManagement = () => {
                     </div>
                   )}
                 </FormItem>
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button type="button" variant="outline" onClick={() => setIsFormDialogOpen(false)} disabled={isUploadingReference}>
+                <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4"> {/* Changed to flex-col-reverse on mobile */}
+                  <Button type="button" variant="outline" onClick={() => setIsFormDialogOpen(false)} disabled={isUploadingReference} className="w-full sm:w-auto">
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isUploadingReference}>
+                  <Button type="submit" disabled={isUploadingReference} className="w-full sm:w-auto">
                     {isUploadingReference ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
                     {editingChallenge ? "Update Challenge" : "Create Challenge"}
                   </Button>
@@ -556,16 +556,16 @@ const AdminCommunityChallengeManagement = () => {
                   )}
                 </TableCell>
                 <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => openEditDialog(challenge)} disabled={loading}>
+                  <div className="flex flex-col sm:flex-row justify-center gap-2"> {/* Changed to flex-col sm:flex-row */}
+                    <Button variant="outline" size="sm" onClick={() => openEditDialog(challenge)} disabled={loading} className="w-full sm:w-auto">
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => openParticipantsDialog(challenge)} disabled={loading}>
+                    <Button variant="outline" size="sm" onClick={() => openParticipantsDialog(challenge)} disabled={loading} className="w-full sm:w-auto">
                       <Users className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
-                        <Button variant="destructive" size="sm" disabled={loading}>
+                        <Button variant="destructive" size="sm" disabled={loading} className="w-full sm:w-auto">
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </AlertDialogTrigger>

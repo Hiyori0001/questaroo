@@ -64,11 +64,11 @@ const CreateTeamForm: React.FC<CreateTeamFormProps> = ({ onClose }) => {
             </FormItem>
           )}
         />
-        <div className="flex justify-end gap-3 pt-4">
-          <Button type="button" variant="outline" onClick={onClose} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4"> {/* Changed to flex-col-reverse on mobile */}
+          <Button type="button" variant="outline" onClick={onClose} className="w-full sm:w-auto dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">
             <X className="h-4 w-4 mr-2" /> Cancel
           </Button>
-          <Button type="submit" className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
+          <Button type="submit" className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
             <PlusCircle className="h-4 w-4 mr-2" /> Create Team
           </Button>
         </div>

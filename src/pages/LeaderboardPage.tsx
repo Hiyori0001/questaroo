@@ -73,35 +73,37 @@ const LeaderboardPage = () => {
               <p className="text-lg text-center">{error}</p>
             </div>
           ) : leaderboardData.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px] text-center">Rank</TableHead>
-                  <TableHead className="text-left">Player</TableHead>
-                  <TableHead className="text-right">XP Score</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leaderboardData.map((player, index) => (
-                  <TableRow key={player.id}>
-                    <TableCell className="font-medium text-center">
-                      {index === 0 && <Crown className="inline-block h-5 w-5 text-yellow-500 mr-1" />}
-                      {index + 1}
-                    </TableCell>
-                    <TableCell className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={player.avatarUrl} alt={player.name} />
-                        <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
-                          <User className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">{player.name}</span>
-                    </TableCell>
-                    <TableCell className="text-right text-gray-700 dark:text-gray-300">{player.score}</TableCell>
+            <div className="overflow-x-auto"> {/* Added overflow-x-auto */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px] text-center">Rank</TableHead>
+                    <TableHead className="text-left">Player</TableHead>
+                    <TableHead className="text-right">XP Score</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {leaderboardData.map((player, index) => (
+                    <TableRow key={player.id}>
+                      <TableCell className="font-medium text-center">
+                        {index === 0 && <Crown className="inline-block h-5 w-5 text-yellow-500 mr-1" />}
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={player.avatarUrl} alt={player.name} />
+                          <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+                            <User className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">{player.name}</span>
+                      </TableCell>
+                      <TableCell className="text-right text-gray-700 dark:text-gray-300">{player.score}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           ) : (
             <p className="text-lg text-gray-500 dark:text-gray-400 text-center mt-8">No players on the leaderboard yet.</p>
           )}

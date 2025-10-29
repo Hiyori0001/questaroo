@@ -40,46 +40,48 @@ const JoinTeamDialog: React.FC<JoinTeamDialogProps> = ({ onClose }) => {
           {userTeam && <p className="text-sm mt-2">You are already in a team.</p>}
         </div>
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-left">Team</TableHead>
-              <TableHead className="text-center">Members</TableHead>
-              <TableHead className="text-right">Score</TableHead>
-              <TableHead className="text-center">Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {availableTeams.map((team) => (
-              <TableRow key={team.id}>
-                <TableCell className="flex items-center gap-3">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={`https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(team.name)}`} alt={team.name} />
-                    <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
-                      <Shield className="h-4 w-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200">{team.name}</span>
-                </TableCell>
-                <TableCell className="text-center text-gray-700 dark:text-gray-300">{team.member_count}</TableCell>
-                <TableCell className="text-right text-gray-700 dark:text-gray-300 flex items-center justify-end">
-                  <Trophy className="h-4 w-4 text-yellow-500 mr-1" /> {team.score}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleJoin(team.id)}
-                    disabled={!!userTeam} // Disable if user is already in a team
-                    className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-gray-600"
-                  >
-                    Join
-                  </Button>
-                </TableCell>
+        <div className="overflow-x-auto"> {/* Added overflow-x-auto */}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-left">Team</TableHead>
+                <TableHead className="text-center">Members</TableHead>
+                <TableHead className="text-right">Score</TableHead>
+                <TableHead className="text-center">Action</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {availableTeams.map((team) => (
+                <TableRow key={team.id}>
+                  <TableCell className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={`https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(team.name)}`} alt={team.name} />
+                      <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+                        <Shield className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-semibold text-gray-800 dark:text-gray-200">{team.name}</span>
+                  </TableCell>
+                  <TableCell className="text-center text-gray-700 dark:text-gray-300">{team.member_count}</TableCell>
+                  <TableCell className="text-right text-gray-700 dark:text-gray-300 flex items-center justify-end">
+                    <Trophy className="h-4 w-4 text-yellow-500 mr-1" /> {team.score}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleJoin(team.id)}
+                      disabled={!!userTeam} // Disable if user is already in a team
+                      className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-gray-600"
+                    >
+                      Join
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
       <div className="flex justify-end pt-4">
         <Button type="button" variant="outline" onClick={onClose} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">

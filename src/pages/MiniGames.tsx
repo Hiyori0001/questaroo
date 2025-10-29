@@ -65,26 +65,22 @@ const MiniGames = () => {
   const handleUnlockGame = async (gameValue: string, xpCost: number) => {
     if (!profile) {
       toast.error("You must be logged in to unlock games.");
-      console.log("handleUnlockGame: Not logged in or no profile.");
       return;
     }
     if (profile.experience < xpCost) {
-      toast.error("Not enough XP to unlock this game.");
-      console.log(`handleUnlockGame: Not enough XP. Current: ${profile.experience}, Needed: ${xpCost}`);
+      toast.error(`Not enough XP to unlock this game. You need ${xpCost} XP.`);
       return;
     }
 
-    console.log(`handleUnlockGame: Attempting to unlock ${gameValue} for ${xpCost} XP.`);
     const success = await deductExperience(xpCost);
-    console.log(`handleUnlockGame: deductExperience returned: ${success}`);
 
     if (success) {
       setUnlockedGames((prev) => new Set(prev).add(gameValue));
       setActiveTab(gameValue);
       toast.success(`"${miniGamesConfig.find(g => g.value === gameValue)?.label}" unlocked for ${xpCost} XP!`);
-      console.log(`handleUnlockGame: Successfully unlocked ${gameValue}.`);
     } else {
-      console.log(`handleUnlockGame: Failed to unlock ${gameValue}.`);
+      // deductExperience already shows a toast if it fails due to a DB error.
+      // No need for an additional generic error here unless it's a different failure mode.
     }
   };
 
@@ -117,7 +113,7 @@ const MiniGames = () => {
                 key={game.value}
                 value={game.value}
                 // Only disable the trigger if the game is locked AND the user is NOT logged in
-                disabled={isLocked && !profile}
+                // The unlock button will handle the XP check
                 className="flex flex-col items-center justify-center p-2 h-auto data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 <Icon className="h-5 w-5 mb-1" />

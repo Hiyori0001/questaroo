@@ -251,7 +251,7 @@ const SocialPage = () => {
               )}
               <div ref={messagesEndRef} />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2"> {/* Changed to flex-col on mobile */}
               <Textarea
                 placeholder="Type your message..."
                 value={newMessage}
@@ -267,7 +267,7 @@ const SocialPage = () => {
               />
               <Button onClick={handleSendMessage} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600" disabled={isChatDisabled}>
                 <Send className="h-4 w-4" />
-                <span className="sr-only">Send message</span>
+                <span className="sr-only sm:not-sr-only ml-2">Send</span> {/* Show text on larger screens */}
               </Button>
             </div>
           </div>
@@ -283,7 +283,7 @@ const SocialPage = () => {
             <p className="text-md text-gray-800 dark:text-gray-200 leading-relaxed mb-4">
               Share your latest quest achievements and game progress with friends on social media.
             </p>
-            <div className="flex justify-center gap-4">
+            <div className="flex flex-wrap justify-center gap-4"> {/* Added flex-wrap */}
               <Button variant="outline" size="icon" onClick={() => handleShare("Twitter")}>
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Share on Twitter</span>

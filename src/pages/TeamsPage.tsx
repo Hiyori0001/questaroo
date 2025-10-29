@@ -98,18 +98,18 @@ const TeamsPage = () => {
                 <p className="flex items-center gap-1"><Users className="h-5 w-5" /> Members: {userTeam.member_count}</p>
                 <p className="flex items-center gap-1"><Trophy className="h-5 w-5 text-yellow-500" /> Score: {userTeam.score}</p>
               </div>
-              <div className="flex justify-center gap-4 mt-4">
+              <div className="flex flex-col sm:flex-row justify-center gap-4 mt-4"> {/* Changed to flex-col on mobile */}
                 {(userTeam.created_by === user.id || isCurrentUserAdmin) && (
                   <Button
                     onClick={() => handleViewMembers(userTeam.id, userTeam.name)}
-                    className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                    className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                   >
                     <Eye className="h-4 w-4 mr-2" /> View Members
                   </Button>
                 )}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
-                    <Button variant="destructive" className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
+                    <Button variant="destructive" className="w-full sm:w-auto bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
                       <LogOut className="h-4 w-4 mr-2" /> Leave Team
                     </Button>
                   </AlertDialogTrigger>
@@ -136,7 +136,7 @@ const TeamsPage = () => {
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Dialog open={isCreateTeamDialogOpen} onOpenChange={setIsCreateTeamDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
+                    <Button className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600">
                       <PlusCircle className="h-4 w-4 mr-2" /> Create New Team
                     </Button>
                   </DialogTrigger>
@@ -153,7 +153,7 @@ const TeamsPage = () => {
 
                 <Dialog open={isJoinTeamDialogOpen} onOpenChange={setIsJoinTeamDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="border-purple-600 text-purple-600 hover:bg-purple-50 dark:border-purple-500 dark:text-purple-500 dark:hover:bg-gray-600">
+                    <Button variant="outline" className="w-full sm:w-auto border-purple-600 text-purple-600 hover:bg-purple-50 dark:border-purple-500 dark:text-purple-500 dark:hover:bg-gray-600">
                       <UserPlus className="h-4 w-4 mr-2" /> Join Existing Team
                     </Button>
                   </DialogTrigger>
@@ -175,67 +175,69 @@ const TeamsPage = () => {
           {teams.length === 0 ? (
             <p className="text-lg text-gray-500 dark:text-gray-400">No teams available yet. Be the first to create one!</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-left">Team</TableHead>
-                  <TableHead className="text-left">Description</TableHead>
-                  <TableHead className="text-center">Members</TableHead>
-                  <TableHead className="text-right">Score</TableHead>
-                  <TableHead className="text-center">Actions</TableHead> {/* Changed to Actions */}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {teams.map((team) => (
-                  <TableRow key={team.id}>
-                    <TableCell className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarImage src={`https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(team.name)}`} alt={team.name} />
-                        <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
-                          <Shield className="h-5 w-5" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">{team.name}</span>
-                    </TableCell>
-                    <TableCell className="text-gray-700 dark:text-gray-300">{team.description}</TableCell>
-                    <TableCell className="text-center text-gray-700 dark:text-gray-300">{team.member_count}</TableCell>
-                    <TableCell className="text-right text-gray-700 dark:text-gray-300 flex items-center justify-end">
-                      <Trophy className="h-4 w-4 text-yellow-500 mr-1" /> {team.score}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center gap-2">
-                        {!userTeam && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setIsJoinTeamDialogOpen(true);
-                              toast.info(`Select "${team.name}" to join.`);
-                            }}
-                            className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-gray-600"
-                          >
-                            Join
-                          </Button>
-                        )}
-                        {userTeam && userTeam.id === team.id && (
-                          <Badge className="bg-blue-500 dark:bg-blue-700 text-white">Your Team</Badge>
-                        )}
-                        {(team.created_by === user.id || isCurrentUserAdmin) && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewMembers(team.id, team.name)}
-                            className="border-gray-400 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto"> {/* Added overflow-x-auto */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left">Team</TableHead>
+                    <TableHead className="text-left">Description</TableHead>
+                    <TableHead className="text-center">Members</TableHead>
+                    <TableHead className="text-right">Score</TableHead>
+                    <TableHead className="text-center">Actions</TableHead> {/* Changed to Actions */}
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {teams.map((team) => (
+                    <TableRow key={team.id}>
+                      <TableCell className="flex items-center gap-3">
+                        <Avatar className="h-9 w-9">
+                          <AvatarImage src={`https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(team.name)}`} alt={team.name} />
+                          <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+                            <Shield className="h-5 w-5" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">{team.name}</span>
+                      </TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300">{team.description}</TableCell>
+                      <TableCell className="text-center text-gray-700 dark:text-gray-300">{team.member_count}</TableCell>
+                      <TableCell className="text-right text-gray-700 dark:text-gray-300 flex items-center justify-end">
+                        <Trophy className="h-4 w-4 text-yellow-500 mr-1" /> {team.score}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex justify-center gap-2">
+                          {!userTeam && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setIsJoinTeamDialogOpen(true);
+                                toast.info(`Select "${team.name}" to join.`);
+                              }}
+                              className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-gray-600"
+                            >
+                              Join
+                            </Button>
+                          )}
+                          {userTeam && userTeam.id === team.id && (
+                            <Badge className="bg-blue-500 dark:bg-blue-700 text-white">Your Team</Badge>
+                          )}
+                          {(team.created_by === user.id || isCurrentUserAdmin) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewMembers(team.id, team.name)}
+                              className="border-gray-400 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

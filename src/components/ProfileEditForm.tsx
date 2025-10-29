@@ -105,7 +105,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, 
         {/* Avatar Upload Section */}
         <div className="space-y-2 pt-4 border-t dark:border-gray-700">
           <FormLabel className="text-gray-800 dark:text-gray-200">Change Avatar</FormLabel>
-          <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <div className="flex flex-col sm:flex-row gap-3 items-center"> {/* Changed to flex-col on mobile */}
             <Input
               type="file"
               accept="image/*"
@@ -117,7 +117,7 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, 
               type="button"
               onClick={handleUploadAvatar}
               disabled={!selectedFile || isUploading}
-              className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
             >
               {isUploading ? (
                 <>
@@ -135,14 +135,14 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, 
           </p>
         </div>
 
-        <div className="flex justify-between items-center pt-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center pt-4 gap-3"> {/* Changed to flex-col on mobile, added gap */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 type="button"
                 variant="outline"
                 onClick={updateAvatar} // Call updateAvatar when this button is clicked
-                className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
+                className="w-full sm:w-auto dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600"
                 disabled={isUploading || !hasAvatarRandomizer} // Disable if not purchased
               >
                 <RefreshCw className="h-4 w-4 mr-2" /> Randomize Avatar
@@ -154,11 +154,11 @@ const ProfileEditForm: React.FC<ProfileEditFormProps> = ({ initialData, onSave, 
               </TooltipContent>
             )}
           </Tooltip>
-          <div className="flex gap-3">
-            <Button type="button" variant="outline" onClick={onCancel} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600" disabled={isUploading}>
+          <div className="flex gap-3 w-full sm:w-auto"> {/* Ensure buttons take full width on mobile */}
+            <Button type="button" variant="outline" onClick={onCancel} className="flex-grow dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600" disabled={isUploading}>
               <X className="h-4 w-4 mr-2" /> Cancel
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600" disabled={isUploading}>
+            <Button type="submit" className="flex-grow bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600" disabled={isUploading}>
               <Save className="h-4 w-4 mr-2" /> Save Changes
             </Button>
           </div>

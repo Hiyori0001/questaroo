@@ -176,83 +176,85 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
           ) : participants.length === 0 ? (
             <p className="text-center text-gray-500 dark:text-gray-400">No users have joined this challenge yet.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-left">Player</TableHead>
-                  <TableHead className="text-center">Joined At</TableHead>
-                  <TableHead className="text-left">Submission</TableHead> {/* New column */}
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-center">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {participants.map((participant) => (
-                  <TableRow key={participant.id}>
-                    <TableCell className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={participant.profiles.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(participant.user_id)}`} alt={`${participant.profiles.first_name} ${participant.profiles.last_name}`} />
-                        <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
-                          <UserIcon className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">
-                        {`${participant.profiles.first_name || ''} ${participant.profiles.last_name || ''}`.trim() || "Anonymous"}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-center text-gray-700 dark:text-gray-300">
-                      {new Date(participant.joined_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-left text-gray-700 dark:text-gray-300 max-w-[150px] truncate"> {/* New cell */}
-                      {participant.status === 'pending_review' ? (
-                        <div className="flex flex-col gap-1">
-                          {participant.completion_details && (
-                            <p className="text-sm flex items-center gap-1">
-                              <MessageSquareText className="h-3 w-3 text-blue-500" /> {participant.completion_details}
-                            </p>
+            <div className="overflow-x-auto"> {/* Added overflow-x-auto */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left">Player</TableHead>
+                    <TableHead className="text-center">Joined At</TableHead>
+                    <TableHead className="text-left">Submission</TableHead> {/* New column */}
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-center">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {participants.map((participant) => (
+                    <TableRow key={participant.id}>
+                      <TableCell className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={participant.profiles.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(participant.user_id)}`} alt={`${participant.profiles.first_name} ${participant.profiles.last_name}`} />
+                          <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+                            <UserIcon className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">
+                          {`${participant.profiles.first_name || ''} ${participant.profiles.last_name || ''}`.trim() || "Anonymous"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center text-gray-700 dark:text-gray-300">
+                        {new Date(participant.joined_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-left text-gray-700 dark:text-gray-300 max-w-[150px] truncate"> {/* New cell */}
+                        {participant.status === 'pending_review' ? (
+                          <div className="flex flex-col gap-1">
+                            {participant.completion_details && (
+                              <p className="text-sm flex items-center gap-1">
+                                <MessageSquareText className="h-3 w-3 text-blue-500" /> {participant.completion_details}
+                              </p>
+                            )}
+                            {participant.completion_evidence_url && (
+                              <a href={participant.completion_evidence_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-sm flex items-center gap-1">
+                                <Image className="h-3 w-3" /> View Evidence
+                              </a>
+                            )}
+                            {!participant.completion_details && !participant.completion_evidence_url && (
+                              <span className="text-sm italic text-gray-500">No details provided.</span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-sm italic text-gray-500">N/A</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {participant.status === 'completed' && <span className="text-green-600 dark:text-green-400 flex items-center justify-center gap-1"><CheckCircle2 className="h-4 w-4" /> Completed</span>}
+                        {participant.status === 'participating' && <span className="text-blue-600 dark:text-blue-400 flex items-center justify-center gap-1"><Users className="h-4 w-4" /> Participating</span>}
+                        {participant.status === 'pending_review' && <span className="text-yellow-600 dark:text-yellow-400 flex items-center justify-center gap-1"><MessageSquareText className="h-4 w-4" /> Pending Review</span>}
+                        {participant.status === 'failed' && <span className="text-red-600 dark:text-red-400 flex items-center justify-center gap-1"><XCircle className="h-4 w-4" /> Failed</span>}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <div className="flex flex-col sm:flex-row justify-center gap-2"> {/* Changed to flex-col sm:flex-row */}
+                          {participant.status === 'pending_review' && (
+                            <>
+                              <Button size="sm" onClick={() => handleApproveCompletion(participant)} disabled={loading} className="w-full sm:w-auto">
+                                <CheckCircle2 className="h-4 w-4" /> Approve
+                              </Button>
+                              <Button size="sm" variant="destructive" onClick={() => handleRejectCompletion(participant)} disabled={loading} className="w-full sm:w-auto">
+                                <XCircle className="h-4 w-4" /> Reject
+                              </Button>
+                            </>
                           )}
-                          {participant.completion_evidence_url && (
-                            <a href={participant.completion_evidence_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-sm flex items-center gap-1">
-                              <Image className="h-3 w-3" /> View Evidence
-                            </a>
-                          )}
-                          {!participant.completion_details && !participant.completion_evidence_url && (
-                            <span className="text-sm italic text-gray-500">No details provided.</span>
+                          {(participant.status === 'participating' || participant.status === 'completed' || participant.status === 'failed') && (
+                            <Button size="sm" variant="outline" disabled className="w-full sm:w-auto">
+                              Reviewed
+                            </Button>
                           )}
                         </div>
-                      ) : (
-                        <span className="text-sm italic text-gray-500">N/A</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {participant.status === 'completed' && <span className="text-green-600 dark:text-green-400 flex items-center justify-center gap-1"><CheckCircle2 className="h-4 w-4" /> Completed</span>}
-                      {participant.status === 'participating' && <span className="text-blue-600 dark:text-blue-400 flex items-center justify-center gap-1"><Users className="h-4 w-4" /> Participating</span>}
-                      {participant.status === 'pending_review' && <span className="text-yellow-600 dark:text-yellow-400 flex items-center justify-center gap-1"><MessageSquareText className="h-4 w-4" /> Pending Review</span>}
-                      {participant.status === 'failed' && <span className="text-red-600 dark:text-red-400 flex items-center justify-center gap-1"><XCircle className="h-4 w-4" /> Failed</span>}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center gap-2">
-                        {participant.status === 'pending_review' && (
-                          <>
-                            <Button size="sm" onClick={() => handleApproveCompletion(participant)} disabled={loading}>
-                              <CheckCircle2 className="h-4 w-4" /> Approve
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleRejectCompletion(participant)} disabled={loading}>
-                              <XCircle className="h-4 w-4" /> Reject
-                            </Button>
-                          </>
-                        )}
-                        {(participant.status === 'participating' || participant.status === 'completed' || participant.status === 'failed') && (
-                          <Button size="sm" variant="outline" disabled>
-                            Reviewed
-                          </Button>
-                        )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </div>
         <DialogFooter>

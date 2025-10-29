@@ -210,7 +210,7 @@ const AdminQuestManagement = () => {
                   <p className="text-sm text-gray-600 dark:text-gray-400">submitted for "{submission.quest_title}"</p>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3"> {/* Changed to grid-cols-1 sm:grid-cols-2 */}
                 <div>
                   <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Player's Submission:</p>
                   <img src={submission.completion_image_url} alt="Player Submission" className="w-full h-48 object-cover rounded-md border dark:border-gray-700" />
@@ -226,10 +226,10 @@ const AdminQuestManagement = () => {
                   )}
                 </div>
               </div>
-              <div className="flex justify-center gap-2">
+              <div className="flex flex-col sm:flex-row justify-center gap-2"> {/* Changed to flex-col sm:flex-row */}
                 <Button
                   size="sm"
-                  className="bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
+                  className="w-full sm:w-auto bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
                   onClick={() => handleVerify(submission, 'approved')}
                   disabled={loading}
                 >
@@ -238,7 +238,7 @@ const AdminQuestManagement = () => {
                 <Button
                   size="sm"
                   variant="destructive"
-                  className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
+                  className="w-full sm:w-auto bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600"
                   onClick={() => handleVerify(submission, 'rejected')}
                   disabled={loading}
                 >

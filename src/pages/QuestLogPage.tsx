@@ -132,60 +132,62 @@ const QuestLogPage = () => {
               You haven't started any quests yet. Go find an adventure!
             </p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-left">Quest Title</TableHead>
-                  <TableHead className="text-left">Location</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-center">Started On</TableHead>
-                  <TableHead className="text-center">Completed On</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {questLog.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell className="font-medium text-gray-800 dark:text-gray-200">
-                      {entry.title}
-                    </TableCell>
-                    <TableCell className="text-gray-700 dark:text-gray-300">
-                      {entry.location}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {entry.status === 'completed' && (
-                        <Badge className="bg-green-500 dark:bg-green-700 text-white flex items-center justify-center gap-1">
-                          <CheckCircle2 className="h-4 w-4" /> Completed
-                        </Badge>
-                      )}
-                      {entry.status === 'started' && (
-                        <Badge variant="outline" className="border-blue-500 text-blue-500 dark:border-blue-700 dark:text-blue-300 flex items-center justify-center gap-1">
-                          <PlayCircle className="h-4 w-4" /> Started
-                        </Badge>
-                      )}
-                      {entry.status === 'failed' && (
-                        <Badge className="bg-red-500 dark:bg-red-700 text-white flex items-center justify-center gap-1">
-                          <XCircle className="h-4 w-4" /> Failed
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-700 dark:text-gray-300">
-                      {new Date(entry.started_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-center text-gray-700 dark:text-gray-300">
-                      {entry.completed_at ? new Date(entry.completed_at).toLocaleDateString() : "N/A"}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Link to={`/location-quests/${entry.id}`}>
-                        <Button variant="outline" size="sm" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-gray-600">
-                          View
-                        </Button>
-                      </Link>
-                    </TableCell>
+            <div className="overflow-x-auto"> {/* Added overflow-x-auto */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left">Quest Title</TableHead>
+                    <TableHead className="text-left">Location</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
+                    <TableHead className="text-center">Started On</TableHead>
+                    <TableHead className="text-center">Completed On</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {questLog.map((entry) => (
+                    <TableRow key={entry.id}>
+                      <TableCell className="font-medium text-gray-800 dark:text-gray-200">
+                        {entry.title}
+                      </TableCell>
+                      <TableCell className="text-gray-700 dark:text-gray-300">
+                        {entry.location}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {entry.status === 'completed' && (
+                          <Badge className="bg-green-500 dark:bg-green-700 text-white flex items-center justify-center gap-1">
+                            <CheckCircle2 className="h-4 w-4" /> Completed
+                          </Badge>
+                        )}
+                        {entry.status === 'started' && (
+                          <Badge variant="outline" className="border-blue-500 text-blue-500 dark:border-blue-700 dark:text-blue-300 flex items-center justify-center gap-1">
+                            <PlayCircle className="h-4 w-4" /> Started
+                          </Badge>
+                        )}
+                        {entry.status === 'failed' && (
+                          <Badge className="bg-red-500 dark:bg-red-700 text-white flex items-center justify-center gap-1">
+                            <XCircle className="h-4 w-4" /> Failed
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center text-gray-700 dark:text-gray-300">
+                        {new Date(entry.started_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-center text-gray-700 dark:text-gray-300">
+                        {entry.completed_at ? new Date(entry.completed_at).toLocaleDateString() : "N/A"}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Link to={`/location-quests/${entry.id}`}>
+                          <Button variant="outline" size="sm" className="border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-500 dark:text-blue-500 dark:hover:bg-gray-600">
+                            View
+                          </Button>
+                        </Link>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>

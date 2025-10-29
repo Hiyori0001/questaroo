@@ -202,7 +202,7 @@ const AdminUserManagement = () => {
   const isCurrentUserHeadAdmin = currentUser?.id === DEVELOPER_USER_ID;
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto"> {/* Added overflow-x-auto */}
       <Table>
         <TableHeader>
           <TableRow>

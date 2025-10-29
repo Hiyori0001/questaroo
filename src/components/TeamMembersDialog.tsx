@@ -69,30 +69,32 @@ const TeamMembersDialog: React.FC<TeamMembersDialogProps> = ({ isOpen, onClose, 
           ) : members.length === 0 ? (
             <p className="text-center text-gray-500 dark:text-gray-400">No members found or you don't have permission to view them.</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-left">Player</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {members.map((member) => (
-                  <TableRow key={member.id}>
-                    <TableCell className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.avatar_url} alt={`${member.first_name} ${member.last_name}`} />
-                        <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
-                          <UserIcon className="h-4 w-4" />
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">
-                        {`${member.first_name} ${member.last_name}`.trim()}
-                      </span>
-                    </TableCell>
+            <div className="overflow-x-auto"> {/* Added overflow-x-auto */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-left">Player</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {members.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={member.avatar_url} alt={`${member.first_name} ${member.last_name}`} />
+                          <AvatarFallback className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+                            <UserIcon className="h-4 w-4" />
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="font-semibold text-gray-800 dark:text-gray-200">
+                          {`${member.first_name} ${member.last_name}`.trim()}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </div>
         <DialogFooter>
