@@ -108,3 +108,21 @@
     font-size: 1.125rem;
   }
 }
+
+@layer utilities {
+  @keyframes run-left-to-right {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(calc(100vw + 100%)); } /* Go off screen to the right */
+  }
+  @keyframes run-right-to-left {
+    0% { transform: translateX(100vw); } /* Start off screen to the right */
+    100% { transform: translateX(-100%); } /* Go off screen to the left */
+  }
+
+  .animate-run-left-to-right {
+    animation: run-left-to-right linear infinite;
+  }
+  .animate-run-right-to-left {
+    animation: run-right-to-left linear infinite;
+  }
+}

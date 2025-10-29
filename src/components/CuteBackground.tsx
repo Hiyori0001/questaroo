@@ -2,16 +2,13 @@
 
 import React, { useCallback, useMemo } from "react";
 import Particles from "react-tsparticles";
-import { loadFull } from "tsparticles"; // loadFull is expected from tsparticles v2.x
+import { loadFull } from "tsparticles";
 import type { Engine } from "tsparticles-engine";
-import { useTheme } from "next-themes"; // Import useTheme
+import { useTheme } from "next-themes";
+import RunningCharactersBackground from "./RunningCharactersBackground"; // Import the new component
 
-interface CuteBackgroundProps {
-  children: React.ReactNode;
-}
-
-const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
-  const { theme } = useTheme(); // Get current theme
+const CuteBackground: React.FC = () => { // Removed children prop as it will be a standalone background
+  const { theme } = useTheme();
 
   const particlesInit = useCallback(async (engine: Engine) => {
     await loadFull(engine);
@@ -21,19 +18,16 @@ const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
     // console.log(container);
   }, []);
 
-  // Define particle colors based on the current theme
   const particleColors = useMemo(() => {
     if (theme === 'dark') {
-      // Brighter, more contrasting colors for dark mode
-      return ["#FFD700", "#FF69B4", "#87CEEB", "#98FB98", "#FFFFFF", "#FFA07A"]; // Gold, HotPink, SkyBlue, PaleGreen, White, LightSalmon
+      return ["#FFD700", "#FF69B4", "#87CEEB", "#98FB98", "#FFFFFF", "#FFA07A"];
     } else {
-      // Softer, pastel colors for light mode
-      return ["#FFD700", "#FF69B4", "#87CEEB", "#98FB98", "#ADD8E6", "#F08080"]; // Gold, HotPink, SkyBlue, PaleGreen, LightBlue, LightCoral
+      return ["#FFD700", "#FF69B4", "#87CEEB", "#98FB98", "#ADD8E6", "#F08080"];
     }
   }, [theme]);
 
   return (
-    <div className="relative w-full min-h-screen">
+    <div className="fixed inset-0 z-0"> {/* Changed to fixed and z-0 to cover the entire viewport */}
       <Particles
         id="tsparticles"
         init={particlesInit}
@@ -41,7 +35,7 @@ const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
         options={{
           background: {
             color: {
-              value: "transparent", // Background color is handled by the main app div
+              value: "transparent",
             },
           },
           fpsLimit: 60,
@@ -53,13 +47,13 @@ const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
               },
               onHover: {
                 enable: true,
-                mode: "repulse",
+                mode: "push", // Changed from "repulse" to "push" for gushing effect
               },
               resize: true,
             },
             modes: {
               push: {
-                quantity: 4,
+                quantity: 8, // Increased quantity for a more noticeable "gush"
               },
               repulse: {
                 distance: 100,
@@ -69,12 +63,12 @@ const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
           },
           particles: {
             color: {
-              value: particleColors, // Use dynamic colors
+              value: particleColors,
             },
             links: {
               color: "#ffffff",
               distance: 150,
-              enable: false, // No lines between particles
+              enable: false,
               opacity: 0.5,
               width: 1,
             },
@@ -102,7 +96,7 @@ const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
               value: 0.8,
             },
             shape: {
-              type: ["circle", "star", "heart"], // Use cute shapes
+              type: ["circle", "star", "heart"],
               options: {
                 heart: {
                   fill: true,
@@ -119,9 +113,7 @@ const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
           detectRetina: true,
         }}
       />
-      <div className="relative z-10">
-        {children}
-      </div>
+      <RunningCharactersBackground /> {/* Render running characters on top of particles */}
     </div>
   );
 };
