@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { MapPin, Info, Gamepad2 } from "lucide-react"; // Import Gamepad2 icon
+import LottieAnimation from "@/components/LottieAnimation"; // Import LottieAnimation component
+import sparkleAnimationData from "../../public/animations/sparkle.json"; // Import your Lottie JSON
 
 const Index = () => {
   return (
@@ -28,6 +30,20 @@ const Index = () => {
               <Info className="h-4 w-4 mr-2" /> Learn More About Questaroo
             </Button>
           </Link>
+        </div>
+
+        {/* Lottie Animation Demonstration */}
+        <div className="mt-12 p-6 border rounded-lg bg-gray-50 dark:bg-gray-800 flex flex-col items-center">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Lottie Animation Example</h3>
+          <p className="text-md text-gray-700 dark:text-gray-300 mb-4">
+            This is a placeholder animation. You can replace `sparkleAnimationData` with your own Lottie JSON file!
+          </p>
+          <LottieAnimation
+            animationData={sparkleAnimationData}
+            loop={true}
+            autoplay={true}
+            style={{ width: 150, height: 150 }}
+          />
         </div>
       </div>
     </div>
