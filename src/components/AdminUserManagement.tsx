@@ -239,8 +239,8 @@ const AdminUserManagement = () => {
                     id={`admin-switch-${userEntry.id}`}
                     checked={userEntry.is_admin}
                     onCheckedChange={() => handleToggleAdmin(userEntry.id, userEntry.is_admin)}
-                    // Only Head Admin can toggle admin status
-                    disabled={loading || !isCurrentUserHeadAdmin}
+                    // Disable if currently loading, not the Head Admin, or if the user is the Head Admin themselves
+                    disabled={loading || !isCurrentUserHeadAdmin || userEntry.id === DEVELOPER_USER_ID}
                   />
                   <Label htmlFor={`admin-switch-${userEntry.id}`} className="sr-only">Toggle Admin Status</Label>
                 </div>
@@ -253,7 +253,8 @@ const AdminUserManagement = () => {
                       size="sm" 
                       disabled={
                         loading || 
-                        (!isCurrentUserHeadAdmin && userEntry.is_admin) // Regular admin cannot delete other admins
+                        (!isCurrentUserHeadAdmin && userEntry.is_admin) || // Regular admin cannot delete other admins
+                        userEntry.id === DEVELOPER_USER_ID // Head Admin cannot delete themselves
                       } 
                     >
                       <XCircle className="h-4 w-4" />
