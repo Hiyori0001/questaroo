@@ -35,7 +35,7 @@ const App = () => (
         <div className="relative min-h-screen flex flex-col"> {/* Main container for layout */}
           <Navbar />
           <CuteBackground /> {/* Render CuteBackground as a fixed, full-screen element */}
-          {/* <GlobalSparkleClickEffect /> */} {/* Temporarily commented out for testing */}
+          {/* The GlobalSparkleClickEffect component was removed due to performance issues. */}
           <main className="flex-grow pt-16 max-w-full overflow-x-hidden relative z-10"> {/* Main content, positioned on top */}
             <Routes>
               <Route path="/" element={<Index />} />
