@@ -32,7 +32,7 @@ const ReactionTimeGame = () => {
   const startGame = useCallback(() => {
     setGameState("waiting");
     setReactionTime(null);
-    toast.info("Get ready! Click when the box turns green.");
+    // Removed: toast.info("Get ready! Click when the box turns green.");
 
     const randomDelay = Math.random() * 3000 + 2000; // 2 to 5 seconds
     timeoutRef.current = setTimeout(() => {

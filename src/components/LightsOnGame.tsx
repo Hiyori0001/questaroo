@@ -53,7 +53,7 @@ const LightsOnGame: React.FC = () => {
     setBoard(createSolvableBoard());
     setMoves(0);
     setGameOver(false);
-    toast.info("Lights On game started! Turn all lights on.");
+    // Removed: toast.info("Lights On game started! Turn all lights on.");
   }, [createSolvableBoard]);
 
   useEffect(() => {

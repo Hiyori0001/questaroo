@@ -33,6 +33,7 @@ const TriviaGame = () => {
     setSelectedAnswer(null);
     setShowFeedback(false);
     setGameOver(false);
+    // Removed: toast.info("Trivia game started! Answer the questions to test your knowledge.");
   }, []);
 
   useEffect(() => {

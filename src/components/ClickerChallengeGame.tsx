@@ -27,7 +27,7 @@ const ClickerChallengeGame = () => {
     setTimeLeft(GAME_DURATION_SECONDS);
     setIsRunning(true);
     setGameOver(false);
-    toast.info("Clicker Challenge started! Click as fast as you can!");
+    // Removed: toast.info("Clicker Challenge started! Click as fast as you can!");
   };
 
   const resetGame = useCallback(() => {

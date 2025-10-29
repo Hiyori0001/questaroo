@@ -46,7 +46,7 @@ const MemoryMatchGame = () => {
     setAttempts(0);
     setGameOver(false);
     setCanFlip(true);
-    toast.info("Memory Match game started! Find all the pairs.");
+    // Removed: toast.info("Memory Match game started! Find all the pairs.");
   }, []);
 
   useEffect(() => {

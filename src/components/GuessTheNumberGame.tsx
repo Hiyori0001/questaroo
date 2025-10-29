@@ -77,10 +77,10 @@ const GuessTheNumberGame = () => {
       toast.success("You won the game!");
     } else if (parsedGuess < targetNumber) {
       setMessage("Too low! Try again.");
-      toast.info("Your guess was too low.");
+      // Removed: toast.info("Your guess was too low.");
     } else {
       setMessage("Too high! Try again.");
-      toast.info("Your guess was too high.");
+      // Removed: toast.info("Your guess was too high.");
     }
     setGuess(""); // Clear input after guess
   };
