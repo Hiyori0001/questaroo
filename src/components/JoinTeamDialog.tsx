@@ -83,7 +83,7 @@ const JoinTeamDialog: React.FC<JoinTeamDialogProps> = ({ onClose }) => {
       )}
       <div className="flex justify-end pt-4">
         <Button type="button" variant="outline" onClick={onClose} className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">
-          <X className="h-4 w-4 mr-2" /> Close
+            <X className="h-4 w-4 mr-2" /> Close
         </Button>
       </div>
     </div>
