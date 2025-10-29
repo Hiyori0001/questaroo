@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useLayoutEffect, useCallback, useEffect } from 'react';
-import { useTheme } from 'next-themes';
+import { useTheme } from "next-themes";
 
 interface Sparkle {
   id: string;
@@ -17,22 +17,28 @@ const GlobalSparkleClickEffect: React.FC = () => {
   const { theme } = useTheme();
 
   const generateSparkle = useCallback((x: number, y: number): Sparkle => {
+    // More golden/yellow/white colors for click sparkles
     const colors = theme === 'dark'
-      ? ['#FFD700', '#FF69B4', '#87CEEB', '#98FB98', '#FFFFFF'] // Brighter for dark mode
-      : ['#FFD700', '#FF69B4', '#87CEEB', '#98FB98']; // Softer for light mode
+      ? ['#FFD700', '#FFFF00', '#FFFFFF', '#FFEC8B', '#FFC125'] // Gold, Yellow, White, Light Gold, Dark Gold
+      : ['#FFD700', '#FFFF00', '#FFFFFF', '#FFEC8B']; // Similar, slightly softer for light mode
 
     return {
       id: Math.random().toString(36).substring(2, 9),
       x: x + (Math.random() - 0.5) * 10, // Slight random offset
       y: y + (Math.random() - 0.5) * 10,
-      size: Math.random() * 5 + 5, // Size between 5 and 10
+      size: Math.random() * 3 + 3, // Smaller size between 3 and 6
       color: colors[Math.floor(Math.random() * colors.length)],
-      animationDuration: Math.random() * 0.5 + 0.5, // Duration between 0.5s and 1s
+      animationDuration: Math.random() * 0.4 + 0.4, // Shorter duration between 0.4s and 0.8s
     };
   }, [theme]);
 
   const addSparkle = useCallback((event: MouseEvent) => {
-    setSparkles((prevSparkles) => [...prevSparkles, generateSparkle(event.clientX, event.clientY)]);
+    // Create multiple sparkles for a "burst" effect
+    const numSparkles = Math.floor(Math.random() * 3) + 3; // 3 to 5 sparkles per click
+    const newSparkles = Array.from({ length: numSparkles }).map(() =>
+      generateSparkle(event.clientX, event.clientY)
+    );
+    setSparkles((prevSparkles) => [...prevSparkles, ...newSparkles]);
   }, [generateSparkle]);
 
   const removeSparkle = useCallback((id: string) => {
@@ -70,7 +76,8 @@ const GlobalSparkleClickEffect: React.FC = () => {
             opacity: 0, // Start invisible
             transform: 'translate(-50%, -50%) scale(0)', // Start small
             animation: `sparkle-fade-out ${s.animationDuration}s ease-out forwards`,
-            filter: 'blur(1px)', // Soften the sparkle
+            filter: 'blur(0.5px)', // Slightly less blur for a sharper sparkle
+            boxShadow: `0 0 ${s.size / 2}px ${s.color}`, // Add a glow effect
           }}
         />
       ))}
@@ -86,7 +93,7 @@ const GlobalSparkleClickEffect: React.FC = () => {
           }
           100% {
             opacity: 0;
-            transform: translate(-50%, -50%) scale(0) translateY(-20px); /* Float up slightly */
+            transform: translate(-50%, -50%) scale(0) translateY(-15px); /* Float up slightly */
           }
         }
       `}</style>
