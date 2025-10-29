@@ -1,15 +1,18 @@
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import Particles from "react-tsparticles";
 import { loadFull } from "tsparticles"; // loadFull is expected from tsparticles v2.x
 import type { Engine } from "tsparticles-engine";
+import { useTheme } from "next-themes"; // Import useTheme
 
 interface CuteBackgroundProps {
   children: React.ReactNode;
 }
 
 const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
+  const { theme } = useTheme(); // Get current theme
+
   const particlesInit = useCallback(async (engine: Engine) => {
     await loadFull(engine);
   }, []);
@@ -17,6 +20,17 @@ const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
   const particlesLoaded = useCallback(async (container: any) => {
     // console.log(container);
   }, []);
+
+  // Define particle colors based on the current theme
+  const particleColors = useMemo(() => {
+    if (theme === 'dark') {
+      // Brighter, more contrasting colors for dark mode
+      return ["#FFD700", "#FF69B4", "#87CEEB", "#98FB98", "#FFFFFF", "#FFA07A"]; // Gold, HotPink, SkyBlue, PaleGreen, White, LightSalmon
+    } else {
+      // Softer, pastel colors for light mode
+      return ["#FFD700", "#FF69B4", "#87CEEB", "#98FB98", "#ADD8E6", "#F08080"]; // Gold, HotPink, SkyBlue, PaleGreen, LightBlue, LightCoral
+    }
+  }, [theme]);
 
   return (
     <div className="relative w-full min-h-screen">
@@ -55,7 +69,7 @@ const CuteBackground: React.FC<CuteBackgroundProps> = ({ children }) => {
           },
           particles: {
             color: {
-              value: ["#FFD700", "#FF69B4", "#87CEEB", "#98FB98"], // Gold, HotPink, SkyBlue, PaleGreen
+              value: particleColors, // Use dynamic colors
             },
             links: {
               color: "#ffffff",
