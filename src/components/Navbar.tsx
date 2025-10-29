@@ -73,7 +73,9 @@ const Navbar = () => {
           onClick={(e) => handleNavigation(item.to, e)} // Add sparkle trigger
         >
           <Link to={item.to}>
-            <item.icon className="h-4 w-4 mr-2" /> {item.label}
+            <span> {/* Wrap children in a single span */}
+              <item.icon className="h-4 w-4 mr-2" /> {item.label}
+            </span>
           </Link>
         </Button>
       ))}
@@ -85,7 +87,9 @@ const Navbar = () => {
         onClick={(e) => handleNavigation("/social", e)} // Add sparkle trigger
       >
         <Link to="/social">
-          <Share2 className="h-4 w-4 mr-2" /> Social
+          <span> {/* Wrap children in a single span */}
+            <Share2 className="h-4 w-4 mr-2" /> Social
+          </span>
         </Link>
       </Button>
       <Button
@@ -95,14 +99,16 @@ const Navbar = () => {
         onClick={(e) => handleNavigation("/accessibility", e)} // Add sparkle trigger
       >
         <Link to="/accessibility">
-          <Accessibility className="h-4 w-4 mr-2" /> Accessibility
+          <span> {/* Wrap children in a single span */}
+            <Accessibility className="h-4 w-4 mr-2" /> Accessibility
+          </span>
         </Link>
       </Button>
 
       {/* Theme Toggle for mobile */}
       <div className="flex items-center justify-between px-4 py-2">
         <span className="text-gray-700 dark:text-gray-300">Theme</span>
-        <ThemeToggle onClick={handleSparkleClick} /> {/* Add sparkle trigger */}
+        <ThemeToggle /> {/* ThemeToggle already handles its children */}
       </div>
 
       {/* Profile and Admin links */}
@@ -115,7 +121,9 @@ const Navbar = () => {
             onClick={(e) => handleNavigation("/profile", e)} // Add sparkle trigger
           >
             <Link to="/profile">
-              <User className="h-4 w-4 mr-2" /> Profile
+              <span> {/* Wrap children in a single span */}
+                <User className="h-4 w-4 mr-2" /> Profile
+              </span>
             </Link>
           </Button>
           {profile?.isAdmin && (
@@ -126,7 +134,9 @@ const Navbar = () => {
               onClick={(e) => handleNavigation("/admin", e)} // Add sparkle trigger
             >
               <Link to="/admin">
-                <Settings className="h-4 w-4 mr-2" /> Admin
+                <span> {/* Wrap children in a single span */}
+                  <Settings className="h-4 w-4 mr-2" /> Admin
+                </span>
               </Link>
             </Button>
           )}
@@ -135,14 +145,18 @@ const Navbar = () => {
             className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={handleSwitchAccount} // Already has sparkle
           >
-            <SwitchCamera className="h-4 w-4 mr-2" /> Switch Account
+            <span> {/* Wrap children in a single span */}
+              <SwitchCamera className="h-4 w-4 mr-2" /> Switch Account
+            </span>
           </Button>
           <Button
             variant="ghost"
             className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={handleSignOut} // Already has sparkle
           >
-            <LogOut className="h-4 w-4 mr-2" /> Logout
+            <span> {/* Wrap children in a single span */}
+              <LogOut className="h-4 w-4 mr-2" /> Logout
+            </span>
           </Button>
         </>
       ) : (
@@ -154,7 +168,9 @@ const Navbar = () => {
           onClick={(e) => handleNavigation("/auth", e)} // Add sparkle trigger
         >
           <Link to="/auth">
-            <LogIn className="h-4 w-4 mr-2" /> Login
+            <span> {/* Wrap children in a single span */}
+              <LogIn className="h-4 w-4 mr-2" /> Login
+            </span>
           </Link>
         </Button>
       )}
@@ -172,7 +188,9 @@ const Navbar = () => {
           onClick={(e) => handleNavigation(item.to, e)} // Add sparkle trigger
         >
           <Link to={item.to}>
-            <item.icon className="h-4 w-4 mr-1" /> {item.label}
+            <span> {/* Wrap children in a single span */}
+              <item.icon className="h-4 w-4 mr-1" /> {item.label}
+            </span>
           </Link>
         </Button>
       ))}
@@ -191,16 +209,20 @@ const Navbar = () => {
             {!user && (
               <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick}> {/* Add sparkle trigger */}
                 <Link to="/auth">
-                  <LogIn className="h-6 w-6" />
-                  <span className="sr-only">Login</span>
+                  <span> {/* Wrap children in a single span */}
+                    <LogIn className="h-6 w-6" />
+                    <span className="sr-only">Login</span>
+                  </span>
                 </Link>
               </Button>
             )}
             <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick}> {/* Add sparkle trigger */}
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Open menu</span>
+                  <span> {/* Wrap children in a single span */}
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Open menu</span>
+                  </span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[250px] sm:w-[300px] flex flex-col">
@@ -218,8 +240,10 @@ const Navbar = () => {
               {!user && (
                 <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick}> {/* Add sparkle trigger */}
                   <Link to="/auth">
-                    <LogIn className="h-6 w-6" />
-                    <span className="sr-only">Login</span>
+                    <span> {/* Wrap children in a single span */}
+                      <LogIn className="h-6 w-6" />
+                      <span className="sr-only">Login</span>
+                    </span>
                   </Link>
                 </Button>
               )}
@@ -229,8 +253,10 @@ const Navbar = () => {
                 className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
                 onClick={(e) => { handleSparkleClick(e); setIsDesktopSidebarOpen(true); }} // Add sparkle trigger
               >
-                <Menu className="h-6 w-6" />
-                <span className="sr-only">More options</span>
+                <span> {/* Wrap children in a single span */}
+                  <Menu className="h-6 w-6" />
+                  <span className="sr-only">More options</span>
+                </span>
               </Button>
             </div>
             <DesktopSidebar isOpen={isDesktopSidebarOpen} onClose={() => setIsDesktopSidebarOpen(false)} />

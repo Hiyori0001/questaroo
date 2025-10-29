@@ -60,7 +60,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
                 className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={(e) => handleNavigation("/profile", e)} // Add sparkle trigger
               >
-                <User className="h-4 w-4 mr-2" /> Profile
+                <span> {/* Wrap children in a single span */}
+                  <User className="h-4 w-4 mr-2" /> Profile
+                </span>
               </Button>
               {profile?.isAdmin && (
                 <Button
@@ -68,7 +70,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
                   className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   onClick={(e) => handleNavigation("/admin", e)} // Add sparkle trigger
                 >
-                  <Settings className="h-4 w-4 mr-2" /> Admin Dashboard
+                  <span> {/* Wrap children in a single span */}
+                    <Settings className="h-4 w-4 mr-2" /> Admin Dashboard
+                  </span>
                 </Button>
               )}
             </>
@@ -80,27 +84,33 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
             className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={(e) => handleNavigation("/shop", e)} // Add sparkle trigger
           >
-            <ShoppingCart className="h-4 w-4 mr-2" /> Shop
+            <span> {/* Wrap children in a single span */}
+              <ShoppingCart className="h-4 w-4 mr-2" /> Shop
+            </span>
           </Button>
           <Button
             variant="ghost"
             className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={(e) => handleNavigation("/social", e)} // Add sparkle trigger
           >
-            <Share2 className="h-4 w-4 mr-2" /> Social
+            <span> {/* Wrap children in a single span */}
+              <Share2 className="h-4 w-4 mr-2" /> Social
+            </span>
           </Button>
           <Button
             variant="ghost"
             className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
             onClick={(e) => handleNavigation("/accessibility", e)} // Add sparkle trigger
           >
-            <Accessibility className="h-4 w-4 mr-2" /> Accessibility
+            <span> {/* Wrap children in a single span */}
+              <Accessibility className="h-4 w-4 mr-2" /> Accessibility
+            </span>
           </Button>
           
           {/* Theme Toggle */}
           <div className="flex items-center justify-between px-4 py-2">
             <span className="text-gray-700 dark:text-gray-300">Theme</span>
-            <ThemeToggle onClick={handleSparkleClick} /> {/* Add sparkle trigger */}
+            <ThemeToggle /> {/* ThemeToggle already handles its children */}
           </div>
 
           {/* Login/Logout/Switch Account */}
@@ -112,14 +122,18 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
                   className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   onClick={handleSwitchAccount} // Already has sparkle
                 >
-                  <SwitchCamera className="h-4 w-4 mr-2" /> Switch Account
+                  <span> {/* Wrap children in a single span */}
+                    <SwitchCamera className="h-4 w-4 mr-2" /> Switch Account
+                  </span>
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   onClick={handleSignOut} // Already has sparkle
                 >
-                  <LogOut className="h-4 w-4 mr-2" /> Logout
+                  <span> {/* Wrap children in a single span */}
+                    <LogOut className="h-4 w-4 mr-2" /> Logout
+                  </span>
                 </Button>
               </>
             ) : (
@@ -128,7 +142,9 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
                 className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 onClick={(e) => handleNavigation("/auth", e)} // Add sparkle trigger
               >
-                <LogIn className="h-4 w-4 mr-2" /> Login
+                <span> {/* Wrap children in a single span */}
+                  <LogIn className="h-4 w-4 mr-2" /> Login
+                </span>
               </Button>
             )}
           </div>
