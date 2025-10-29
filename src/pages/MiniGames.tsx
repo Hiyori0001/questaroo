@@ -45,7 +45,7 @@ const MiniGames = () => {
 
   // Save unlocked games to localStorage whenever it changes
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && unlockedGames) { // Added null check for unlockedGames
       localStorage.setItem("unlockedMiniGames", JSON.stringify(Array.from(unlockedGames)));
     }
   }, [unlockedGames]);
@@ -104,7 +104,7 @@ const MiniGames = () => {
       </Card>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-md">
-        <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 mb-6 h-auto"> {/* Adjusted grid-cols for better mobile */}
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 mb-6 h-auto rounded-md bg-muted p-1"> {/* Adjusted grid-cols and added shadcn/ui default styling */}
           {miniGamesConfig.map((game) => {
             const isLocked = !unlockedGames.has(game.value);
             const Icon = game.icon;
@@ -112,12 +112,10 @@ const MiniGames = () => {
               <TabsTrigger
                 key={game.value}
                 value={game.value}
-                // Only disable the trigger if the game is locked AND the user is NOT logged in
-                // The unlock button will handle the XP check
-                className="flex flex-col items-center justify-center p-2 h-auto data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                className="flex flex-col items-center justify-center p-2 h-full w-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground" // Added w-full h-full
               >
                 <Icon className="h-5 w-5 mb-1" />
-                <span className="text-xs sm:text-sm">{game.label}</span>
+                <span className="text-xs sm:text-sm text-wrap text-center">{game.label}</span> {/* Added text-wrap and text-center */}
                 {isLocked && (
                   <span className="text-xs text-muted-foreground flex items-center mt-1">
                     <Lock className="h-3 w-3 mr-1" /> {game.xpCost} XP
