@@ -67,43 +67,45 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   return (
     <SparkleContext.Provider value={{ triggerSparkle }}>
-      {children}
-      <div className="fixed inset-0 pointer-events-none z-[9999]">
-        {sparkles.map((s) => (
-          <div
-            key={s.id}
-            className="absolute"
-            style={{
-              left: s.x,
-              top: s.y,
-              width: s.size,
-              height: s.size,
-              backgroundColor: s.color,
-              '--sparkle-final-offset-x': `${s.finalOffsetX}px`,
-              '--sparkle-final-offset-y': `${s.finalOffsetY}px`,
-              '--sparkle-rotation-start': `${s.rotationStart}deg`,
-              '--sparkle-rotation-end': `${s.rotationEnd}deg`,
-              animation: `confetti-fall ${s.animationDuration}s ease-out forwards`,
-              filter: 'blur(0.2px)',
-              boxShadow: `0 0 ${s.size / 2}px ${s.color}`,
-              borderRadius: '0%',
-              transform: `translate(-50%, -50%) rotate(${s.rotationStart}deg)`,
-            } as React.CSSProperties}
-          />
-        ))}
-        <style jsx="true">{`
-          @keyframes confetti-fall {
-            0% {
-              opacity: 1;
-              transform: translate(-50%, -50%) scale(0.8) rotate(var(--sparkle-rotation-start));
+      <React.Fragment> {/* Wrapped children and the div in a React.Fragment */}
+        {children}
+        <div className="fixed inset-0 pointer-events-none z-[9999]">
+          {sparkles.map((s) => (
+            <div
+              key={s.id}
+              className="absolute"
+              style={{
+                left: s.x,
+                top: s.y,
+                width: s.size,
+                height: s.size,
+                backgroundColor: s.color,
+                '--sparkle-final-offset-x': `${s.finalOffsetX}px`,
+                '--sparkle-final-offset-y': `${s.finalOffsetY}px`,
+                '--sparkle-rotation-start': `${s.rotationStart}deg`,
+                '--sparkle-rotation-end': `${s.rotationEnd}deg`,
+                animation: `confetti-fall ${s.animationDuration}s ease-out forwards`,
+                filter: 'blur(0.2px)',
+                boxShadow: `0 0 ${s.size / 2}px ${s.color}`,
+                borderRadius: '0%',
+                transform: `translate(-50%, -50%) rotate(${s.rotationStart}deg)`,
+              } as React.CSSProperties}
+            />
+          ))}
+          <style jsx="true">{`
+            @keyframes confetti-fall {
+              0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(0.8) rotate(var(--sparkle-rotation-start));
+              }
+              100% {
+                opacity: 0;
+                transform: translate(calc(-50% + var(--sparkle-final-offset-x)), calc(-50% + var(--sparkle-final-offset-y))) scale(0) rotate(var(--sparkle-rotation-end));
+              }
             }
-            100% {
-              opacity: 0;
-              transform: translate(calc(-50% + var(--sparkle-final-offset-x)), calc(-50% + var(--sparkle-final-offset-y))) scale(0) rotate(var(--sparkle-rotation-end));
-            }
-          }
-        `}</style>
-      </div>
+          `}</style>
+        </div>
+      </React.Fragment>
     </SparkleContext.Provider>
   );
 };
