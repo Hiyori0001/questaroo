@@ -8,11 +8,12 @@ import MemoryMatchGame from "@/components/MemoryMatchGame";
 import ReactionTimeGame from "@/components/ReactionTimeGame";
 import LightsOnGame from "@/components/LightsOnGame";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Gamepad2, Brain, Lightbulb, MousePointerClick, Puzzle, Zap, Lock } from "lucide-react"; // Import Lock icon
+import { Gamepad2, Brain, Lightbulb, MousePointerClick, Puzzle, Zap, Lock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext"; // Import useUserProfile and XP_THRESHOLDS
+import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { useSparkle } from "@/contexts/SparkleContext"; // Import useSparkle
 
 interface MiniGameConfig {
   value: string;
@@ -33,6 +34,7 @@ const miniGamesConfig: MiniGameConfig[] = [
 
 const MiniGames = () => {
   const { profile, loadingProfile, deductExperience } = useUserProfile();
+  const { triggerSparkle } = useSparkle(); // Use the sparkle hook
   const [unlockedGames, setUnlockedGames] = useState<Set<string>>(() => {
     // Initialize from localStorage or default to free games
     if (typeof window !== 'undefined') {
@@ -45,22 +47,22 @@ const MiniGames = () => {
 
   // Save unlocked games to localStorage whenever it changes
   React.useEffect(() => {
-    if (typeof window !== 'undefined' && unlockedGames) { // Added null check for unlockedGames
+    if (typeof window !== 'undefined' && unlockedGames) {
       localStorage.setItem("unlockedMiniGames", JSON.stringify(Array.from(unlockedGames)));
     }
   }, [unlockedGames]);
 
-  const handleTabChange = (value: string) => {
+  const handleTabChange = (value: string, event: React.MouseEvent) => {
+    triggerSparkle(event.clientX, event.clientY); // Trigger sparkle on tab click
     const game = miniGamesConfig.find(g => g.value === value);
     if (!game) return;
 
-    // Always set the active tab, even if it's locked, so the unlock button is visible.
     setActiveTab(value);
-
-    // Removed toast.info for locked game, as the UI already shows it's locked.
   };
 
-  const handleUnlockGame = async (gameValue: string, xpCost: number) => {
+  const handleUnlockGame = async (gameValue: string, xpCost: number, event: React.MouseEvent) => {
+    triggerSparkle(event.clientX, event.clientY); // Trigger sparkle on unlock button click
+
     if (!profile) {
       toast.error("You must be logged in to unlock games.");
       return;
@@ -76,9 +78,6 @@ const MiniGames = () => {
       setUnlockedGames((prev) => new Set(prev).add(gameValue));
       setActiveTab(gameValue);
       toast.success(`"${miniGamesConfig.find(g => g.value === gameValue)?.label}" unlocked for ${xpCost} XP!`);
-    } else {
-      // deductExperience already shows a toast if it fails due to a DB error.
-      // No need for an additional generic error here unless it's a different failure mode.
     }
   };
 
@@ -101,8 +100,8 @@ const MiniGames = () => {
         </CardContent>
       </Card>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full max-w-md">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 mb-6 h-auto rounded-md bg-muted p-1"> {/* Adjusted grid-cols and added shadcn/ui default styling */}
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value)} className="w-full max-w-md">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 mb-6 h-auto rounded-md bg-muted p-1">
           {miniGamesConfig.map((game) => {
             const isLocked = !unlockedGames.has(game.value);
             const Icon = game.icon;
@@ -110,10 +109,11 @@ const MiniGames = () => {
               <TabsTrigger
                 key={game.value}
                 value={game.value}
-                className="flex flex-col items-center justify-center p-2 h-full w-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground" // Added w-full h-full
+                className="flex flex-col items-center justify-center p-2 h-full w-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                onClick={(e) => handleTabChange(game.value, e)} // Add sparkle trigger
               >
                 <Icon className="h-5 w-5 mb-1" />
-                <span className="text-xs sm:text-sm text-wrap text-center">{game.label}</span> {/* Added text-wrap and text-center */}
+                <span className="text-xs sm:text-sm text-wrap text-center">{game.label}</span>
                 {isLocked && (
                   <span className="text-xs text-muted-foreground flex items-center mt-1">
                     <Lock className="h-3 w-3 mr-1" /> {game.xpCost} XP
@@ -144,7 +144,7 @@ const MiniGames = () => {
                       Your XP: {profile?.experience ?? 0}
                     </p>
                     <Button
-                      onClick={() => handleUnlockGame(game.value, game.xpCost)}
+                      onClick={(e) => handleUnlockGame(game.value, game.xpCost, e)} // Add sparkle trigger
                       disabled={!profile || (profile && profile.experience < game.xpCost)}
                       className="w-full bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
                     >

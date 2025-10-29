@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import DesktopSidebar from "./DesktopSidebar";
 import { ThemeToggle } from "./ThemeToggle";
+import { useSparkle } from "@/contexts/SparkleContext"; // Import useSparkle
 
 const primaryNavItems = [
   { to: "/about", icon: Info, label: "About" },
@@ -30,19 +31,34 @@ const Navbar = () => {
   const { user, signOut } = useAuth();
   const { profile, loadingProfile } = useUserProfile();
   const navigate = useNavigate();
+  const { triggerSparkle } = useSparkle(); // Use the sparkle hook
 
-  const handleSignOut = async () => {
+  const handleSparkleClick = (event: React.MouseEvent) => {
+    triggerSparkle(event.clientX, event.clientY);
+  };
+
+  const handleSignOut = async (event: React.MouseEvent) => {
+    handleSparkleClick(event); // Trigger sparkle on click
     await signOut();
     setIsMobileSheetOpen(false);
     setIsDesktopSidebarOpen(false);
     navigate("/");
   };
 
-  const handleSwitchAccount = async () => {
+  const handleSwitchAccount = async (event: React.MouseEvent) => {
+    handleSparkleClick(event); // Trigger sparkle on click
     await signOut();
     setIsMobileSheetOpen(false);
     setIsDesktopSidebarOpen(false);
     navigate("/auth");
+  };
+
+  // Modified to include sparkle trigger
+  const handleNavigation = (path: string, event: React.MouseEvent) => {
+    handleSparkleClick(event); // Trigger sparkle on click
+    setIsMobileSheetOpen(false);
+    setIsDesktopSidebarOpen(false);
+    navigate(path);
   };
 
   // Moved all mobile nav items logic into this function, including ThemeToggle
@@ -54,7 +70,7 @@ const Navbar = () => {
           asChild
           variant="ghost"
           className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-          onClick={() => setIsMobileSheetOpen(false)}
+          onClick={(e) => handleNavigation(item.to, e)} // Add sparkle trigger
         >
           <Link to={item.to}>
             <item.icon className="h-4 w-4 mr-2" /> {item.label}
@@ -66,7 +82,7 @@ const Navbar = () => {
         asChild
         variant="ghost"
         className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-        onClick={() => setIsMobileSheetOpen(false)}
+        onClick={(e) => handleNavigation("/social", e)} // Add sparkle trigger
       >
         <Link to="/social">
           <Share2 className="h-4 w-4 mr-2" /> Social
@@ -76,7 +92,7 @@ const Navbar = () => {
         asChild
         variant="ghost"
         className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-        onClick={() => setIsMobileSheetOpen(false)}
+        onClick={(e) => handleNavigation("/accessibility", e)} // Add sparkle trigger
       >
         <Link to="/accessibility">
           <Accessibility className="h-4 w-4 mr-2" /> Accessibility
@@ -86,7 +102,7 @@ const Navbar = () => {
       {/* Theme Toggle for mobile */}
       <div className="flex items-center justify-between px-4 py-2">
         <span className="text-gray-700 dark:text-gray-300">Theme</span>
-        <ThemeToggle />
+        <ThemeToggle onClick={handleSparkleClick} /> {/* Add sparkle trigger */}
       </div>
 
       {/* Profile and Admin links */}
@@ -96,7 +112,7 @@ const Navbar = () => {
             asChild
             variant="ghost"
             className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={() => setIsMobileSheetOpen(false)}
+            onClick={(e) => handleNavigation("/profile", e)} // Add sparkle trigger
           >
             <Link to="/profile">
               <User className="h-4 w-4 mr-2" /> Profile
@@ -107,7 +123,7 @@ const Navbar = () => {
               asChild
               variant="ghost"
               className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              onClick={() => setIsMobileSheetOpen(false)}
+              onClick={(e) => handleNavigation("/admin", e)} // Add sparkle trigger
             >
               <Link to="/admin">
                 <Settings className="h-4 w-4 mr-2" /> Admin
@@ -117,14 +133,14 @@ const Navbar = () => {
           <Button
             variant="ghost"
             className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={handleSwitchAccount}
+            onClick={handleSwitchAccount} // Already has sparkle
           >
             <SwitchCamera className="h-4 w-4 mr-2" /> Switch Account
           </Button>
           <Button
             variant="ghost"
             className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={handleSignOut}
+            onClick={handleSignOut} // Already has sparkle
           >
             <LogOut className="h-4 w-4 mr-2" /> Logout
           </Button>
@@ -135,7 +151,7 @@ const Navbar = () => {
           asChild
           variant="ghost"
           className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-          onClick={() => setIsMobileSheetOpen(false)}
+          onClick={(e) => handleNavigation("/auth", e)} // Add sparkle trigger
         >
           <Link to="/auth">
             <LogIn className="h-4 w-4 mr-2" /> Login
@@ -153,6 +169,7 @@ const Navbar = () => {
           asChild
           variant="ghost"
           className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm px-2 py-1 flex-shrink-0"
+          onClick={(e) => handleNavigation(item.to, e)} // Add sparkle trigger
         >
           <Link to={item.to}>
             <item.icon className="h-4 w-4 mr-1" /> {item.label}
@@ -165,14 +182,14 @@ const Navbar = () => {
   return (
     <nav className="bg-white dark:bg-gray-800 shadow-md p-4 sticky top-0 z-50">
       <div className="container mx-auto flex items-center gap-x-6">
-        <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white flex-shrink-0 font-heading">
+        <Link to="/" className="text-2xl font-bold text-gray-900 dark:text-white flex-shrink-0 font-heading" onClick={handleSparkleClick}> {/* Add sparkle trigger to app icon */}
           Questaroo
         </Link>
 
         {isMobile ? (
           <div className="flex items-center ml-auto"> {/* Wrapper div for right-aligned items */}
             {!user && (
-              <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+              <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick}> {/* Add sparkle trigger */}
                 <Link to="/auth">
                   <LogIn className="h-6 w-6" />
                   <span className="sr-only">Login</span>
@@ -181,7 +198,7 @@ const Navbar = () => {
             )}
             <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick}> {/* Add sparkle trigger */}
                   <Menu className="h-6 w-6" />
                   <span className="sr-only">Open menu</span>
                 </Button>
@@ -199,7 +216,7 @@ const Navbar = () => {
             {renderDesktopPrimaryNavLinks()}
             <div className="flex items-center gap-x-2 ml-auto"> {/* Wrapper div for right-aligned items */}
               {!user && (
-                <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                <Button asChild variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick}> {/* Add sparkle trigger */}
                   <Link to="/auth">
                     <LogIn className="h-6 w-6" />
                     <span className="sr-only">Login</span>
@@ -210,7 +227,7 @@ const Navbar = () => {
                 variant="ghost"
                 size="icon"
                 className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex-shrink-0"
-                onClick={() => setIsDesktopSidebarOpen(true)}
+                onClick={(e) => { handleSparkleClick(e); setIsDesktopSidebarOpen(true); }} // Add sparkle trigger
               >
                 <Menu className="h-6 w-6" />
                 <span className="sr-only">More options</span>

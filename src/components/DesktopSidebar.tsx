@@ -7,7 +7,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/contexts/UserProfileContext";
-import { User, LogIn, LogOut, Share2, Accessibility, Settings, ListTodo, Crown, PlusCircle, Users, SwitchCamera, ShoppingCart } from "lucide-react"; // Import ShoppingCart
+import { User, LogIn, LogOut, Share2, Accessibility, Settings, ListTodo, Crown, PlusCircle, Users, SwitchCamera, ShoppingCart } from "lucide-react";
+import { useSparkle } from "@/contexts/SparkleContext"; // Import useSparkle
 
 interface DesktopSidebarProps {
   isOpen: boolean;
@@ -18,20 +19,28 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
   const { user, signOut } = useAuth();
   const { profile, loadingProfile } = useUserProfile();
   const navigate = useNavigate();
+  const { triggerSparkle } = useSparkle(); // Use the sparkle hook
 
-  const handleSignOut = async () => {
+  const handleSparkleClick = (event: React.MouseEvent) => {
+    triggerSparkle(event.clientX, event.clientY);
+  };
+
+  const handleSignOut = async (event: React.MouseEvent) => {
+    handleSparkleClick(event); // Trigger sparkle on click
     await signOut();
     onClose();
     navigate("/");
   };
 
-  const handleSwitchAccount = async () => {
+  const handleSwitchAccount = async (event: React.MouseEvent) => {
+    handleSparkleClick(event); // Trigger sparkle on click
     await signOut(); // Log out current user
     onClose();
     navigate("/auth"); // Redirect to login page
   };
 
-  const handleNavigation = (path: string) => {
+  const handleNavigation = (path: string, event: React.MouseEvent) => {
+    handleSparkleClick(event); // Trigger sparkle on click
     onClose();
     navigate(path);
   };
@@ -49,7 +58,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
               <Button
                 variant="ghost"
                 className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => handleNavigation("/profile")}
+                onClick={(e) => handleNavigation("/profile", e)} // Add sparkle trigger
               >
                 <User className="h-4 w-4 mr-2" /> Profile
               </Button>
@@ -57,7 +66,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
                 <Button
                   variant="ghost"
                   className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={() => handleNavigation("/admin")}
+                  onClick={(e) => handleNavigation("/admin", e)} // Add sparkle trigger
                 >
                   <Settings className="h-4 w-4 mr-2" /> Admin Dashboard
                 </Button>
@@ -69,21 +78,21 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
           <Button
             variant="ghost"
             className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={() => handleNavigation("/shop")}
+            onClick={(e) => handleNavigation("/shop", e)} // Add sparkle trigger
           >
             <ShoppingCart className="h-4 w-4 mr-2" /> Shop
           </Button>
           <Button
             variant="ghost"
             className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={() => handleNavigation("/social")}
+            onClick={(e) => handleNavigation("/social", e)} // Add sparkle trigger
           >
             <Share2 className="h-4 w-4 mr-2" /> Social
           </Button>
           <Button
             variant="ghost"
             className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={() => handleNavigation("/accessibility")}
+            onClick={(e) => handleNavigation("/accessibility", e)} // Add sparkle trigger
           >
             <Accessibility className="h-4 w-4 mr-2" /> Accessibility
           </Button>
@@ -91,7 +100,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
           {/* Theme Toggle */}
           <div className="flex items-center justify-between px-4 py-2">
             <span className="text-gray-700 dark:text-gray-300">Theme</span>
-            <ThemeToggle />
+            <ThemeToggle onClick={handleSparkleClick} /> {/* Add sparkle trigger */}
           </div>
 
           {/* Login/Logout/Switch Account */}
@@ -101,14 +110,14 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
                 <Button
                   variant="ghost"
                   className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={handleSwitchAccount}
+                  onClick={handleSwitchAccount} // Already has sparkle
                 >
                   <SwitchCamera className="h-4 w-4 mr-2" /> Switch Account
                 </Button>
                 <Button
                   variant="ghost"
                   className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                  onClick={handleSignOut}
+                  onClick={handleSignOut} // Already has sparkle
                 >
                   <LogOut className="h-4 w-4 mr-2" /> Logout
                 </Button>
@@ -117,7 +126,7 @@ const DesktopSidebar: React.FC<DesktopSidebarProps> = ({ isOpen, onClose }) => {
               <Button
                 variant="ghost"
                 className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => handleNavigation("/auth")}
+                onClick={(e) => handleNavigation("/auth", e)} // Add sparkle trigger
               >
                 <LogIn className="h-4 w-4 mr-2" /> Login
               </Button>

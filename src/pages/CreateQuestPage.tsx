@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } = "@hookform/resolvers/zod";
 import * as z from "zod";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Quest } from "@/data/quests";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSparkle } from "@/contexts/SparkleContext"; // Import useSparkle
+// import { useSparkle } from "@/contexts/SparkleContext"; // Removed useSparkle
 
 // Define the schema for quest creation
 const formSchema = z.object({
@@ -93,7 +93,7 @@ const formSchema = z.object({
 const CreateQuestPage = () => {
   const { user } = useAuth();
   const { addQuest } = useAllUserCreatedQuests();
-  const { triggerSparkle } = useSparkle(); // Use the sparkle hook
+  // const { triggerSparkle } = useSparkle(); // Removed useSparkle hook
   const [selectedReferenceFile, setSelectedReferenceFile] = useState<File | null>(null);
   const [referencePreviewUrl, setReferencePreviewUrl] = useState<string | null>(null);
   const [isUploadingReference, setIsUploadingReference] = useState(false);
@@ -204,9 +204,9 @@ const CreateQuestPage = () => {
     setIsUploadingReference(false);
 
     // Trigger sparkle effect on successful submission
-    if (event) {
-      triggerSparkle(event.clientX, event.clientY);
-    }
+    // if (event) {
+    //   triggerSparkle(event.clientX, event.clientY);
+    // }
   };
 
   return (
