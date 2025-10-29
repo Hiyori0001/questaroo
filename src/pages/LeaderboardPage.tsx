@@ -77,9 +77,7 @@ const LeaderboardPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px] text-center">Rank</TableHead>
-                    <TableHead className="text-left">Player</TableHead>
-                    <TableHead className="text-right">XP Score</TableHead>
+                    <TableHead className="w-[50px] text-center">Rank</TableHead><TableHead className="text-left">Player</TableHead><TableHead className="text-right">XP Score</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

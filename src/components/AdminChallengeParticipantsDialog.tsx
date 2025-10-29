@@ -180,11 +180,7 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-left">Player</TableHead>
-                    <TableHead className="text-center">Joined At</TableHead>
-                    <TableHead className="text-left">Submission</TableHead> {/* New column */}
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                    <TableHead className="text-left">Player</TableHead><TableHead className="text-center">Joined At</TableHead><TableHead className="text-left">Submission</TableHead><TableHead className="text-center">Status</TableHead><TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -204,7 +200,7 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
                       <TableCell className="text-center text-gray-700 dark:text-gray-300">
                         {new Date(participant.joined_at).toLocaleDateString()}
                       </TableCell>
-                      <TableCell className="text-left text-gray-700 dark:text-gray-300 max-w-[150px] truncate"> {/* New cell */}
+                      <TableCell className="text-left text-gray-700 dark:text-gray-300 max-w-[150px] truncate">
                         {participant.status === 'pending_review' ? (
                           <div className="flex flex-col gap-1">
                             {participant.completion_details && (
@@ -232,7 +228,7 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
                         {participant.status === 'failed' && <span className="text-red-600 dark:text-red-400 flex items-center justify-center gap-1"><XCircle className="h-4 w-4" /> Failed</span>}
                       </TableCell>
                       <TableCell className="text-center">
-                        <div className="flex flex-col sm:flex-row justify-center gap-2"> {/* Changed to flex-col sm:flex-row */}
+                        <div className="flex flex-col sm:flex-row justify-center gap-2">
                           {participant.status === 'pending_review' && (
                             <>
                               <Button size="sm" onClick={() => handleApproveCompletion(participant)} disabled={loading} className="w-full sm:w-auto">

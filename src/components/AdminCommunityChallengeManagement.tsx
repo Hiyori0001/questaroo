@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"; // Added Card import
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, PlusCircle, Edit, Trash2, CalendarDays, Trophy, Users, Upload, Image as ImageIcon } from "lucide-react"; // Added Users icon, Upload, ImageIcon
+import { Loader2, AlertCircle, PlusCircle, Edit, Trash2, CalendarDays, Trophy, Users, Upload, Image as ImageIcon, Eye } from "lucide-react"; // Added Users icon, Upload, ImageIcon
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import {
@@ -525,15 +526,7 @@ const AdminCommunityChallengeManagement = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="text-left">Name</TableHead>
-              <TableHead className="text-left">Description</TableHead>
-              <TableHead className="text-center">Start Date</TableHead>
-              <TableHead className="text-center">End Date</TableHead>
-              <TableHead className="text-center">Reward</TableHead>
-              <TableHead className="text-center">Status</TableHead>
-              <TableHead className="text-left">Criteria</TableHead>
-              <TableHead className="text-center">Reference Image</TableHead> {/* New column */}
-              <TableHead className="text-center">Actions</TableHead>
+              <TableHead className="text-left">Name</TableHead><TableHead className="text-left">Description</TableHead><TableHead className="text-center">Start Date</TableHead><TableHead className="text-center">End Date</TableHead><TableHead className="text-center">Reward</TableHead><TableHead className="text-center">Status</TableHead><TableHead className="text-left">Criteria</TableHead><TableHead className="text-center">Reference Image</TableHead><TableHead className="text-center">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -546,7 +539,7 @@ const AdminCommunityChallengeManagement = () => {
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{challenge.reward_type}</TableCell>
                 <TableCell className="text-center text-gray-700 dark:text-gray-300">{challenge.status}</TableCell>
                 <TableCell className="text-gray-700 dark:text-gray-300 line-clamp-2 max-w-xs">{challenge.completion_criteria || "N/A"}</TableCell>
-                <TableCell className="text-center"> {/* New cell */}
+                <TableCell className="text-center">
                   {challenge.creator_reference_image_url ? (
                     <a href={challenge.creator_reference_image_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
                       <ImageIcon className="h-5 w-5 mx-auto" />
@@ -556,7 +549,7 @@ const AdminCommunityChallengeManagement = () => {
                   )}
                 </TableCell>
                 <TableCell className="text-center">
-                  <div className="flex flex-col sm:flex-row justify-center gap-2"> {/* Changed to flex-col sm:flex-row */}
+                  <div className="flex flex-col sm:flex-row justify-center gap-2">
                     <Button variant="outline" size="sm" onClick={() => openEditDialog(challenge)} disabled={loading} className="w-full sm:w-auto">
                       <Edit className="h-4 w-4" />
                     </Button>

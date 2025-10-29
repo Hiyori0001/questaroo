@@ -99,9 +99,7 @@ const AdminTeamJoinRequestsDialog: React.FC<AdminTeamJoinRequestsDialogProps> = 
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-left">User</TableHead>
-                    <TableHead className="text-center">Requested At</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                    <TableHead className="text-left">User</TableHead><TableHead className="text-center">Requested At</TableHead><TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

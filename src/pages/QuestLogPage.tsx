@@ -136,12 +136,7 @@ const QuestLogPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-left">Quest Title</TableHead>
-                    <TableHead className="text-left">Location</TableHead>
-                    <TableHead className="text-center">Status</TableHead>
-                    <TableHead className="text-center">Started On</TableHead>
-                    <TableHead className="text-center">Completed On</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead className="text-left">Quest Title</TableHead><TableHead className="text-left">Location</TableHead><TableHead className="text-center">Status</TableHead><TableHead className="text-center">Started On</TableHead><TableHead className="text-center">Completed On</TableHead><TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

@@ -206,12 +206,7 @@ const AdminUserManagement = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-left">User</TableHead>
-            <TableHead className="text-left">Email</TableHead>
-            <TableHead className="text-right">XP</TableHead>
-            <TableHead className="text-center">Team</TableHead>
-            <TableHead className="text-center">Admin</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
+            <TableHead className="text-left">User</TableHead><TableHead className="text-left">Email</TableHead><TableHead className="text-right">XP</TableHead><TableHead className="text-center">Team</TableHead><TableHead className="text-center">Admin</TableHead><TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

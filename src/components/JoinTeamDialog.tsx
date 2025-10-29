@@ -46,10 +46,7 @@ const JoinTeamDialog: React.FC<JoinTeamDialogProps> = ({ onClose }) => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-left">Team</TableHead>
-                <TableHead className="text-center">Members</TableHead>
-                <TableHead className="text-right">Score</TableHead>
-                <TableHead className="text-center">Action</TableHead>
+                <TableHead className="text-left">Team</TableHead><TableHead className="text-center">Members</TableHead><TableHead className="text-right">Score</TableHead><TableHead className="text-center">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -121,12 +121,7 @@ const AdminTeamManagement = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-left">Team Name</TableHead>
-            <TableHead className="text-left">Description</TableHead>
-            <TableHead className="text-center">Members</TableHead>
-            <TableHead className="text-center">Requests</TableHead>
-            <TableHead className="text-right">Score</TableHead>
-            <TableHead className="text-center">Actions</TableHead>
+            <TableHead className="text-left">Team Name</TableHead><TableHead className="text-left">Description</TableHead><TableHead className="text-center">Members</TableHead><TableHead className="text-center">Requests</TableHead><TableHead className="text-right">Score</TableHead><TableHead className="text-center">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

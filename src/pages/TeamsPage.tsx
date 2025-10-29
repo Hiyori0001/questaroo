@@ -212,12 +212,7 @@ const TeamsPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-left">Team</TableHead>
-                    <TableHead className="text-left">Description</TableHead>
-                    <TableHead className="text-center">Members</TableHead>
-                    <TableHead className="text-center">Requests</TableHead> {/* New column */}
-                    <TableHead className="text-right">Score</TableHead>
-                    <TableHead className="text-center">Actions</TableHead>
+                    <TableHead className="text-left">Team</TableHead><TableHead className="text-left">Description</TableHead><TableHead className="text-center">Members</TableHead><TableHead className="text-center">Requests</TableHead><TableHead className="text-right">Score</TableHead><TableHead className="text-center">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -236,7 +231,7 @@ const TeamsPage = () => {
                         </TableCell>
                         <TableCell className="text-gray-700 dark:text-gray-300">{team.description}</TableCell>
                         <TableCell className="text-center text-gray-700 dark:text-gray-300">{team.member_count}</TableCell>
-                        <TableCell className="text-center"> {/* New cell */}
+                        <TableCell className="text-center">
                           {team.pending_request_count > 0 ? (
                             <Badge variant="destructive" className="bg-orange-500 dark:bg-orange-700 text-white">
                               {team.pending_request_count}
