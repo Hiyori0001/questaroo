@@ -29,7 +29,7 @@ interface TeamJoinRequest {
   team_id: string;
   status: 'pending' | 'accepted' | 'rejected';
   created_at: string;
-  profiles: { // Profile of the user who sent the request
+  profiles?: { // Profile of the user who sent the request (made optional)
     id: string;
     first_name: string | null;
     last_name: string | null;
@@ -198,7 +198,7 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
     console.log("TeamContext: Fetching pending user team request for userId:", userId);
     const { data, error } = await supabase
       .from('team_join_requests')
-      .select('*')
+      .select('id, user_id, team_id, status, created_at') // Explicitly select columns
       .eq('user_id', userId)
       .eq('status', 'pending')
       .single();
@@ -207,7 +207,14 @@ export const TeamProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("TeamContext: Error fetching pending user team request:", error.message, error.details);
       setPendingUserTeamRequest(null);
     } else if (data) {
-      setPendingUserTeamRequest(data as TeamJoinRequest);
+      setPendingUserTeamRequest({
+        id: data.id,
+        user_id: data.user_id,
+        team_id: data.team_id,
+        status: data.status,
+        created_at: data.created_at,
+        // profiles is not selected, so it will be undefined, which the interface now allows.
+      });
       console.log("TeamContext: User has pending team request:", data);
     } else {
       setPendingUserTeamRequest(null);
