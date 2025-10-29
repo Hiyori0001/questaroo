@@ -146,7 +146,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
     } else {
       // Already logged in today
-      toast.info("You've already claimed your daily bonus today!");
+      // Removed: toast.info("You've already claimed your daily bonus today!");
     }
     return bonusGranted;
   }, []);
@@ -811,18 +811,18 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           upsert: false,
         });
 
-      if (uploadError) {
-        throw uploadError;
-      }
+    if (uploadError) {
+      throw uploadError;
+    }
 
-      const { data: publicUrlData } = supabase.storage
-        .from('challenge-completion-evidence')
-        .getPublicUrl(filePath);
+    const { data: publicUrlData } = supabase.storage
+      .from('challenge-completion-evidence')
+      .getPublicUrl(filePath);
 
-      if (!publicUrlData?.publicUrl) {
-        throw new Error("Failed to get public URL for uploaded image.");
-      }
-      completionEvidenceUrl = publicUrlData.publicUrl;
+    if (!publicUrlData?.publicUrl) {
+      throw new Error("Failed to get public URL for uploaded image.");
+    }
+    completionEvidenceUrl = publicUrlData.publicUrl;
     }
 
     const { error: updateError } = await supabase
