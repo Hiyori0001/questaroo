@@ -57,9 +57,7 @@ const MiniGames = () => {
     // Always set the active tab, even if it's locked, so the unlock button is visible.
     setActiveTab(value);
 
-    if (!unlockedGames.has(value)) {
-      toast.info(`"${game.label}" is locked. You need ${game.xpCost} XP to unlock it.`);
-    }
+    // Removed toast.info for locked game, as the UI already shows it's locked.
   };
 
   const handleUnlockGame = async (gameValue: string, xpCost: number) => {

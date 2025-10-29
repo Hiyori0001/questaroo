@@ -266,6 +266,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       if (newLevel > profile.level) {
         toast.success(`Level Up! You are now Level ${newLevel}!`);
       } else {
+        // Only show +XP toast if not leveling up, to avoid double notifications
         toast.info(`+${xp} XP!`);
       }
     }
@@ -320,7 +321,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       toast.error("Failed to update currency.");
     } else {
       setProfile((prev) => prev ? { ...prev, currency: newCurrency } : null);
-      toast.info(`+${amount} Coins!`);
+      // Removed toast.info(`+${amount} Coins!`); to reduce notification frequency
     }
   }, [profile, user]);
 
@@ -347,7 +348,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return false;
     } else {
       setProfile((prev) => prev ? { ...prev, currency: newCurrency } : null);
-      toast.success(`-${amount} Coins spent.`);
+      // Removed toast.success(`-${amount} Coins spent.`); to reduce notification frequency
       return true;
     }
   }, [profile, user]);
