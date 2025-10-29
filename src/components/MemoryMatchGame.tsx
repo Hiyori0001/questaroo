@@ -28,6 +28,7 @@ const MemoryMatchGame = () => {
   const [canFlip, setCanFlip] = useState(true); // To prevent rapid flipping
 
   const initializeGame = useCallback(() => {
+    console.log("MemoryMatchGame: Initializing new game.");
     const numPairs = 8; // Number of unique pairs
     const selectedIcons = gameIcons.sort(() => 0.5 - Math.random()).slice(0, numPairs);
     const initialCards: CardData[] = [];
@@ -46,7 +47,6 @@ const MemoryMatchGame = () => {
     setAttempts(0);
     setGameOver(false);
     setCanFlip(true);
-    // Removed: toast.info("Memory Match game started! Find all the pairs.");
   }, []);
 
   useEffect(() => {
@@ -62,9 +62,10 @@ const MemoryMatchGame = () => {
 
   const handleCardClick = (index: number) => {
     if (!canFlip || cards[index].isFlipped || cards[index].isMatched || gameOver) {
+      console.log("MemoryMatchGame: Click ignored.", { canFlip, isFlipped: cards[index]?.isFlipped, isMatched: cards[index]?.isMatched, gameOver, index });
       return;
     }
-
+    console.log("MemoryMatchGame: Card clicked:", index);
     setCards((prevCards) =>
       prevCards.map((card, i) =>
         i === index ? { ...card, isFlipped: true } : card
@@ -74,14 +75,28 @@ const MemoryMatchGame = () => {
   };
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
     if (flippedCards.length === 2) {
-      setCanFlip(false); // Disable flipping while checking
+      console.log("MemoryMatchGame: Two cards flipped. Checking for match.");
+      setCanFlip(false); // Disable further clicks
+
       const [firstIndex, secondIndex] = flippedCards;
+
+      // Defensive checks for valid card data
+      if (firstIndex === undefined || secondIndex === undefined || !cards[firstIndex] || !cards[secondIndex]) {
+        console.error("MemoryMatchGame: Invalid card indices or cards data during flip check.", { firstIndex, secondIndex, cards });
+        toast.error("An internal game error occurred. Resetting.");
+        setFlippedCards([]);
+        setCanFlip(true);
+        return;
+      }
+
       const firstCard = cards[firstIndex];
       const secondCard = cards[secondIndex];
 
       if (firstCard.icon === secondCard.icon) {
-        // Match found
+        console.log("MemoryMatchGame: Match found!");
         setMatchesFound((prev) => prev + 1);
         setCards((prevCards) =>
           prevCards.map((card, i) =>
@@ -89,24 +104,33 @@ const MemoryMatchGame = () => {
           )
         );
         setFlippedCards([]);
-        setCanFlip(true); // Re-enable flipping
+        setCanFlip(true); // Re-enable clicks immediately
         toast.success("Match found!");
       } else {
-        // No match, flip back after a delay
+        console.log("MemoryMatchGame: No match. Setting timeout to flip back.");
         setAttempts((prev) => prev + 1);
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
+          console.log("MemoryMatchGame: Timeout callback executed. Flipping cards back.");
           setCards((prevCards) =>
             prevCards.map((card, i) =>
               i === firstIndex || i === secondIndex ? { ...card, isFlipped: false } : card
             )
           );
           setFlippedCards([]);
-          setCanFlip(true); // Re-enable flipping
+          setCanFlip(true); // Re-enable clicks
           toast.warning("No match. Try again!");
-        }, 1000);
+        }, 1000); // Reverted to 1000ms as per your current state
       }
     }
-  }, [flippedCards, cards]);
+
+    // Cleanup function: clear any pending timeout if the component unmounts or dependencies change
+    return () => {
+      if (timeoutId) {
+        console.log("MemoryMatchGame: Clearing timeout (cleanup).");
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [flippedCards, cards]); // Dependencies: flippedCards, cards
 
   return (
     <Card className="w-full max-w-xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6 text-center">
