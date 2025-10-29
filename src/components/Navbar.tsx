@@ -218,7 +218,8 @@ const Navbar = () => {
             )}
             <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick}> {/* Add sparkle trigger */}
+                {/* Explicitly pass asChild to Button when it's the child of an asChild component */}
+                <Button variant="ghost" size="icon" className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700" onClick={handleSparkleClick} asChild>
                   <span> {/* Wrap children in a single span */}
                     <Menu className="h-6 w-6" />
                     <span className="sr-only">Open menu</span>
