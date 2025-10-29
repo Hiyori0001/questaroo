@@ -22,7 +22,7 @@ import QuestLogPage from "./pages/QuestLogPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ShopPage from "./pages/ShopPage";
 import CuteBackground from "./components/CuteBackground"; // Import CuteBackground
-import GlobalSparkleClickEffect from "./components/GlobalSparkleClickEffect"; // Import GlobalSparkleClickEffect
+// import GlobalSparkleClickEffect from "./components/GlobalSparkleClickEffect"; // Import GlobalSparkleClickEffect
 
 const queryClient = new QueryClient();
 
@@ -35,7 +35,7 @@ const App = () => (
         <div className="relative min-h-screen flex flex-col"> {/* Main container for layout */}
           <Navbar />
           <CuteBackground /> {/* Render CuteBackground as a fixed, full-screen element */}
-          <GlobalSparkleClickEffect /> {/* Render GlobalSparkleClickEffect as a top-level component */}
+          {/* <GlobalSparkleClickEffect /> */} {/* Temporarily commented out for testing */}
           <main className="flex-grow pt-16 max-w-full overflow-x-hidden relative z-10"> {/* Main content, positioned on top */}
             <Routes>
               <Route path="/" element={<Index />} />
