@@ -18,7 +18,7 @@ const AuthPage = () => {
   React.useEffect(() => {
     if (user) {
       navigate("/profile");
-      toast.info("You are already logged in.");
+      // Removed: toast.info("You are already logged in.");
     }
   }, [user, navigate]);
 
