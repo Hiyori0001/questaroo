@@ -45,15 +45,10 @@ const Navbar = () => {
     navigate("/auth");
   };
 
-  const allMobileNavItems = [
-    ...primaryNavItems,
-    { to: "/social", icon: Share2, label: "Social" },
-    { to: "/accessibility", icon: Accessibility, label: "Accessibility" },
-  ];
-
+  // Moved all mobile nav items logic into this function, including ThemeToggle
   const renderMobileSheetLinks = () => (
     <>
-      {allMobileNavItems.map((item) => (
+      {primaryNavItems.map((item) => (
         <Button
           key={item.to}
           asChild
@@ -66,8 +61,47 @@ const Navbar = () => {
           </Link>
         </Button>
       ))}
+      {/* Other secondary navigation items */}
+      <Button
+        asChild
+        variant="ghost"
+        className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+        onClick={() => setIsMobileSheetOpen(false)}
+      >
+        <Link to="/social">
+          <Share2 className="h-4 w-4 mr-2" /> Social
+        </Link>
+      </Button>
+      <Button
+        asChild
+        variant="ghost"
+        className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+        onClick={() => setIsMobileSheetOpen(false)}
+      >
+        <Link to="/accessibility">
+          <Accessibility className="h-4 w-4 mr-2" /> Accessibility
+        </Link>
+      </Button>
+
+      {/* Theme Toggle for mobile */}
+      <div className="flex items-center justify-between px-4 py-2">
+        <span className="text-gray-700 dark:text-gray-300">Theme</span>
+        <ThemeToggle />
+      </div>
+
+      {/* Profile and Admin links */}
       {user ? (
         <>
+          <Button
+            asChild
+            variant="ghost"
+            className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            onClick={() => setIsMobileSheetOpen(false)}
+          >
+            <Link to="/profile">
+              <User className="h-4 w-4 mr-2" /> Profile
+            </Link>
+          </Button>
           {profile?.isAdmin && (
             <Button
               asChild
@@ -80,16 +114,6 @@ const Navbar = () => {
               </Link>
             </Button>
           )}
-          <Button
-            asChild
-            variant="ghost"
-            className="justify-start text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-            onClick={() => setIsMobileSheetOpen(false)}
-          >
-            <Link to="/profile">
-              <User className="h-4 w-4 mr-2" /> Profile
-            </Link>
-          </Button>
           <Button
             variant="ghost"
             className="justify-start w-full text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
@@ -157,12 +181,7 @@ const Navbar = () => {
               <div className="flex flex-col gap-2 flex-grow">
                 {renderMobileSheetLinks()}
               </div>
-              <div className="mt-auto p-4 border-t dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-700 dark:text-gray-300">Theme</span>
-                  <ThemeToggle />
-                </div>
-              </div>
+              {/* Removed the old ThemeToggle container from here */}
             </SheetContent>
           </Sheet>
         ) : (
