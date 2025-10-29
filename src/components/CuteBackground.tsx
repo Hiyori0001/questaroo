@@ -2,7 +2,7 @@
 
 import React, { useCallback } from "react";
 import Particles from "react-tsparticles";
-import { loadFull } from "tsparticles"; // Reverted import path to directly from 'tsparticles' (correct for v3)
+import { loadFull } from "tsparticles"; // loadFull is expected from tsparticles v2.x
 import type { Engine } from "tsparticles-engine";
 
 interface CuteBackgroundProps {
