@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, Shield, Trophy, Trash2, Eye } from "lucide-react";
+import { Loader2, AlertCircle, Shield, Trophy, Trash2, Eye, Hourglass } from "lucide-react"; // Added Hourglass
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useTeams } from "@/contexts/TeamContext";
@@ -18,20 +18,24 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import TeamMembersDialog from "./TeamMembersDialog"; // Re-use existing dialog
+import TeamMembersDialog from "./TeamMembersDialog";
+import AdminTeamJoinRequestsDialog from "./AdminTeamJoinRequestsDialog"; // New import
+import { Badge } from "@/components/ui/badge"; // Import Badge
 
 const AdminTeamManagement = () => {
   const { teams, loadingTeams, fetchTeams } = useTeams();
-  const [loading, setLoading] = useState(false); // Local loading for actions
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [isTeamMembersDialogOpen, setIsTeamMembersDialogOpen] = useState(false);
   const [selectedTeamForMembers, setSelectedTeamForMembers] = useState<{ id: string; name: string } | null>(null);
 
-  // Use the global fetchTeams from context, but manage local loading/error for specific actions
+  const [isAdminRequestsDialogOpen, setIsAdminRequestsDialogOpen] = useState(false);
+  const [selectedTeamForRequests, setSelectedTeamForRequests] = useState<{ id: string; name: string } | null>(null);
+
   useEffect(() => {
     if (!loadingTeams) {
-      setLoading(false); // Ensure local loading is false if context loading is done
+      setLoading(false);
     }
   }, [loadingTeams]);
 
@@ -49,7 +53,18 @@ const AdminTeamManagement = () => {
         throw updateProfilesError;
       }
 
-      // Then, delete the team itself
+      // Then, delete all join requests for this team
+      const { error: deleteRequestsError } = await supabase
+        .from('team_join_requests')
+        .delete()
+        .eq('team_id', teamId);
+
+      if (deleteRequestsError) {
+        console.error("Error deleting team join requests:", deleteRequestsError);
+        // Don't throw, try to delete the team itself anyway
+      }
+
+      // Finally, delete the team itself
       const { error: deleteTeamError } = await supabase
         .from('teams')
         .delete()
@@ -59,7 +74,7 @@ const AdminTeamManagement = () => {
         throw deleteTeamError;
       }
 
-      toast.success(`Team "${teamName}" and its members' team assignments deleted successfully.`);
+      toast.success(`Team "${teamName}" and its associated data deleted successfully.`);
       fetchTeams(); // Re-fetch all teams to update UI
     } catch (err: any) {
       console.error("Error deleting team:", err.message);
@@ -73,6 +88,11 @@ const AdminTeamManagement = () => {
   const handleViewMembers = (teamId: string, teamName: string) => {
     setSelectedTeamForMembers({ id: teamId, name: teamName });
     setIsTeamMembersDialogOpen(true);
+  };
+
+  const handleViewRequests = (teamId: string, teamName: string) => {
+    setSelectedTeamForRequests({ id: teamId, name: teamName });
+    setIsAdminRequestsDialogOpen(true);
   };
 
   if (loadingTeams) {
@@ -97,13 +117,14 @@ const AdminTeamManagement = () => {
   }
 
   return (
-    <div className="overflow-x-auto"> {/* Added overflow-x-auto */}
+    <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead className="text-left">Team Name</TableHead>
             <TableHead className="text-left">Description</TableHead>
             <TableHead className="text-center">Members</TableHead>
+            <TableHead className="text-center">Requests</TableHead>
             <TableHead className="text-right">Score</TableHead>
             <TableHead className="text-center">Actions</TableHead>
           </TableRow>
@@ -117,11 +138,20 @@ const AdminTeamManagement = () => {
               </TableCell>
               <TableCell className="text-gray-700 dark:text-gray-300">{team.description}</TableCell>
               <TableCell className="text-center text-gray-700 dark:text-gray-300">{team.member_count}</TableCell>
+              <TableCell className="text-center">
+                {team.pending_request_count > 0 ? (
+                  <Badge variant="destructive" className="bg-orange-500 dark:bg-orange-700 text-white">
+                    {team.pending_request_count}
+                  </Badge>
+                ) : (
+                  <span className="text-gray-500 dark:text-gray-400">0</span>
+                )}
+              </TableCell>
               <TableCell className="text-right text-gray-700 dark:text-gray-300 flex items-center justify-end">
                 <Trophy className="h-4 w-4 text-yellow-500 mr-1" /> {team.score}
               </TableCell>
               <TableCell className="text-center">
-                <div className="flex justify-center gap-2">
+                <div className="flex flex-col sm:flex-row justify-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -129,6 +159,20 @@ const AdminTeamManagement = () => {
                     disabled={loading}
                   >
                     <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleViewRequests(team.id, team.name)}
+                    disabled={loading}
+                    className="relative"
+                  >
+                    <Hourglass className="h-4 w-4" />
+                    {team.pending_request_count > 0 && (
+                      <Badge className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full px-1.5 py-0.5 text-xs">
+                        {team.pending_request_count}
+                      </Badge>
+                    )}
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
@@ -140,7 +184,7 @@ const AdminTeamManagement = () => {
                       <AlertDialogHeader>
                         <AlertDialogTitle className="text-gray-900 dark:text-white font-heading">Confirm Deletion</AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
-                          Are you sure you want to delete team "{team.name}"? This will also remove all members from this team. This action cannot be undone.
+                          Are you sure you want to delete team "{team.name}"? This will also remove all members from this team and delete all associated join requests. This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -162,6 +206,15 @@ const AdminTeamManagement = () => {
           onClose={() => setIsTeamMembersDialogOpen(false)}
           teamId={selectedTeamForMembers.id}
           teamName={selectedTeamForMembers.name}
+        />
+      )}
+
+      {selectedTeamForRequests && (
+        <AdminTeamJoinRequestsDialog
+          isOpen={isAdminRequestsDialogOpen}
+          onClose={() => setIsAdminRequestsDialogOpen(false)}
+          teamId={selectedTeamForRequests.id}
+          teamName={selectedTeamForRequests.name}
         />
       )}
     </div>
