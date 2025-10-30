@@ -24,7 +24,7 @@ export interface Quest {
 
 export const allDummyQuests: Quest[] = [
   {
-    id: "q1",
+    id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11", // Generated UUID
     title: "The Whispering Woods Mystery",
     description: "Explore the old Whispering Woods and uncover the secret of the ancient tree. Requires keen observation!",
     location: "Central Park, New York",
@@ -40,7 +40,7 @@ export const allDummyQuests: Quest[] = [
     verificationRadius: 50, // Example: 50 meters radius
   },
   {
-    id: "q2",
+    id: "b1c2d3e4-f5a6-7b8c-9d0e-1f2a3b4c5d6e", // Generated UUID
     title: "Downtown Scavenger Hunt",
     description: "Follow clues across the city center to find hidden landmarks and solve riddles.",
     location: "Downtown City Center",
@@ -53,7 +53,7 @@ export const allDummyQuests: Quest[] = [
     verificationRadius: 100, // Example: 100 meters radius
   },
   {
-    id: "q3",
+    id: "c2d3e4f5-a6b7-8c9d-0e1f-2a3b4c5d6e7f", // Generated UUID
     title: "Riverside Riddle Challenge",
     description: "A series of easy riddles located along the scenic riverside path. Perfect for a casual stroll.",
     location: "Riverside Promenade",
@@ -69,7 +69,7 @@ export const allDummyQuests: Quest[] = [
     verificationRadius: 20, // Example: 20 meters radius
   },
   {
-    id: "q4",
+    id: "d3e4f5a6-b7c8-9d0e-1f2a-3b4c5d6e7f8a", // Generated UUID
     title: "Historic District Photo Op",
     description: "Visit historical sites and capture specific photos to complete this visual quest.",
     location: "Old Town Historic District",
@@ -82,7 +82,7 @@ export const allDummyQuests: Quest[] = [
     verificationRadius: 75, // Example: 75 meters radius
   },
   {
-    id: "q5",
+    id: "e4f5a6b7-c8d9-0e1f-2a3b-4c5d6e7f8a9b", // Generated UUID
     title: "Museum Marvels Tour",
     description: "A quest through the city's finest museums, solving art and history puzzles.",
     location: "Museum Quarter, Cityville",
@@ -98,7 +98,7 @@ export const allDummyQuests: Quest[] = [
     verificationRadius: 30, // Example: 30 meters radius
   },
   {
-    id: "q6",
+    id: "f5a6b7c8-d9e0-1f2a-3b4c-5d6e7f8a9b0c", // Generated UUID
     title: "Parkland Puzzle Pursuit",
     description: "Navigate through various parks, finding clues and completing nature-themed challenges.",
     location: "Green Valley Park",
