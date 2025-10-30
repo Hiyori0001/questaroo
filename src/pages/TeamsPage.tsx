@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription, // Import DialogDescription
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -174,9 +175,9 @@ const TeamsPage = () => {
                       <DialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800">
                         <DialogHeader>
                           <DialogTitle className="text-gray-900 dark:text-white font-heading">Create Your Team</DialogTitle>
-                          <CardDescription className="text-gray-700 dark:text-gray-300">
+                          <DialogDescription className="text-gray-700 dark:text-gray-300"> {/* Changed from CardDescription */}
                             Give your team a name and a description.
-                          </CardDescription>
+                          </DialogDescription>
                         </DialogHeader>
                         <CreateTeamForm onClose={() => setIsCreateTeamDialogOpen(false)} />
                       </DialogContent>
@@ -191,9 +192,9 @@ const TeamsPage = () => {
                       <DialogContent className="sm:max-w-[600px] bg-white dark:bg-gray-800">
                         <DialogHeader>
                           <DialogTitle className="text-gray-900 dark:text-white font-heading">Join a Team</DialogTitle>
-                          <CardDescription className="text-gray-700 dark:text-gray-300">
+                          <DialogDescription className="text-gray-700 dark:text-gray-300"> {/* Changed from CardDescription */}
                             Select a team from the list below to send a join request.
-                          </CardDescription>
+                          </DialogDescription>
                         </DialogHeader>
                         <JoinTeamDialog onClose={() => setIsJoinTeamDialogOpen(false)} />
                       </DialogContent>
