@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { PlusCircle, MapPin, QrCode, HelpCircle, LocateFixed, Camera, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useAllUserCreatedQuests } from "@/contexts/AllUserCreatedQuestsContext";
+import { useAllQuests } from "@/contexts/AllQuestsContext"; // Updated import
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Quest } from "@/data/quests";
 import { supabase } from "@/lib/supabase";
@@ -92,7 +92,7 @@ const formSchema = z.object({
 
 const CreateQuestPage = () => {
   const { user } = useAuth();
-  const { addQuest } = useAllUserCreatedQuests();
+  const { addQuest } = useAllQuests(); // Updated hook
   // const { triggerSparkle } = useSparkle(); // Removed useSparkle hook
   const [selectedReferenceFile, setSelectedReferenceFile] = useState<File | null>(null);
   const [referencePreviewUrl, setReferencePreviewUrl] = useState<string | null>(null);
