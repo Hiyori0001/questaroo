@@ -6,34 +6,33 @@ import { toast } from "sonner";
 import { Quest } from "@/data/quests"; // Import the Quest interface
 import { supabase } from "@/lib/supabase"; // Import supabase client
 
-interface AllUserCreatedQuestsContextType {
-  allUserCreatedQuests: Quest[]; // Renamed to reflect it holds all user-created quests
-  loadingAllUserCreatedQuests: boolean; // Renamed loading state
-  addQuest: (newQuest: Quest) => void;
-  removeQuest: (questId: string) => void;
+interface AllQuestsContextType {
+  allQuests: Quest[]; // Renamed to reflect it holds all quests
+  loadingAllQuests: boolean; // Renamed loading state
+  addQuest: (newQuest: Quest) => void; // For user-created quests
+  removeQuest: (questId: string) => void; // For user-created quests
 }
 
-const AllUserCreatedQuestsContext = createContext<AllUserCreatedQuestsContextType | undefined>(undefined);
+const AllQuestsContext = createContext<AllQuestsContextType | undefined>(undefined);
 
-export const AllUserCreatedQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading: loadingAuth } = useAuth();
-  const [allUserCreatedQuests, setAllUserCreatedQuests] = useState<Quest[]>([]);
-  const [loadingAllUserCreatedQuests, setLoadingAllUserCreatedQuests] = useState(true);
+export const AllQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const [allQuests, setAllQuests] = useState<Quest[]>([]);
+  const [loadingAllQuests, setLoadingAllQuests] = useState(true);
 
-  const fetchAllUserCreatedQuests = useCallback(async () => {
-    setLoadingAllUserCreatedQuests(true);
-    // IMPORTANT: Removed .eq('user_id', userId) to fetch ALL user-created quests
-    const { data, error } = await supabase
-      .from('user_quests')
-      .select('*, latitude, longitude, verification_radius, completion_image_prompt, creator_reference_image_url, user_id'); // Select user_id as well
+  const fetchAllQuests = useCallback(async () => {
+    setLoadingAllQuests(true);
+    try {
+      // Fetch user-created quests
+      const { data: userQuestsData, error: userQuestsError } = await supabase
+        .from('user_quests')
+        .select('*, latitude, longitude, verification_radius, completion_image_prompt, creator_reference_image_url, user_id');
 
-    if (error) {
-      console.error("Error fetching all user-created quests:", error);
-      toast.error("Failed to load user-created quests.");
-      setAllUserCreatedQuests([]);
-    } else {
-      // Map Supabase data to Quest interface
-      const fetchedQuests: Quest[] = data.map(dbQuest => ({
+      if (userQuestsError) {
+        throw userQuestsError;
+      }
+
+      const userCreatedQuests: Quest[] = userQuestsData.map(dbQuest => ({
         id: dbQuest.id,
         title: dbQuest.title,
         description: dbQuest.description,
@@ -45,21 +44,55 @@ export const AllUserCreatedQuestsProvider: React.FC<{ children: React.ReactNode 
         completionTask: dbQuest.completion_task || undefined,
         qrCode: dbQuest.qr_code || undefined,
         completionImagePrompt: dbQuest.completion_image_prompt || undefined,
-        user_id: dbQuest.user_id, // Include user_id
+        user_id: dbQuest.user_id,
         latitude: dbQuest.latitude || undefined,
         longitude: dbQuest.longitude || undefined,
         verificationRadius: dbQuest.verification_radius || undefined,
         creatorReferenceImageUrl: dbQuest.creator_reference_image_url || undefined,
+        is_predefined: false, // Mark as user-created
       }));
-      setAllUserCreatedQuests(fetchedQuests);
+
+      // Fetch predefined quests
+      const { data: predefinedQuestsData, error: predefinedQuestsError } = await supabase
+        .from('predefined_quests')
+        .select('*, latitude, longitude, verification_radius, completion_image_prompt, creator_reference_image_url');
+
+      if (predefinedQuestsError) {
+        throw predefinedQuestsError;
+      }
+
+      const predefinedQuests: Quest[] = predefinedQuestsData.map(dbQuest => ({
+        id: dbQuest.id,
+        title: dbQuest.title,
+        description: dbQuest.description,
+        location: dbQuest.location,
+        difficulty: dbQuest.difficulty as Quest["difficulty"],
+        reward: dbQuest.reward,
+        timeEstimate: dbQuest.time_estimate,
+        timeLimit: dbQuest.time_limit || undefined,
+        completionTask: dbQuest.completion_task || undefined,
+        qrCode: dbQuest.qr_code || undefined,
+        completionImagePrompt: dbQuest.completion_image_prompt || undefined,
+        latitude: dbQuest.latitude || undefined,
+        longitude: dbQuest.longitude || undefined,
+        verificationRadius: dbQuest.verification_radius || undefined,
+        creatorReferenceImageUrl: dbQuest.creator_reference_image_url || undefined,
+        is_predefined: true, // Mark as predefined
+      }));
+
+      setAllQuests([...predefinedQuests, ...userCreatedQuests]);
+    } catch (error: any) {
+      console.error("Error fetching all quests:", error.message);
+      toast.error("Failed to load quests.");
+      setAllQuests([]);
+    } finally {
+      setLoadingAllQuests(false);
     }
-    setLoadingAllUserCreatedQuests(false);
   }, []);
 
-  // Load all user-created quests on mount and when auth state changes
   useEffect(() => {
-    fetchAllUserCreatedQuests();
-  }, [fetchAllUserCreatedQuests]);
+    fetchAllQuests();
+  }, [fetchAllQuests]);
 
   const addQuest = useCallback(async (newQuest: Quest) => {
     if (!user) {
@@ -67,11 +100,10 @@ export const AllUserCreatedQuestsProvider: React.FC<{ children: React.ReactNode 
       return;
     }
 
-    // Do NOT provide an 'id' here. Let the database generate it using its default UUID function.
     const { data, error } = await supabase
       .from('user_quests')
       .insert({
-        user_id: user.id, // Still associate with the current user
+        user_id: user.id,
         title: newQuest.title,
         description: newQuest.description,
         location: newQuest.location,
@@ -95,7 +127,7 @@ export const AllUserCreatedQuestsProvider: React.FC<{ children: React.ReactNode 
       toast.error(`Failed to create quest "${newQuest.title}".`);
     } else {
       const addedQuest: Quest = {
-        id: data.id, // Use the ID generated by the database
+        id: data.id,
         title: data.title,
         description: data.description,
         location: data.location,
@@ -111,8 +143,9 @@ export const AllUserCreatedQuestsProvider: React.FC<{ children: React.ReactNode 
         longitude: data.longitude || undefined,
         verificationRadius: data.verification_radius || undefined,
         creatorReferenceImageUrl: data.creator_reference_image_url || undefined,
+        is_predefined: false,
       };
-      setAllUserCreatedQuests((prevQuests) => [...prevQuests, addedQuest]); // Update the global list
+      setAllQuests((prevQuests) => [...prevQuests, addedQuest]);
       toast.success(`Quest "${newQuest.title}" created successfully!`);
     }
   }, [user]);
@@ -127,28 +160,28 @@ export const AllUserCreatedQuestsProvider: React.FC<{ children: React.ReactNode 
       .from('user_quests')
       .delete()
       .eq('id', questId)
-      .eq('user_id', user.id); // Ensure only the creator can delete their quest
+      .eq('user_id', user.id);
 
     if (error) {
       console.error("Error deleting quest:", error);
       toast.error("Failed to delete quest.");
     } else {
-      setAllUserCreatedQuests((prevQuests) => prevQuests.filter(quest => quest.id !== questId)); // Update the global list
+      setAllQuests((prevQuests) => prevQuests.filter(quest => quest.id !== questId));
       toast.info("Quest deleted successfully.");
     }
   }, [user]);
 
   return (
-    <AllUserCreatedQuestsContext.Provider value={{ allUserCreatedQuests, loadingAllUserCreatedQuests, addQuest, removeQuest }}>
+    <AllQuestsContext.Provider value={{ allQuests, loadingAllQuests, addQuest, removeQuest }}>
       {children}
-    </AllUserCreatedQuestsContext.Provider>
+    </AllQuestsContext.Provider>
   );
 };
 
-export const useAllUserCreatedQuests = () => {
-  const context = useContext(AllUserCreatedQuestsContext);
+export const useAllQuests = () => {
+  const context = useContext(AllQuestsContext);
   if (context === undefined) {
-    throw new Error("useAllUserCreatedQuests must be used within an AllUserCreatedQuestsProvider");
+    throw new Error("useAllQuests must be used within an AllQuestsProvider");
   }
   return context;
 };

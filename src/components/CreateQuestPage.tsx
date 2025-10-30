@@ -9,13 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
-import { PlusCircle, MapPin, QrCode, HelpCircle, LocateFixed, Camera, Upload, Loader2 } from "lucide-react"; // Added Upload and Loader2 icons
+import { PlusCircle, MapPin, QrCode, HelpCircle, LocateFixed, Camera, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useAllUserCreatedQuests } from "@/contexts/AllUserCreatedQuestsContext"; // Updated import
+import { useAllQuests } from "@/contexts/AllQuestsContext"; // Updated import
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Quest } from "@/data/quests";
-import { supabase } from "@/lib/supabase"; // Import supabase client
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Define the schema for quest creation
 const formSchema = z.object({
@@ -26,14 +26,14 @@ const formSchema = z.object({
   longitude: z.number().min(-180, { message: "Longitude must be between -180 and 180." }).max(180, { message: "Longitude must be between -180 and 180." }).optional(),
   verificationRadius: z.number().min(1, { message: "Radius must be at least 1 meter." }).max(1000, { message: "Radius must not exceed 1000 meters." }).optional(),
   timeLimit: z.string().optional(),
-  completionMethod: z.enum(["question", "qrCode", "location", "imageUpload"], { // Added 'imageUpload'
+  completionMethod: z.enum(["question", "qrCode", "location", "imageUpload"], {
     required_error: "Please select a completion method.",
   }),
   completionQuestion: z.string().optional(),
   completionAnswer: z.string().optional(),
   qrCode: z.string().optional(),
-  completionImagePrompt: z.string().optional(), // New: Image prompt field
-  creatorReferenceImageFile: z.any().optional(), // New: For file input
+  completionImagePrompt: z.string().optional(),
+  creatorReferenceImageFile: z.any().optional(),
 }).superRefine((data, ctx) => {
   if (data.completionMethod === "question") {
     if (!data.completionQuestion || data.completionQuestion.trim() === "") {
@@ -78,7 +78,7 @@ const formSchema = z.object({
         path: ["verificationRadius"],
       });
     }
-  } else if (data.completionMethod === "imageUpload") { // New validation for image upload method
+  } else if (data.completionMethod === "imageUpload") {
     if (!data.completionImagePrompt || data.completionImagePrompt.trim() === "") {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -91,7 +91,7 @@ const formSchema = z.object({
 
 const CreateQuestPage = () => {
   const { user } = useAuth();
-  const { addQuest } = useAllUserCreatedQuests(); // Updated hook
+  const { addQuest } = useAllQuests(); // Updated hook
   const [selectedReferenceFile, setSelectedReferenceFile] = useState<File | null>(null);
   const [referencePreviewUrl, setReferencePreviewUrl] = useState<string | null>(null);
   const [isUploadingReference, setIsUploadingReference] = useState(false);
@@ -110,7 +110,7 @@ const CreateQuestPage = () => {
       completionQuestion: "",
       completionAnswer: "",
       qrCode: "",
-      completionImagePrompt: "", // Initialize new field
+      completionImagePrompt: "",
       creatorReferenceImageFile: undefined,
     },
   });
@@ -122,7 +122,7 @@ const CreateQuestPage = () => {
       const file = event.target.files[0];
       setSelectedReferenceFile(file);
       setReferencePreviewUrl(URL.createObjectURL(file));
-      form.setValue("creatorReferenceImageFile", file); // Update form state
+      form.setValue("creatorReferenceImageFile", file);
     } else {
       setSelectedReferenceFile(null);
       setReferencePreviewUrl(null);
@@ -136,16 +136,15 @@ const CreateQuestPage = () => {
       return;
     }
 
-    setIsUploadingReference(true); // Start loading for the whole submission process
+    setIsUploadingReference(true);
 
     let creatorReferenceImageUrl: string | undefined;
     if (selectedReferenceFile) {
       const fileExtension = selectedReferenceFile.name.split('.').pop();
-      // Changed filePath structure: user.id/creator_references/timestamp.extension
       const filePath = `${user.id}/creator_references/${Date.now()}.${fileExtension}`;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('quest-completion-images') // Using the same bucket
+        .from('quest-completion-images')
         .upload(filePath, selectedReferenceFile, {
           cacheControl: '3600',
           upsert: false,
@@ -171,18 +170,19 @@ const CreateQuestPage = () => {
     }
 
     const newQuest: Quest = {
-      id: `user-quest-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      // No need to generate ID here, it will be generated by Supabase
       title: values.title,
       description: values.description,
       location: values.location,
-      difficulty: "Medium", // Default difficulty for user-created quests
+      difficulty: "Medium",
       reward: "User-Created XP",
       timeEstimate: "Variable",
       timeLimit: values.timeLimit || undefined,
       latitude: values.latitude,
       longitude: values.longitude,
       verificationRadius: values.verificationRadius,
-      creatorReferenceImageUrl: creatorReferenceImageUrl, // Include the uploaded URL
+      creatorReferenceImageUrl: creatorReferenceImageUrl,
+      is_predefined: false, // Explicitly mark as not predefined
     };
 
     if (values.completionMethod === "question" && values.completionQuestion && values.completionAnswer) {
@@ -195,7 +195,6 @@ const CreateQuestPage = () => {
     } else if (values.completionMethod === "imageUpload" && values.completionImagePrompt) {
       newQuest.completionImagePrompt = values.completionImagePrompt;
     }
-    // No specific completionTask or qrCode needed for 'location' method, as it uses lat/lon/radius
 
     await addQuest(newQuest);
     form.reset();
@@ -346,7 +345,7 @@ const CreateQuestPage = () => {
                         <SelectItem value="question">Question & Answer</SelectItem>
                         <SelectItem value="qrCode">QR Code Scan</SelectItem>
                         <SelectItem value="location">Location Verification</SelectItem>
-                        <SelectItem value="imageUpload">Image Upload</SelectItem> {/* New option */}
+                        <SelectItem value="imageUpload">Image Upload</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
@@ -449,7 +448,7 @@ const CreateQuestPage = () => {
                 </>
               )}
 
-              {selectedCompletionMethod === "imageUpload" && ( // New fields for image upload
+              {selectedCompletionMethod === "imageUpload" && (
                 <>
                   <FormField
                     control={form.control}
@@ -473,7 +472,6 @@ const CreateQuestPage = () => {
                       </FormItem>
                     )}
                   />
-                  {/* New: Creator Reference Image Upload */}
                   <FormItem>
                     <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
                       <Upload className="h-4 w-4" /> Creator Reference Image (Optional)

@@ -8,12 +8,12 @@ import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode,
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { allDummyQuests, Quest } from "@/data/quests";
+import { Quest } from "@/data/quests"; // Only import Quest interface
 import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
 import QuestImageUploader from "@/components/QuestImageUploader";
-import { useAllUserCreatedQuests } from "@/contexts/AllUserCreatedQuestsContext"; // Updated import
+import { useAllQuests } from "@/contexts/AllQuestsContext"; // Updated import
 import { useTeams } from "@/contexts/TeamContext";
 import { haversineDistance } from "@/utils/location";
 import { supabase } from "@/lib/supabase"; // Import supabase client
@@ -61,7 +61,7 @@ const QuestDetailsPage = () => {
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
   const { profile, loadingProfile, addExperience, deductExperience, addAchievement, startQuest, completeQuest, submitImageForVerification } = useUserProfile();
-  const { allUserCreatedQuests, loadingAllUserCreatedQuests, removeQuest } = useAllUserCreatedQuests(); // Updated hook and variable
+  const { allQuests, loadingAllQuests, removeQuest } = useAllQuests(); // Updated hook and variable
   const { userTeam, addTeamScore } = useTeams();
 
   const [quest, setQuest] = useState<Quest | null>(null);
@@ -112,15 +112,14 @@ const QuestDetailsPage = () => {
 
   useEffect(() => {
     if (id) {
-      const allAvailableQuests = [...allDummyQuests, ...allUserCreatedQuests]; // Updated variable
-      const foundQuest = allAvailableQuests.find((q) => q.id === id);
+      // Find the quest from the combined list of all quests
+      const foundQuest = allQuests.find((q) => q.id === id);
 
       if (foundQuest) {
         setQuest(foundQuest);
-        const isCreatedByUser = allUserCreatedQuests.some(uq => uq.id === foundQuest.id); // Check against allUserCreatedQuests
-        setIsUserCreatedQuest(isCreatedByUser);
+        setIsUserCreatedQuest(!foundQuest.is_predefined); // Determine if it's user-created
 
-        if (user && foundQuest.user_id) { // Check foundQuest.user_id directly
+        if (user && foundQuest.user_id) {
           setIsCreator(foundQuest.user_id === user.id && !canHeadAdminBypassCreatorRestriction);
         } else {
           setIsCreator(false);
@@ -139,7 +138,7 @@ const QuestDetailsPage = () => {
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile, user, allUserCreatedQuests, canHeadAdminBypassCreatorRestriction, fetchUserQuestProgress]); // Updated dependency
+  }, [id, navigate, profile, user, allQuests, canHeadAdminBypassCreatorRestriction, fetchUserQuestProgress]); // Updated dependency
 
   const questStarted = userQuestProgress?.status === 'started';
   const questCompleted = userQuestProgress?.status === 'completed';
@@ -147,7 +146,7 @@ const QuestDetailsPage = () => {
   const isPendingVerification = userQuestProgress?.verification_status === 'pending';
   const isRejectedVerification = userQuestProgress?.verification_status === 'rejected';
 
-  if (loadingAuth || loadingProfile || loadingAllUserCreatedQuests || !quest) { // Updated loading state
+  if (loadingAuth || loadingProfile || loadingAllQuests || !quest) { // Updated loading state
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 flex-grow">
         <p className="text-lg text-gray-500 dark:text-gray-400">Loading quest details...</p>
@@ -338,9 +337,11 @@ const QuestDetailsPage = () => {
   };
 
   const handleDeleteQuest = () => {
-    if (quest) {
+    if (quest && !quest.is_predefined) { // Only allow deleting user-created quests
       removeQuest(quest.id);
       navigate("/location-quests");
+    } else if (quest?.is_predefined) {
+      toast.error("Cannot delete predefined quests.");
     }
   };
 

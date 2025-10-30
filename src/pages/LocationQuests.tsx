@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import QuestList from "@/components/QuestList";
 import { toast } from "sonner";
-import { allDummyQuests, Quest } from "@/data/quests";
-import { useAllUserCreatedQuests } from "@/contexts/AllUserCreatedQuestsContext"; // Updated import
+import { Quest } from "@/data/quests";
+import { useAllQuests } from "@/contexts/AllQuestsContext"; // Updated import
 import { LatLngExpression } from "leaflet"; // Import LatLngExpression
 import ClientOnly from "@/components/ClientOnly"; // Import ClientOnly
 import { haversineDistance } from "@/utils/location"; // Import haversineDistance
@@ -18,7 +18,7 @@ import { haversineDistance } from "@/utils/location"; // Import haversineDistanc
 const QuestMap = React.lazy(() => import("@/components/QuestMap"));
 
 const LocationQuests = () => {
-  const { allUserCreatedQuests, loadingAllUserCreatedQuests } = useAllUserCreatedQuests(); // Updated hook and variable
+  const { allQuests, loadingAllQuests } = useAllQuests(); // Updated hook and variable
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>("All");
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
@@ -69,9 +69,7 @@ const LocationQuests = () => {
     toast.info(`Searching for quests within ${proximityRadius / 1000} km of your location.`);
   };
 
-  const allAvailableQuests = [...allDummyQuests, ...allUserCreatedQuests]; // Updated variable
-
-  const filteredQuests = allAvailableQuests.filter(
+  const filteredQuests = allQuests.filter( // Use allQuests directly
     (quest) => {
       const matchesSearchTerm = (
         quest.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -92,7 +90,7 @@ const LocationQuests = () => {
     }
   );
 
-  if (loadingAllUserCreatedQuests) { // Updated loading state
+  if (loadingAllQuests) { // Updated loading state
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 flex-grow">
         <p className="text-lg text-gray-500 dark:text-gray-400">Loading quests...</p>

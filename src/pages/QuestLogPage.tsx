@@ -9,8 +9,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { allDummyQuests, Quest } from "@/data/quests";
-import { useAllUserCreatedQuests } from "@/contexts/AllUserCreatedQuestsContext"; // Updated import
+import { Quest } from "@/data/quests"; // Only import Quest interface
+import { useAllQuests } from "@/contexts/AllQuestsContext"; // Updated import
 import { Badge } from "@/components/ui/badge";
 
 interface UserQuestProgress {
@@ -28,7 +28,7 @@ interface QuestLogEntry extends Quest {
 
 const QuestLogPage = () => {
   const { user, loading: loadingAuth } = useAuth();
-  const { allUserCreatedQuests, loadingAllUserCreatedQuests } = useAllUserCreatedQuests(); // Updated hook and variable
+  const { allQuests, loadingAllQuests } = useAllQuests(); // Updated hook and variable
   const navigate = useNavigate();
   const [questLog, setQuestLog] = useState<QuestLogEntry[]>([]);
   const [loadingLog, setLoadingLog] = useState(true);
@@ -58,9 +58,9 @@ const QuestLogPage = () => {
         toast.error("Failed to load quest log.");
         setQuestLog([]);
       } else {
-        const allAvailableQuests = [...allDummyQuests, ...allUserCreatedQuests]; // Updated variable
+        // Use allQuests from context directly
         const logEntries: QuestLogEntry[] = data.map((progress: UserQuestProgress) => {
-          const questDetails = allAvailableQuests.find(q => q.id === progress.quest_id);
+          const questDetails = allQuests.find(q => q.id === progress.quest_id);
           if (questDetails) {
             return {
               ...questDetails,
@@ -88,12 +88,12 @@ const QuestLogPage = () => {
       setLoadingLog(false);
     };
 
-    if (user && !loadingAllUserCreatedQuests) { // Ensure allUserCreatedQuests are loaded before fetching log
+    if (user && !loadingAllQuests) { // Ensure allQuests are loaded before fetching log
       fetchQuestLog();
     }
-  }, [user, loadingAuth, navigate, allUserCreatedQuests, loadingAllUserCreatedQuests]); // Updated dependency
+  }, [user, loadingAuth, navigate, allQuests, loadingAllQuests]); // Updated dependency
 
-  if (loadingAuth || loadingLog || loadingAllUserCreatedQuests) { // Updated loading state
+  if (loadingAuth || loadingLog || loadingAllQuests) { // Updated loading state
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
         <Loader2 className="h-12 w-12 animate-spin text-blue-600 dark:text-blue-400 mb-4" />
@@ -163,7 +163,7 @@ const QuestLogPage = () => {
                           <Badge className="bg-red-500 dark:bg-red-700 text-white flex items-center justify-center gap-1">
                             <XCircle className="h-4 w-4" /> Failed
                           </Badge>
-                        )}
+                          )}
                       </TableCell>
                       <TableCell className="text-center text-gray-700 dark:text-gray-300">
                         {new Date(entry.started_at).toLocaleDateString()}

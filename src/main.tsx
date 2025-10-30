@@ -4,7 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { UserProfileProvider } from "@/contexts/UserProfileContext.tsx";
-import { AllUserCreatedQuestsProvider } from "./contexts/AllUserCreatedQuestsContext.tsx"; // Updated import
+import { AllQuestsProvider } from "./contexts/AllQuestsContext.tsx"; // Updated import
 import { TeamProvider } from "./contexts/TeamContext.tsx";
 import { FriendProvider } from "./contexts/FriendContext.tsx";
 
@@ -12,13 +12,13 @@ createRoot(document.getElementById("root")!).render(
   <ThemeProvider defaultTheme="system" attribute="class">
     <AuthProvider>
       <UserProfileProvider>
-        <AllUserCreatedQuestsProvider> {/* Updated provider name */}
+        <AllQuestsProvider> {/* Updated provider name */}
           <TeamProvider>
             <FriendProvider>
               <App />
             </FriendProvider>
           </TeamProvider>
-        </AllUserCreatedQuestsProvider>
+        </AllQuestsProvider>
       </UserProfileProvider>
     </AuthProvider>
   </ThemeProvider>

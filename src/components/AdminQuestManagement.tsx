@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle, PlusCircle, Edit, Trash2, CalendarDays, Trophy, Users, Upload, Image as ImageIcon, Eye } from "lucide-react"; // Added CheckCircle2, XCircle, Hourglass
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { allDummyQuests, Quest } from "@/data/quests";
+import { Quest } from "@/data/quests"; // Only import Quest interface
 import { Link } from "react-router-dom";
 import {
   AlertDialog,
@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useUserProfile } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAllUserCreatedQuests } from "@/contexts/AllUserCreatedQuestsContext"; // Updated import
+import { useAllQuests } from "@/contexts/AllQuestsContext"; // Updated import
 
 interface AdminQuest extends Quest {
   is_user_created: boolean;
@@ -60,7 +60,7 @@ const getXpForDifficulty = (difficulty: "Easy" | "Medium" | "Hard"): number => {
 const AdminQuestManagement = () => {
   const { user: currentUser } = useAuth();
   const { profile: currentUserProfile, verifyQuestCompletion } = useUserProfile();
-  const { allUserCreatedQuests, loadingAllUserCreatedQuests, removeQuest } = useAllUserCreatedQuests(); // Updated hook and variable
+  const { allQuests, loadingAllQuests, removeQuest } = useAllQuests(); // Updated hook and variable
   const [quests, setQuests] = useState<AdminQuest[]>([]);
   const [pendingSubmissions, setPendingSubmissions] = useState<PendingImageSubmission[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,17 +70,12 @@ const AdminQuestManagement = () => {
     setLoading(true);
     setError(null);
     try {
-      const userCreatedQuests: AdminQuest[] = allUserCreatedQuests.map(uq => ({
-        ...uq,
-        is_user_created: true,
+      // All quests are now fetched from the AllQuestsContext
+      const formattedQuests: AdminQuest[] = allQuests.map(q => ({
+        ...q,
+        is_user_created: !q.is_predefined, // Use the new is_predefined flag
       }));
-
-      const dummyQuestsWithFlag: AdminQuest[] = allDummyQuests.map(dq => ({
-        ...dq,
-        is_user_created: false,
-      }));
-
-      setQuests([...dummyQuestsWithFlag, ...userCreatedQuests]);
+      setQuests(formattedQuests);
 
       // Fetch pending image submissions
       const { data: pendingData, error: pendingError } = await supabase
@@ -91,7 +86,8 @@ const AdminQuestManagement = () => {
           quest_id,
           completion_image_url,
           profiles!user_id(first_name, last_name, avatar_url, team_id),
-          user_quests!quest_id(title, difficulty, creator_reference_image_url)
+          user_quests!quest_id(title, difficulty, creator_reference_image_url),
+          predefined_quests!quest_id(title, difficulty, creator_reference_image_url)
         `)
         .eq('verification_status', 'pending');
 
@@ -100,19 +96,22 @@ const AdminQuestManagement = () => {
       }
 
       const formattedPending: PendingImageSubmission[] = pendingData
-        .filter(p => p.completion_image_url && p.user_quests) // Ensure image and quest details exist
-        .map(p => ({
-          id: p.id,
-          user_id: p.user_id,
-          quest_id: p.quest_id,
-          completion_image_url: p.completion_image_url!,
-          quest_title: p.user_quests?.title || "Unknown Quest",
-          user_name: `${p.profiles?.first_name || 'Adventure'} ${p.profiles?.last_name || 'Seeker'}`.trim(),
-          user_avatar_url: p.profiles?.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(p.user_id)}`,
-          xp_reward: getXpForDifficulty(p.user_quests?.difficulty as "Easy" | "Medium" | "Hard" || "Easy"), // Revert type assertion
-          team_id: p.profiles?.team_id || null,
-          creator_reference_image_url: p.user_quests?.creator_reference_image_url || null, // Get reference image
-        }));
+        .filter(p => p.completion_image_url && (p.user_quests || p.predefined_quests)) // Ensure image and quest details exist from either table
+        .map(p => {
+          const questDetails = p.user_quests || p.predefined_quests; // Get details from whichever is available
+          return {
+            id: p.id,
+            user_id: p.user_id,
+            quest_id: p.quest_id,
+            completion_image_url: p.completion_image_url!,
+            quest_title: questDetails?.title || "Unknown Quest",
+            user_name: `${p.profiles?.first_name || 'Adventure'} ${p.profiles?.last_name || 'Seeker'}`.trim(),
+            user_avatar_url: p.profiles?.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(p.user_id)}`,
+            xp_reward: getXpForDifficulty(questDetails?.difficulty as "Easy" | "Medium" | "Hard" || "Easy"),
+            team_id: p.profiles?.team_id || null,
+            creator_reference_image_url: questDetails?.creator_reference_image_url || null,
+          };
+        });
       setPendingSubmissions(formattedPending);
 
     } catch (err: any) {
@@ -122,13 +121,13 @@ const AdminQuestManagement = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUserProfile, allUserCreatedQuests]); // Depend on allUserCreatedQuests
+  }, [currentUserProfile, allQuests]); // Depend on allQuests
 
   useEffect(() => {
-    if (!loadingAllUserCreatedQuests) { // Only fetch when allUserCreatedQuests are loaded
+    if (!loadingAllQuests) { // Only fetch when allQuests are loaded
       fetchQuestsAndSubmissions();
     }
-  }, [fetchQuestsAndSubmissions, loadingAllUserCreatedQuests]);
+  }, [fetchQuestsAndSubmissions, loadingAllQuests]);
 
   const handleDeleteQuest = async (questId: string, isUserCreated: boolean) => {
     if (!isUserCreated) {
@@ -173,7 +172,7 @@ const AdminQuestManagement = () => {
     }
   };
 
-  if (loading || loadingAllUserCreatedQuests) { // Include loadingAllUserCreatedQuests
+  if (loading || loadingAllQuests) { // Include loadingAllQuests
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600 dark:text-blue-400" />
