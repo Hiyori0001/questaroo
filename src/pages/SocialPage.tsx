@@ -58,7 +58,7 @@ const SocialPage = () => {
           content,
           created_at,
           user_id,
-          profiles(first_name, last_name, avatar_url)
+          profiles!fk_team_messages_user_id(first_name, last_name, avatar_url)
         `)
         .eq('team_id', userTeam.id)
         .order('created_at', { ascending: true });
