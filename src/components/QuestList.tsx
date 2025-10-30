@@ -51,7 +51,7 @@ const QuestList: React.FC<QuestListProps> = ({ quests }) => {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {quests.map((quest) => {
         const requiredXp = getRequiredXp(quest.difficulty);
-        const isLocked = profile && profile.experience < requiredXp;
+        const isLocked = profile && profile.totalExperience < requiredXp; // Use totalExperience for unlocking
 
         return (
           <Card key={quest.id} className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 flex flex-col">

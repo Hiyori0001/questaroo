@@ -32,7 +32,8 @@ interface UserProfile {
   email: string;
   avatarUrl: string;
   level: number;
-  experience: number;
+  experience: number; // Spendable XP
+  totalExperience: number; // New: Total XP earned for leveling
   currency: number; // New: Virtual currency
   achievements: Achievement[];
   isAdmin: boolean; // Add isAdmin to the profile interface
@@ -124,7 +125,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           login_streak: newLoginStreak,
           max_login_streak: newMaxLoginStreak,
           currency: currentProfile.currency + bonusCoins,
-          experience: currentProfile.experience + bonusXp,
+          experience: currentProfile.experience + bonusCoins, // Update spendable XP
+          total_experience: currentProfile.totalExperience + bonusXp, // Update total XP
         })
         .eq('id', userId);
 
@@ -138,8 +140,9 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           loginStreak: newLoginStreak,
           maxLoginStreak: newMaxLoginStreak,
           currency: prev.currency + bonusCoins,
-          experience: prev.experience + bonusXp,
-          level: calculateLevel(prev.experience + bonusXp),
+          experience: prev.experience + bonusXp, // Update spendable XP
+          totalExperience: prev.totalExperience + bonusXp, // Update total XP
+          level: calculateLevel(prev.totalExperience + bonusXp), // Calculate level from total XP
         } : null);
         toast.success(`You received ${bonusCoins} Coins and ${bonusXp} XP!`);
         bonusGranted = true;
@@ -156,7 +159,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setLoadingProfile(true);
     const { data, error } = await supabase
       .from('profiles')
-      .select('id, first_name, last_name, avatar_url, experience, currency, achievements, is_admin, last_login_at, login_streak, max_login_streak') // Select new fields
+      .select('id, first_name, last_name, avatar_url, experience, total_experience, currency, achievements, is_admin, last_login_at, login_streak, max_login_streak') // Select new fields
       .eq('id', userId)
       .single();
 
@@ -171,9 +174,10 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Adventure Seeker",
         email: user?.email || "unknown@example.com", // Email comes from auth.user
         avatarUrl: data.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(data.id)}`,
-        experience: data.experience || 0,
+        experience: data.experience || 0, // Spendable XP
+        totalExperience: data.total_experience || 0, // Total XP
         currency: data.currency || 0, // Set currency
-        level: calculateLevel(data.experience || 0),
+        level: calculateLevel(data.total_experience || 0), // Calculate level from total XP
         achievements: data.achievements || [],
         isAdmin: data.is_admin || false, // Set isAdmin
         lastLoginAt: data.last_login_at, // Set new fields
@@ -192,6 +196,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         last_name: "Seeker",
         avatar_url: `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(userId)}`,
         experience: 0,
+        total_experience: 0, // Default total experience for new profile
         currency: 0, // Default currency for new profile
         achievements: [],
         is_admin: false, // Default to not admin
@@ -216,8 +221,9 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
           email: user?.email || "unknown@example.com",
           avatarUrl: newProfile.avatar_url,
           experience: newProfile.experience,
+          totalExperience: newProfile.total_experience, // Set total experience for new profile
           currency: newProfile.currency, // Set currency for new profile
-          level: calculateLevel(newProfile.experience),
+          level: calculateLevel(newProfile.total_experience), // Calculate level from total XP
           achievements: newProfile.achievements,
           isAdmin: newProfile.is_admin,
           lastLoginAt: newProfile.last_login_at, // Set new fields
@@ -250,19 +256,20 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const addExperience = useCallback(async (xp: number) => {
     if (!profile || !user) return;
 
-    const newExperience = profile.experience + xp;
-    const newLevel = calculateLevel(newExperience);
+    const newExperience = profile.experience + xp; // Spendable XP
+    const newTotalExperience = profile.totalExperience + xp; // Total XP for level
+    const newLevel = calculateLevel(newTotalExperience);
 
     const { error } = await supabase
       .from('profiles')
-      .update({ experience: newExperience })
+      .update({ experience: newExperience, total_experience: newTotalExperience })
       .eq('id', user.id);
 
     if (error) {
       console.error("Error adding experience:", error);
       toast.error("Failed to update experience.");
     } else {
-      setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel } : null);
+      setProfile((prev) => prev ? { ...prev, experience: newExperience, totalExperience: newTotalExperience, level: newLevel } : null);
       if (newLevel > profile.level) {
         toast.success(`Level Up! You are now Level ${newLevel}!`);
       } else {
@@ -284,10 +291,9 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return false;
     }
 
-    const newExperience = profile.experience - xp;
-    const newLevel = calculateLevel(newExperience);
+    const newExperience = profile.experience - xp; // Only deduct from spendable XP
 
-    console.log(`Attempting to deduct ${xp} XP. New experience: ${newExperience}`);
+    console.log(`Attempting to deduct ${xp} XP. New spendable experience: ${newExperience}`);
 
     const { error } = await supabase
       .from('profiles')
@@ -299,9 +305,9 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       toast.error("Failed to deduct XP.");
       return false;
     } else {
-      setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel } : null);
+      setProfile((prev) => prev ? { ...prev, experience: newExperience } : null); // Level remains based on totalExperience
       toast.success(`-${xp} XP spent.`);
-      console.log(`Successfully deducted ${xp} XP. New profile experience: ${newExperience}`);
+      console.log(`Successfully deducted ${xp} XP. New profile spendable experience: ${newExperience}`);
       return true;
     }
   }, [profile, user]);
@@ -611,7 +617,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // Grant XP and achievement to the target user
       const { data: targetProfile, error: fetchProfileError } = await supabase
         .from('profiles')
-        .select('experience, currency, achievements') // Select currency
+        .select('experience, total_experience, currency, achievements') // Select currency and total_experience
         .eq('id', targetUserId)
         .single();
 
@@ -621,9 +627,10 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return;
       }
 
-      const newExperience = targetProfile.experience + xpReward;
+      const newExperience = targetProfile.experience + xpReward; // Spendable XP
+      const newTotalExperience = targetProfile.total_experience + xpReward; // Total XP for level
       const newCurrency = targetProfile.currency + 50; // Example: 50 coins per quest completion
-      const newLevel = calculateLevel(newExperience);
+      const newLevel = calculateLevel(newTotalExperience); // Calculate level from total XP
       const newAchievement: Achievement = {
         name: `Completed: ${questTitle}`,
         iconName: "Trophy",
@@ -637,6 +644,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         .from('profiles')
         .update({
           experience: newExperience,
+          total_experience: newTotalExperience, // Update total experience
           currency: newCurrency, // Update currency
           achievements: updatedAchievements,
         })
@@ -649,7 +657,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         toast.success(`Quest "${questTitle}" approved! ${targetUserId} received ${xpReward} XP and 50 Coins.`);
         // Optionally update the current user's profile if it's the target user
         if (user?.id === targetUserId) {
-          setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel, achievements: updatedAchievements, currency: newCurrency } : null);
+          setProfile((prev) => prev ? { ...prev, experience: newExperience, totalExperience: newTotalExperience, level: newLevel, achievements: updatedAchievements, currency: newCurrency } : null);
         }
       }
 
@@ -697,7 +705,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       // 2. Grant rewards based on rewardType
       const { data: targetProfile, error: fetchProfileError } = await supabase
         .from('profiles')
-        .select('experience, currency, achievements') // Select currency
+        .select('experience, total_experience, currency, achievements') // Select currency and total_experience
         .eq('id', targetUserId)
         .single();
 
@@ -707,12 +715,14 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         return;
       }
 
-      let newExperience = targetProfile.experience;
+      let newExperience = targetProfile.experience; // Spendable XP
+      let newTotalExperience = targetProfile.total_experience; // Total XP for level
       let newCurrency = targetProfile.currency; // Initialize with current currency
       const updatedAchievements = [...targetProfile.achievements];
 
       if (rewardType === "Team XP") {
         newExperience += xpAmount; // Add XP to individual for now, or to team directly
+        newTotalExperience += xpAmount; // Add to total XP
         newCurrency += 25; // Example: 25 coins for Team XP challenge
         // If we had a direct way to add to team XP from here, we'd use it.
         // For now, we'll assume 'Team XP' means individual XP contribution or a separate admin action.
@@ -754,12 +764,13 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       }
       // Add logic for other reward types (Rare Item, Title)
 
-      const newLevel = calculateLevel(newExperience);
+      const newLevel = calculateLevel(newTotalExperience); // Calculate level from total XP
 
       const { error: rewardError } = await supabase
         .from('profiles')
         .update({
           experience: newExperience,
+          total_experience: newTotalExperience, // Update total experience
           currency: newCurrency, // Update currency
           achievements: updatedAchievements,
         })
@@ -775,7 +786,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         }
         // Update current user's profile if it's the target user
         if (user?.id === targetUserId) {
-          setProfile((prev) => prev ? { ...prev, experience: newExperience, level: newLevel, achievements: updatedAchievements, currency: newCurrency } : null);
+          setProfile((prev) => prev ? { ...prev, experience: newExperience, totalExperience: newTotalExperience, level: newLevel, achievements: updatedAchievements, currency: newCurrency } : null);
         }
       }
 

@@ -81,14 +81,20 @@ const ProfilePage = () => {
                   <p className="text-sm text-muted-foreground">Level</p>
                 </div>
                 <div className="text-center">
-                  <p className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{profile.experience} XP</p>
-                  <p className="text-sm text-muted-foreground">Experience</p>
+                  <p className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{profile.totalExperience} XP</p>
+                  <p className="text-sm text-muted-foreground">Total Experience</p>
                 </div>
                 <div className="text-center">
                   <p className="text-2xl font-semibold text-gray-800 dark:text-gray-200 flex items-center justify-center gap-1">
                     <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" /> {profile.currency}
                   </p>
                   <p className="text-sm text-muted-foreground">Coins</p>
+                </div>
+              </div>
+              <div className="flex justify-center gap-8">
+                <div className="text-center">
+                  <p className="text-2xl font-semibold text-gray-800 dark:text-gray-200">{profile.experience} XP</p>
+                  <p className="text-sm text-muted-foreground">Spendable Experience</p>
                 </div>
               </div>
 

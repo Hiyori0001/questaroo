@@ -67,7 +67,7 @@ const MiniGames = () => {
       toast.error("You must be logged in to unlock games.");
       return;
     }
-    if (profile.experience < xpCost) {
+    if (profile.experience < xpCost) { // Check against spendable XP
       toast.error(`Not enough XP to unlock this game. You need ${xpCost} XP.`);
       return;
     }

@@ -12,7 +12,7 @@ import { Quest } from "@/data/quests";
 import { useAllQuests } from "@/contexts/AllQuestsContext"; // Updated import
 import { LatLngExpression } from "leaflet"; // Import LatLngExpression
 import ClientOnly from "@/components/ClientOnly"; // Import ClientOnly
-import { haversineDistance } from "@/utils/location"; // Import haversineDistance
+import { haversineDistance } from "@/utils/location";
 
 // Dynamically import QuestMap
 const QuestMap = React.lazy(() => import("@/components/QuestMap"));

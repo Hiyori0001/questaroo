@@ -127,7 +127,7 @@ const QuestDetailsPage = () => {
 
         if (profile) {
           const requiredXp = getRequiredXp(foundQuest.difficulty);
-          setIsQuestUnlocked(profile.experience >= requiredXp);
+          setIsQuestUnlocked(profile.totalExperience >= requiredXp); // Use totalExperience for unlocking
         }
 
         if (user) {
@@ -216,7 +216,7 @@ const QuestDetailsPage = () => {
       toast.error("You cannot unlock a quest you created yourself.");
       return;
     }
-    if (profile.experience < requiredXpToUnlock) {
+    if (profile.experience < requiredXpToUnlock) { // Check against spendable XP
       toast.error("Not enough XP to unlock this quest.");
       return;
     }
