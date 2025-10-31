@@ -56,14 +56,14 @@ const SkyrocketAnimation: React.FC<SkyrocketAnimationProps> = ({ startX, startY,
     <div
       ref={rocketRef}
       className={cn(
-        "fixed z-[9998] text-purple-500 dark:text-purple-400",
-        "transition-opacity duration-100"
+        "fixed z-[9998] text-purple-500 dark:text-purple-400"
+        // Removed "transition-opacity duration-100" to ensure instant disappearance
       )}
       style={{
         left: 0, // Positioned by transform
         top: 0,
         transform: `translate(-50%, -50%) translate(${startX}px, ${startY}px)`,
-        opacity: 0, // Start invisible, fade in with animation
+        // Removed initial opacity: 0, relying on animation keyframes for visibility
       }}
     >
       <Rocket className="h-12 w-12" />

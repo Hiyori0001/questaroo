@@ -146,8 +146,9 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 '--sparkle-rotation-start': `${s.rotationStart}deg`,
                 '--sparkle-rotation-end': `${s.rotationEnd}deg`,
                 animation: `confetti-fall ${s.animationDuration}s ease-out forwards`,
-                filter: 'blur(0.2px)',
-                boxShadow: `0 0 ${s.size / 2}px ${s.color}`,
+                // Conditionally apply filter and boxShadow for non-explosion types
+                filter: s.type === 'explosion' ? 'none' : 'blur(0.2px)',
+                boxShadow: s.type === 'explosion' ? 'none' : `0 0 ${s.size / 2}px ${s.color}`,
                 borderRadius: s.shape === 'circle' ? '50%' : '0%', // Circle or square
                 clipPath: s.shape === 'star' ? 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' : 'none', // Star shape
                 transform: `translate(-50%, -50%) rotate(${s.rotationStart}deg)`,
