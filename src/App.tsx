@@ -22,7 +22,7 @@ import QuestLogPage from "./pages/QuestLogPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ShopPage from "./pages/ShopPage";
 import CuteBackground from "./components/CuteBackground";
-import { SparkleProvider } from "./contexts/SparkleContext"; // Import SparkleProvider
+import { SparkleProvider } from "@/contexts/SparkleContext"; // Changed import path to use alias
 
 const queryClient = new QueryClient();
 
