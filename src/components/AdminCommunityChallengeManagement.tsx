@@ -322,191 +322,194 @@ const AdminCommunityChallengeManagement = () => {
             </DialogHeader>
             <Form {...form}>
               <form onSubmit={form.handleSubmit(handleCreateOrUpdateChallenge)} className="space-y-4 py-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-800 dark:text-gray-200">Challenge Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., Spring Scavenger Hunt" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-800 dark:text-gray-200">Description</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Describe the challenge and its objectives." className="resize-y min-h-[80px]" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Scrollable area for form fields */}
+                <div className="max-h-[60vh] overflow-y-auto pr-4">
                   <FormField
                     control={form.control}
-                    name="start_date"
+                    name="name"
                     render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="text-gray-800 dark:text-gray-200">Start Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarDays className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                      <FormItem>
+                        <FormLabel className="text-gray-800 dark:text-gray-200">Challenge Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Spring Scavenger Hunt" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   <FormField
                     control={form.control}
-                    name="end_date"
+                    name="description"
                     render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="text-gray-800 dark:text-gray-200">End Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
-                                )}
-                              >
-                                {field.value ? (
-                                  format(field.value, "PPP")
-                                ) : (
-                                  <span>Pick a date</span>
-                                )}
-                                <CalendarDays className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
+                      <FormItem>
+                        <FormLabel className="text-gray-800 dark:text-gray-200">Description</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Describe the challenge and its objectives." className="resize-y min-h-[80px]" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
-                <FormField
-                  control={form.control}
-                  name="reward_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-800 dark:text-gray-200">Reward Type</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a reward type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Team XP">Team XP</SelectItem>
-                          <SelectItem value="Exclusive Badge">Exclusive Badge</SelectItem>
-                          <SelectItem value="Rare Item">Rare Item</SelectItem>
-                          <SelectItem value="Title">Title</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-800 dark:text-gray-200">Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="upcoming">Upcoming</SelectItem>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="completion_criteria"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-800 dark:text-gray-200">Completion Criteria</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="e.g., Complete 3 'Easy' quests in Central Park, or achieve 500 clicks in the Clicker Challenge." className="resize-y min-h-[80px]" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {/* New: Creator Reference Image Upload */}
-                <FormItem>
-                  <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
-                    <Upload className="h-4 w-4" /> Reference Image (Optional)
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleReferenceFileChange}
-                      disabled={isUploadingReference}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="start_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel className="text-gray-800 dark:text-gray-200">Start Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarDays className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </FormControl>
-                  <FormDescription>
-                    Upload an image to serve as a visual reference for this challenge.
-                  </FormDescription>
-                  <FormMessage />
-                  {(referencePreviewUrl || editingChallenge?.creator_reference_image_url) && (
-                    <div className="mt-2 flex justify-center">
-                      <img src={referencePreviewUrl || editingChallenge?.creator_reference_image_url || ''} alt="Reference Preview" className="max-w-full h-48 object-contain rounded-md border dark:border-gray-700" />
-                    </div>
-                  )}
-                </FormItem>
+                    <FormField
+                      control={form.control}
+                      name="end_date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel className="text-gray-800 dark:text-gray-200">End Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarDays className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="reward_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-800 dark:text-gray-200">Reward Type</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a reward type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Team XP">Team XP</SelectItem>
+                            <SelectItem value="Exclusive Badge">Exclusive Badge</SelectItem>
+                            <SelectItem value="Rare Item">Rare Item</SelectItem>
+                            <SelectItem value="Title">Title</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-800 dark:text-gray-200">Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="upcoming">Upcoming</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="completion_criteria"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-gray-800 dark:text-gray-200">Completion Criteria</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="e.g., Complete 3 'Easy' quests in Central Park, or achieve 500 clicks in the Clicker Challenge." className="resize-y min-h-[80px]" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {/* New: Creator Reference Image Upload */}
+                  <FormItem>
+                    <FormLabel className="text-gray-800 dark:text-gray-200 flex items-center gap-2">
+                      <Upload className="h-4 w-4" /> Reference Image (Optional)
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleReferenceFileChange}
+                        disabled={isUploadingReference}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Upload an image to serve as a visual reference for this challenge.
+                    </FormDescription>
+                    <FormMessage />
+                    {(referencePreviewUrl || editingChallenge?.creator_reference_image_url) && (
+                      <div className="mt-2 flex justify-center">
+                        <img src={referencePreviewUrl || editingChallenge?.creator_reference_image_url || ''} alt="Reference Preview" className="max-w-full h-48 object-contain rounded-md border dark:border-gray-700" />
+                      </div>
+                    )}
+                  </FormItem>
+                </div>
                 <div className="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4"> {/* Changed to flex-col-reverse on mobile */}
                   <Button type="button" variant="outline" onClick={() => setIsFormDialogOpen(false)} disabled={isUploadingReference} className="w-full sm:w-auto">
                     Cancel
