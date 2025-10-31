@@ -23,20 +23,23 @@ const SkyrocketAnimation: React.FC<SkyrocketAnimationProps> = ({ startX, startY,
       const peakY = startY - (window.innerHeight * 0.6); // Fly up 60% of screen height
       const peakX = startX + (Math.random() - 0.5) * 50; // Slight horizontal drift
 
-      rocketRef.current?.animate(
-        [
-          { transform: `translate(-50%, -50%) translate(${startX}px, ${startY}px) rotate(0deg)`, opacity: 1 },
-          { transform: `translate(-50%, -50%) translate(${peakX}px, ${peakY}px) rotate(-15deg)`, opacity: 1 },
-        ],
-        {
-          duration: animationDuration,
-          easing: 'ease-out',
-          fill: 'forwards',
-        }
-      ).onfinish = () => {
-        setPosition({ x: peakX, y: peakY });
-        setPhase('boom');
-      };
+      if (rocketRef.current) {
+        const animation = rocketRef.current.animate(
+          [
+            { transform: `translate(-50%, -50%) translate(${startX}px, ${startY}px) rotate(0deg)`, opacity: 1 },
+            { transform: `translate(-50%, -50%) translate(${peakX}px, ${peakY}px) rotate(-15deg)`, opacity: 1 },
+          ],
+          {
+            duration: animationDuration,
+            easing: 'ease-out',
+            fill: 'forwards',
+          }
+        );
+        animation.onfinish = () => {
+          setPosition({ x: peakX, y: peakY });
+          setPhase('boom');
+        };
+      }
     } else if (phase === 'boom') {
       onBoom(position.x, position.y); // Trigger global burst at rocket's peak
       setPhase('done');
