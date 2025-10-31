@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Robot, MessageSquareText } from "lucide-react";
+import { Send, MessageSquareText } from "lucide-react"; // Removed Robot, kept MessageSquareText
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
@@ -129,7 +129,7 @@ const Chatbot: React.FC = () => {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-[425px] h-[80vh] flex flex-col bg-white dark:bg-gray-800">
           <DialogHeader className="flex flex-col items-center">
-            <Robot className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-2" />
+            <MessageSquareText className="h-12 w-12 text-blue-600 dark:text-blue-400 mb-2" /> {/* Changed to MessageSquareText */}
             <DialogTitle className="text-2xl font-bold text-gray-900 dark:text-white font-heading">
               Questaroo AI Chatbot
             </DialogTitle>
