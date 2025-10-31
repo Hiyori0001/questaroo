@@ -94,9 +94,9 @@ const AdminQuestManagement = () => {
         .eq('verification_status', 'pending');
 
       if (pendingError) {
+        console.error("Error fetching pending submissions:", pendingError);
         throw pendingError;
       }
-      console.log("Raw pending submissions data from Supabase:", pendingData); // Log here
 
       const formattedPending: PendingImageSubmission[] = pendingData
         .filter(p => p.completion_image_url && (p.user_quests || p.predefined_quests)) // Ensure image and quest details exist from either table
@@ -119,7 +119,6 @@ const AdminQuestManagement = () => {
             creator_reference_image_url: questDetails?.creator_reference_image_url || null,
           };
         });
-      console.log("Formatted pending submissions for state:", formattedPending); // Log here
       setPendingSubmissions(formattedPending);
 
     } catch (err: any) {

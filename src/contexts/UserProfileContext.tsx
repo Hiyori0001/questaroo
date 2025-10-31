@@ -172,7 +172,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       const fetchedProfile: UserProfile = {
         id: data.id,
         name: `${data.first_name || ''} ${data.last_name || ''}`.trim() || "Adventure Seeker",
-        email: user?.email || "unknown@example.com", // Email comes from auth.user
+        email: user?.email || "unknown@example.example.com", // Email comes from auth.user
         avatarUrl: data.avatar_url || `https://api.dicebear.com/7.x/lorelei/svg?seed=${encodeURIComponent(data.id)}`,
         experience: data.experience || 0, // Spendable XP
         totalExperience: data.total_experience || 0, // Total XP
@@ -218,7 +218,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         const createdProfile: UserProfile = {
           id: newProfile.id,
           name: `${newProfile.first_name || ''} ${newProfile.last_name || ''}`.trim(),
-          email: user?.email || "unknown@example.com",
+          email: user?.email || "unknown@example.example.com",
           avatarUrl: newProfile.avatar_url,
           experience: newProfile.experience,
           totalExperience: newProfile.total_experience, // Set total experience for new profile
@@ -603,7 +603,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (!publicUrlData?.publicUrl) {
       throw new Error("Failed to get public URL for uploaded image.");
     }
-    console.log("Quest Completion Image Public URL:", publicUrlData.publicUrl); // Log here
 
     const filterColumn = isPredefined ? 'predefined_quest_id' : 'user_quest_id';
 
@@ -618,8 +617,6 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       .eq('user_id', user.id)
       .eq(filterColumn, questId);
     
-    console.log("User quest progress update error (if any):", updateError); // Log here
-
     if (updateError) {
       throw updateError;
     }
