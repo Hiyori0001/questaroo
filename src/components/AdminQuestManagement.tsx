@@ -171,9 +171,16 @@ const AdminQuestManagement = () => {
         submission.team_id,
         submission.is_predefined
       );
-      // Re-fetch submissions immediately after verification to update the list
-      await fetchQuestsAndSubmissions();
+
+      // Optimistically remove the submission from the UI
+      setPendingSubmissions(prev => prev.filter(item => item.id !== submission.id));
       toast.success(`Quest "${submission.quest_title}" ${status} successfully!`);
+
+      // Re-fetch submissions after a short delay to ensure data consistency from DB
+      setTimeout(() => {
+        fetchQuestsAndSubmissions();
+      }, 500); // 500ms delay
+
     } catch (err: any) {
       console.error("Error during verification:", err);
       toast.error("Failed to process verification.");

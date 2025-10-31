@@ -158,7 +158,7 @@ const QuestDetailsPage = () => {
           filter: `user_id=eq.${user.id}&${filterColumn}=eq.${quest.id}`
         },
         (payload) => {
-          console.log("Real-time update received for user quest progress:", payload.new);
+          // console.log("Real-time update received for user quest progress:", payload.new);
           setUserQuestProgress(payload.new as UserQuestProgress);
           if (payload.new.status === 'completed') {
             toast.success(`Your quest "${quest.title}" has been approved!`);
