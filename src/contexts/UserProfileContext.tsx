@@ -69,7 +69,7 @@ interface UserProfileContextType {
   startQuest: (questId: string, isPredefined: boolean) => Promise<void>; // Modified: Added isPredefined
   completeQuest: (questId: string, isPredefined: boolean) => Promise<void>; // Modified: Added isPredefined
   submitImageForVerification: (questId: string, imageFile: File, isPredefined: boolean) => Promise<void>; // Modified: Added isPredefined
-  verifyQuestCompletion: (userId: string, questId: string, status: 'approved' | 'rejected', xpReward: number, questTitle: string, teamId: string | null, isPredefined: boolean) => Promise<void>; // Modified: Added isPredefined
+  verifyQuestCompletion: (userId: string, questId: string, status: 'approved' | 'rejected', xpReward: number, questTitle: string, teamId: string | null, isPrepredefined: boolean) => Promise<void>; // Modified: Added isPredefined
   grantChallengeReward: (userId: string, challengeId: string, status: 'completed' | 'failed', rewardType: string, xpAmount: number, challengeName: string, teamId: string | null) => Promise<void>; // New: Grant challenge rewards
   submitChallengeCompletion: (challengeId: string, details: string, imageFile: File | null) => Promise<void>; // New: Submit challenge completion
 }
@@ -603,6 +603,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (!publicUrlData?.publicUrl) {
       throw new Error("Failed to get public URL for uploaded image.");
     }
+    console.log("Quest Completion Image Public URL:", publicUrlData.publicUrl); // Log here
 
     const filterColumn = isPredefined ? 'predefined_quest_id' : 'user_quest_id';
 
@@ -616,6 +617,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       })
       .eq('user_id', user.id)
       .eq(filterColumn, questId);
+    
+    console.log("User quest progress update error (if any):", updateError); // Log here
 
     if (updateError) {
       throw updateError;
