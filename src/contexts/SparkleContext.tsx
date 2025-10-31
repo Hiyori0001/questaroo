@@ -52,7 +52,7 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
         shape = 'square'; // Simple square for lightning
         break;
       case 'explosion':
-        size = Math.random() * 5 + 5; // Larger: 5-10 pixels
+        size = Math.random() * 10 + 10; // Larger: 10-20 pixels (increased from 5-10)
         color = baseColors[Math.floor(Math.random() * baseColors.length)];
         animationDuration = Math.random() * 2 + 3; // Longer duration: 3-5s (changed from 2-4s)
         finalOffsetX = (Math.random() - 0.5) * 200; // Wide spread
