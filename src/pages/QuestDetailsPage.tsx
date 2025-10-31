@@ -4,19 +4,19 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX, LocateFixed, Compass, Camera, Hourglass, XCircle } from "lucide-react"; // Added Hourglass, XCircle
+import { MapPin, Award, Zap, Clock, ArrowLeft, CheckCircle2, HelpCircle, QrCode, Trash2, Lock, UserX, LocateFixed, Compass, Camera, Hourglass, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Quest } from "@/data/quests"; // Only import Quest interface
+import { Quest } from "@/data/quests";
 import { useUserProfile, XP_THRESHOLDS } from "@/contexts/UserProfileContext";
 import { useAuth } from "@/contexts/AuthContext";
 import QuestQrScanner from "@/components/QuestQrScanner";
 import QuestImageUploader from "@/components/QuestImageUploader";
-import { useAllQuests } from "@/contexts/AllQuestsContext"; // Updated import
+import { useAllQuests } from "@/contexts/AllQuestsContext";
 import { useTeams } from "@/contexts/TeamContext";
 import { haversineDistance } from "@/utils/location";
-import { supabase } from "@/lib/supabase"; // Import supabase client
+import { supabase } from "@/lib/supabase";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,19 +37,19 @@ const HEAD_ADMIN_ID = "6187dac6-1eac-4d78-ab27-61e31c334a05";
 const getXpForDifficulty = (difficulty: Quest["difficulty"]) => {
   switch (difficulty) {
     case "Easy":
-      return 100; // Example XP reward for Easy
+      return 100;
     case "Medium":
-      return 250; // Example XP reward for Medium
+      return 250;
     case "Hard":
-      return 500; // Example XP reward for Hard
+      return 500;
     default:
       return 0;
   }
 };
 
 interface UserQuestProgress {
-  user_quest_id: string | null; // Changed from quest_id
-  predefined_quest_id: string | null; // New
+  user_quest_id: string | null;
+  predefined_quest_id: string | null;
   status: 'started' | 'completed' | 'failed';
   verification_status: 'pending' | 'approved' | 'rejected' | 'not_applicable';
   completion_image_url: string | null;
@@ -62,7 +62,7 @@ const QuestDetailsPage = () => {
   const navigate = useNavigate();
   const { user, loading: loadingAuth } = useAuth();
   const { profile, loadingProfile, addExperience, deductExperience, addAchievement, startQuest, completeQuest, submitImageForVerification } = useUserProfile();
-  const { allQuests, loadingAllQuests, removeQuest } = useAllQuests(); // Updated hook and variable
+  const { allQuests, loadingAllQuests, removeQuest } = useAllQuests();
   const { userTeam, addTeamScore } = useTeams();
 
   const [quest, setQuest] = useState<Quest | null>(null);
@@ -102,7 +102,7 @@ const QuestDetailsPage = () => {
       .eq(filterColumn, questId)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+    if (error && error.code !== 'PGRST116') {
       console.error("Error fetching user quest progress:", error);
       setUserQuestProgress(null);
     } else if (data) {
@@ -114,12 +114,11 @@ const QuestDetailsPage = () => {
 
   useEffect(() => {
     if (id) {
-      // Find the quest from the combined list of all quests
       const foundQuest = allQuests.find((q) => q.id === id);
 
       if (foundQuest) {
         setQuest(foundQuest);
-        setIsUserCreatedQuest(!foundQuest.is_predefined); // Determine if it's user-created
+        setIsUserCreatedQuest(!foundQuest.is_predefined);
 
         if (user && foundQuest.user_id) {
           setIsCreator(foundQuest.user_id === user.id && !canHeadAdminBypassCreatorRestriction);
@@ -129,7 +128,7 @@ const QuestDetailsPage = () => {
 
         if (profile) {
           const requiredXp = getRequiredXp(foundQuest.difficulty);
-          setIsQuestUnlocked(profile.totalExperience >= requiredXp); // Use totalExperience for unlocking
+          setIsQuestUnlocked(profile.totalExperience >= requiredXp);
         }
 
         if (user) {
@@ -140,7 +139,7 @@ const QuestDetailsPage = () => {
         navigate("/location-quests");
       }
     }
-  }, [id, navigate, profile, user, allQuests, canHeadAdminBypassCreatorRestriction, fetchUserQuestProgress]); // Updated dependency
+  }, [id, navigate, profile, user, allQuests, canHeadAdminBypassCreatorRestriction, fetchUserQuestProgress]);
 
   const questStarted = userQuestProgress?.status === 'started';
   const questCompleted = userQuestProgress?.status === 'completed';
@@ -148,7 +147,7 @@ const QuestDetailsPage = () => {
   const isPendingVerification = userQuestProgress?.verification_status === 'pending';
   const isRejectedVerification = userQuestProgress?.verification_status === 'rejected';
 
-  if (loadingAuth || loadingProfile || loadingAllQuests || !quest) { // Updated loading state
+  if (loadingAuth || loadingProfile || loadingAllQuests || !quest) {
     return (
       <div className="flex items-center justify-center min-h-[calc(100vh-64px)] bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 flex-grow">
         <p className="text-lg text-gray-500 dark:text-gray-400">Loading quest details...</p>
@@ -160,21 +159,18 @@ const QuestDetailsPage = () => {
   const requiredXpToUnlock = getRequiredXp(quest.difficulty);
 
   const completeQuestLogic = async () => {
-    // This function is now only for non-image verification quests
-    // For image quests, completion is handled by verifyQuestCompletion in UserProfileContext
     await addExperience(xpForDifficulty);
     await addAchievement({
       name: `Completed: ${quest.title}`,
       iconName: "Trophy",
       color: "bg-green-500",
     });
-    await completeQuest(quest.id, quest.is_predefined || false); // Pass is_predefined
+    await completeQuest(quest.id, quest.is_predefined || false);
 
     if (userTeam) {
       await addTeamScore(userTeam.id, xpForDifficulty);
     }
 
-    // Re-fetch progress to update UI
     if (user) fetchUserQuestProgress(user.id, quest.id, quest.is_predefined || false);
 
     setShowCompletionInput(false);
@@ -198,8 +194,7 @@ const QuestDetailsPage = () => {
       toast.error(`You need ${requiredXpToUnlock} XP to start this quest.`);
       return;
     }
-    await startQuest(quest.id, quest.is_predefined || false); // Pass is_predefined
-    // Re-fetch progress to update UI
+    await startQuest(quest.id, quest.is_predefined || false);
     if (user) fetchUserQuestProgress(user.id, quest.id, quest.is_predefined || false);
     setShowCompletionInput(false);
     setShowQrScanner(false);
@@ -218,7 +213,7 @@ const QuestDetailsPage = () => {
       toast.error("You cannot unlock a quest you created yourself.");
       return;
     }
-    if (profile.experience < requiredXpToUnlock) { // Check against spendable XP
+    if (profile.experience < requiredXpToUnlock) {
       toast.error("Not enough XP to unlock this quest.");
       return;
     }
@@ -250,8 +245,7 @@ const QuestDetailsPage = () => {
     }
     if (isRejectedVerification) {
       toast.info("Your previous submission was rejected. Please try again!");
-      // Optionally, allow re-submission by resetting status or showing uploader again
-      setShowImageUploader(true); // Allow re-upload
+      setShowImageUploader(true);
       return;
     }
 
@@ -286,7 +280,6 @@ const QuestDetailsPage = () => {
   };
 
   const handleImageUploadSubmit = async () => {
-    // This function is now just a wrapper to trigger the uploader dialog
     setShowImageUploader(true);
   };
 
@@ -339,7 +332,7 @@ const QuestDetailsPage = () => {
   };
 
   const handleDeleteQuest = () => {
-    if (quest && !quest.is_predefined) { // Only allow deleting user-created quests
+    if (quest && !quest.is_predefined) {
       removeQuest(quest.id);
       navigate("/location-quests");
     } else if (quest?.is_predefined) {
@@ -352,220 +345,222 @@ const QuestDetailsPage = () => {
   const isLocationCompletionMethod = quest.latitude !== undefined && quest.longitude !== undefined && quest.verificationRadius !== undefined;
 
   return (
-    <div className="flex flex-col items-center bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
-      <Card className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6">
-        <CardHeader className="pb-4">
-          <div className="flex justify-between items-center mb-4">
-            <Button
-              variant="ghost"
-              onClick={() => navigate("/location-quests")}
-              className="self-start text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" /> Back to Quests
-            </Button>
-            {canDeleteQuest && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
-                    <Trash2 className="h-4 w-4 mr-2" /> Delete Quest
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-white dark:bg-gray-800">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle className="text-gray-900 dark:text-white font-heading">Are you absolutely sure?</AlertDialogTitle>
-                    <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
-                      This action cannot be undone. This will permanently delete your quest.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteQuest} className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">Delete</AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-          </div>
-          <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2 font-heading">
-            <MapPin className="h-7 w-7 text-green-600 dark:text-green-400" />
-            {quest.title}
-          </CardTitle>
-          <CardDescription className="text-lg text-gray-700 dark:text-gray-300 flex items-center gap-2">
-            <MapPin className="h-5 w-5" /> {quest.location}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6 mt-4">
-          <p className="text-lg text-gray-800 dark:text-gray-200 leading-relaxed">
-            {quest.description}
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-            <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
-              <Zap className="h-4 w-4" /> Difficulty: {quest.difficulty}
-            </Badge>
-            <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300">
-              <Award className="h-4 w-4" /> Reward: {quest.reward}
-            </Badge>
-            <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-              <Clock className="h-4 w-4" /> Time Estimate: {quest.timeEstimate}
-            </Badge>
-            {quest.timeLimit && (
-              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
-                <Clock className="h-4 w-4" /> Time Limit: {quest.timeLimit}
-              </Badge>
-            )}
-            {quest.difficulty !== "Easy" && !isQuestUnlocked && (
-              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-200">
-                <Lock className="h-4 w-4" /> Locked: {requiredXpToUnlock} XP
-              </Badge>
-            )}
-            {isLocationCompletionMethod && (
-              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
-                <LocateFixed className="h-4 w-4" /> Location Verification ({quest.verificationRadius}m)
-              </Badge>
-            )}
-            {quest.completionImagePrompt && (
-              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
-                <Camera className="h-4 w-4" /> Image Upload
-              </Badge>
-            )}
-          </div>
-
-          {!user && (
-            <p className="text-sm text-red-500 dark:text-red-400 mt-2">
-              You must be logged in to start or complete quests.
-            </p>
-          )}
-
-          {user && isCreator && !canHeadAdminBypassCreatorRestriction && (
-            <p className="text-lg font-semibold text-red-600 dark:text-red-400 mt-4 flex items-center justify-center gap-2">
-              <UserX className="h-5 w-5" /> You created this quest and cannot complete it yourself.
-            </p>
-          )}
-
-          {user && isQuestUnlocked && !questStarted && !questCompleted && !questFailed && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
-            <Button
-              onClick={handleStartQuest}
-              className="w-full mt-6 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-lg py-3"
-              disabled={!user || (isCreator && !canHeadAdminBypassCreatorRestriction)}
-            >
-              Start Quest
-            </Button>
-          )}
-
-          {questStarted && !questCompleted && !questFailed && !showCompletionInput && !showQrScanner && !showImageUploader && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
-            <>
-              {isPendingVerification ? (
-                <Button
-                  className="w-full mt-6 bg-yellow-500 dark:bg-yellow-700 text-white text-lg py-3 cursor-not-allowed"
-                  disabled
-                >
-                  <Hourglass className="h-5 w-5 mr-2" /> Awaiting Review...
-                </Button>
-              ) : isRejectedVerification ? (
-                <Button
-                  onClick={handleAttemptCompletion} // Allow re-attempt
-                  className="w-full mt-6 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-lg py-3"
-                >
-                  <XCircle className="h-5 w-5 mr-2" /> Submission Rejected. Re-attempt?
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleAttemptCompletion}
-                  className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
-                  disabled={(isCreator && !canHeadAdminBypassCreatorRestriction) || locationVerificationLoading}
-                >
-                  {quest.qrCode ? (
-                    <>
-                      <QrCode className="h-5 w-5 mr-2" /> Scan QR Code to Complete
-                    </>
-                  ) : quest.completionImagePrompt ? (
-                    <>
-                      <Camera className="h-5 w-5 mr-2" /> Upload Image to Complete
-                    </>
-                  ) : isLocationCompletionMethod ? (
-                    <>
-                      {locationVerificationLoading ? (
-                        <Compass className="h-5 w-5 mr-2 animate-spin" />
-                      ) : (
-                        <LocateFixed className="h-5 w-5 mr-2" />
-                      )}
-                      {locationVerificationLoading ? "Verifying Location..." : "Verify Location to Complete"}
-                    </>
-                  ) : (
-                    <>
-                      <HelpCircle className="h-5 w-5 mr-2" /> Ready to Complete?
-                    </>
-                  )}
-                </Button>
-              )}
-            </>
-          )}
-
-          {questStarted && !questCompleted && !questFailed && showCompletionInput && quest.completionTask && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
-            <div className="mt-6 space-y-4">
-              <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                Completion Task: {quest.completionTask.question}
-              </p>
-              <Input
-                type="text"
-                placeholder="Enter your answer here"
-                value={completionAnswer}
-                onChange={(e) => setCompletionAnswer(e.target.value)}
-                className="text-center text-lg"
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    handleQuestionAnswerSubmit();
-                  }
-                }}
-              />
+    <React.Fragment>
+      <div className="flex flex-col items-center bg-gradient-to-br from-green-50 to-teal-100 dark:from-gray-800 dark:to-gray-900 p-4 sm:p-8">
+        <Card className="w-full max-w-3xl mx-auto bg-white dark:bg-gray-700 shadow-xl rounded-lg p-6">
+          <CardHeader className="pb-4">
+            <div className="flex justify-between items-center mb-4">
               <Button
-                onClick={handleQuestionAnswerSubmit}
-                className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-lg py-3"
-                disabled={completionAnswer.trim() === "" || (isCreator && !canHeadAdminBypassCreatorRestriction)}
+                variant="ghost"
+                onClick={() => navigate("/location-quests")}
+                className="self-start text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600"
               >
-                <CheckCircle2 className="h-5 w-5 mr-2" /> Submit Answer & Complete Quest
+                <ArrowLeft className="h-4 w-4 mr-2" /> Back to Quests
               </Button>
+              {canDeleteQuest && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm" className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">
+                      <Trash2 className="h-4 w-4 mr-2" /> Delete Quest
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="bg-white dark:bg-gray-800">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="text-gray-900 dark:text-white font-heading">Are you absolutely sure?</AlertDialogTitle>
+                      <AlertDialogDescription className="text-gray-700 dark:text-gray-300">
+                        This action cannot be undone. This will permanently delete your quest.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-600">Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleDeleteQuest} className="bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
             </div>
-          )}
+            <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-3 mb-2 font-heading">
+              <MapPin className="h-7 w-7 text-green-600 dark:text-green-400" />
+              {quest.title}
+            </CardTitle>
+            <CardDescription className="text-lg text-gray-700 dark:text-gray-300 flex items-center gap-2">
+              <MapPin className="h-5 w-5" /> {quest.location}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6 mt-4">
+            <p className="text-lg text-gray-800 dark:text-gray-200 leading-relaxed">
+              {quest.description}
+            </p>
+            <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                <Zap className="h-4 w-4" /> Difficulty: {quest.difficulty}
+              </Badge>
+              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300">
+                <Award className="h-4 w-4" /> Reward: {quest.reward}
+              </Badge>
+              <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
+                <Clock className="h-4 w-4" /> Time Estimate: {quest.timeEstimate}
+              </Badge>
+              {quest.timeLimit && (
+                <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
+                  <Clock className="h-4 w-4" /> Time Limit: {quest.timeLimit}
+                </Badge>
+              )}
+              {quest.difficulty !== "Easy" && !isQuestUnlocked && (
+                <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-gray-200">
+                  <Lock className="h-4 w-4" /> Locked: {requiredXpToUnlock} XP
+                </Badge>
+              )}
+              {isLocationCompletionMethod && (
+                <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300">
+                  <LocateFixed className="h-4 w-4" /> Location Verification ({quest.verificationRadius}m)
+                </Badge>
+              )}
+              {quest.completionImagePrompt && (
+                <Badge className="flex items-center gap-2 px-4 py-2 text-base bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                  <Camera className="h-4 w-4" /> Image Upload
+                </Badge>
+              )}
+            </div>
 
-          {questCompleted && (
-            <Button
-              className="w-full mt-6 bg-gray-400 dark:bg-gray-600 text-lg py-3 cursor-not-allowed"
-              disabled
-            >
-              <CheckCircle2 className="h-5 w-5 mr-2" /> Quest Completed!
-            </Button>
-          )}
+            {!user && (
+              <p className="text-sm text-red-500 dark:text-red-400 mt-2">
+                You must be logged in to start or complete quests.
+              </p>
+            )}
 
-          {questFailed && (
-            <Button
-              className="w-full mt-6 bg-red-400 dark:bg-red-600 text-lg py-3 cursor-not-allowed"
-              disabled
-            >
-              <XCircle className="h-5 w-5 mr-2" /> Quest Failed!
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+            {user && isCreator && !canHeadAdminBypassCreatorRestriction && (
+              <p className="text-lg font-semibold text-red-600 dark:text-red-400 mt-4 flex items-center justify-center gap-2">
+                <UserX className="h-5 w-5" /> You created this quest and cannot complete it yourself.
+              </p>
+            )}
 
-      {quest.qrCode && (
-        <QuestQrScanner
-          isOpen={showQrScanner}
-          onClose={() => setShowQrScanner(false)}
-          onScanComplete={handleQrScanSubmit}
-          expectedQrCode={quest.qrCode}
-        />
-      )}
+            {user && isQuestUnlocked && !questStarted && !questCompleted && !questFailed && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
+              <Button
+                onClick={handleStartQuest}
+                className="w-full mt-6 bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-lg py-3"
+                disabled={!user || (isCreator && !canHeadAdminBypassCreatorRestriction)}
+              >
+                Start Quest
+              </Button>
+            )}
 
-      {quest.completionImagePrompt && (
-        <QuestImageUploader
-          isOpen={showImageUploader}
-          onClose={() => setShowImageUploader(false)}
-          questId={quest.id}
-          completionImagePrompt={quest.completionImagePrompt}
-          isPredefined={quest.is_predefined || false} {/* Pass is_predefined */}
-        />
-      )}
-    </div>
+            {questStarted && !questCompleted && !questFailed && !showCompletionInput && !showQrScanner && !showImageUploader && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
+              <>
+                {isPendingVerification ? (
+                  <Button
+                    className="w-full mt-6 bg-yellow-500 dark:bg-yellow-700 text-white text-lg py-3 cursor-not-allowed"
+                    disabled
+                  >
+                    <Hourglass className="h-5 w-5 mr-2" /> Awaiting Review...
+                  </Button>
+                ) : isRejectedVerification ? (
+                  <Button
+                    onClick={handleAttemptCompletion}
+                    className="w-full mt-6 bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 text-lg py-3"
+                  >
+                    <XCircle className="h-5 w-5 mr-2" /> Submission Rejected. Re-attempt?
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleAttemptCompletion}
+                    className="w-full mt-6 bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 text-lg py-3"
+                    disabled={(isCreator && !canHeadAdminBypassCreatorRestriction) || locationVerificationLoading}
+                  >
+                    {quest.qrCode ? (
+                      <>
+                        <QrCode className="h-5 w-5 mr-2" /> Scan QR Code to Complete
+                      </>
+                    ) : quest.completionImagePrompt ? (
+                      <>
+                        <Camera className="h-5 w-5 mr-2" /> Upload Image to Complete
+                      </>
+                    ) : isLocationCompletionMethod ? (
+                      <>
+                        {locationVerificationLoading ? (
+                          <Compass className="h-5 w-5 mr-2 animate-spin" />
+                        ) : (
+                          <LocateFixed className="h-5 w-5 mr-2" />
+                        )}
+                        {locationVerificationLoading ? "Verifying Location..." : "Verify Location to Complete"}
+                      </>
+                    ) : (
+                      <>
+                        <HelpCircle className="h-5 w-5 mr-2" /> Ready to Complete?
+                      </>
+                    )}
+                  </Button>
+                )}
+              </>
+            )}
+
+            {questStarted && !questCompleted && !questFailed && showCompletionInput && quest.completionTask && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
+              <div className="mt-6 space-y-4">
+                <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                  Completion Task: {quest.completionTask.question}
+                </p>
+                <Input
+                  type="text"
+                  placeholder="Enter your answer here"
+                  value={completionAnswer}
+                  onChange={(e) => setCompletionAnswer(e.target.value)}
+                  className="text-center text-lg"
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleQuestionAnswerSubmit();
+                    }
+                  }}
+                />
+                <Button
+                  onClick={handleQuestionAnswerSubmit}
+                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-lg py-3"
+                  disabled={completionAnswer.trim() === "" || (isCreator && !canHeadAdminBypassCreatorRestriction)}
+                >
+                  <CheckCircle2 className="h-5 w-5 mr-2" /> Submit Answer & Complete Quest
+                </Button>
+              </div>
+            )}
+
+            {questCompleted && (
+              <Button
+                className="w-full mt-6 bg-gray-400 dark:bg-gray-600 text-lg py-3 cursor-not-allowed"
+                disabled
+              >
+                <CheckCircle2 className="h-5 w-5 mr-2" /> Quest Completed!
+              </Button>
+            )}
+
+            {questFailed && (
+              <Button
+                className="w-full mt-6 bg-red-400 dark:bg-red-600 text-lg py-3 cursor-not-allowed"
+                disabled
+              >
+                <XCircle className="h-5 w-5 mr-2" /> Quest Failed!
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {quest.qrCode && (
+          <QuestQrScanner
+            isOpen={showQrScanner}
+            onClose={() => setShowQrScanner(false)}
+            onScanComplete={handleQrScanSubmit}
+            expectedQrCode={quest.qrCode}
+          />
+        )}
+
+        {quest.completionImagePrompt && (
+          <QuestImageUploader
+            isOpen={showImageUploader}
+            onClose={() => setShowImageUploader(false)}
+            questId={quest.id}
+            completionImagePrompt={quest.completionImagePrompt}
+            isPredefined={quest.is_predefined || false}
+          />
+        )}
+      </div>
+    </React.Fragment>
   );
 };
 
