@@ -176,14 +176,14 @@ const AdminQuestManagement = () => {
       setPendingSubmissions(prev => prev.filter(item => item.id !== submission.id));
       toast.success(`Quest "${submission.quest_title}" ${status} successfully!`);
 
-      // Re-fetch submissions after a short delay to ensure data consistency from DB
-      setTimeout(() => {
-        fetchQuestsAndSubmissions();
-      }, 500); // 500ms delay
+      // No setTimeout or re-fetch here. Rely on the optimistic update.
+      // If there's a rare data inconsistency, a manual refresh will fix it.
 
     } catch (err: any) {
       console.error("Error during verification:", err);
       toast.error("Failed to process verification.");
+      // If verification fails, re-fetch to restore the item to the list
+      fetchQuestsAndSubmissions();
     } finally {
       setLoading(false);
     }
