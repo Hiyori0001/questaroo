@@ -48,6 +48,8 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
   const [currentHint, setCurrentHint] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<'defused' | 'exploded' | null>(null);
   const [canCut, setCanCut] = useState(true); // Prevent cutting after game ends or multiple cuts
+  const [isExplodingAnimation, setIsExplodingAnimation] = useState(false); // New state for shake animation
+  const [showFlash, setShowFlash] = useState(false); // New state for flash effect
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -55,6 +57,8 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
     setCountdown(GAME_DURATION_SECONDS);
     setOutcome(null);
     setCanCut(true);
+    setIsExplodingAnimation(false); // Reset animation state
+    setShowFlash(false); // Reset flash state
 
     const shuffledColors = [...WIRE_COLORS].sort(() => 0.5 - Math.random());
     const selectedColors = shuffledColors.slice(0, 4); // Use 4 random colors for wires
@@ -81,7 +85,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
         if (prev <= 1) {
           clearInterval(countdownRef.current!);
           setOutcome('exploded');
-          onExplode();
+          onExplode(); // Trigger parent's explode handler
           return 0;
         }
         return prev - 1;
@@ -100,6 +104,8 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
       }
       setOutcome(null);
       setCanCut(true);
+      setIsExplodingAnimation(false);
+      setShowFlash(false);
     }
     return () => {
       if (countdownRef.current) {
@@ -107,6 +113,31 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
       }
     };
   }, [isOpen, initializeGame]);
+
+  // Effect for explosion animation and vibration
+  useEffect(() => {
+    if (outcome === 'exploded') {
+      setIsExplodingAnimation(true);
+      setShowFlash(true);
+      // Trigger vibration if supported
+      if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200, 100, 500]); // A more intense vibration pattern
+      }
+
+      const shakeTimeout = setTimeout(() => {
+        setIsExplodingAnimation(false);
+      }, 500); // Match shake animation duration
+
+      const flashTimeout = setTimeout(() => {
+        setShowFlash(false);
+      }, 500); // Match flash animation duration
+
+      return () => {
+        clearTimeout(shakeTimeout);
+        clearTimeout(flashTimeout);
+      };
+    }
+  }, [outcome]);
 
   const handleWireCut = (wireId: string) => {
     if (!canCut || outcome !== null) return;
@@ -122,7 +153,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
       toast.success("Bomb defused! You saved the day!");
     } else {
       setOutcome('exploded');
-      onExplode();
+      onExplode(); // Trigger parent's explode handler
       toast.error("Wrong wire! BOOM! The bomb exploded.");
     }
   };
@@ -135,7 +166,13 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
-      <DialogContent className="sm:max-w-[450px] bg-white dark:bg-gray-800 text-center p-6">
+      <DialogContent className={cn(
+        "sm:max-w-[450px] bg-white dark:bg-gray-800 text-center p-6 relative overflow-hidden", // Added relative and overflow-hidden
+        isExplodingAnimation && "animate-bomb-shake" // Apply shake animation
+      )}>
+        {showFlash && (
+          <div className="absolute inset-0 z-50 animate-flash-red pointer-events-none"></div>
+        )}
         <DialogHeader className="flex flex-col items-center">
           {outcome === 'defused' ? (
             <CheckCircle2 className="h-20 w-20 text-green-500 mb-4 animate-pop-in" />

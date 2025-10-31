@@ -97,12 +97,24 @@ export default {
           "0%": { transform: "scale(1)", opacity: "1" },
           "100%": { transform: "scale(0.95)", opacity: "0" },
         },
+        "bomb-shake": { // New keyframe for bomb shake
+          "0%, 100%": { transform: "translateX(0) translateY(0) rotate(0deg)" },
+          "10%, 30%, 50%, 70%, 90%": { transform: "translateX(-5px) translateY(-5px) rotate(-2deg)" },
+          "20%, 40%, 60%, 80%": { transform: "translateX(5px) translateY(5px) rotate(2deg)" },
+        },
+        "flash-red": { // New keyframe for red flash
+          "0%": { backgroundColor: "transparent" },
+          "50%": { backgroundColor: "rgba(255, 0, 0, 0.5)" },
+          "100%": { backgroundColor: "transparent" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pop-in": "pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)", // Bouncy pop-in
         "pop-out": "pop-out 0.2s ease-out",
+        "bomb-shake": "bomb-shake 0.5s cubic-bezier(.36,.07,.19,.97) both", // Short, intense shake
+        "flash-red": "flash-red 0.5s ease-out forwards", // Quick flash
       },
     },
   },
