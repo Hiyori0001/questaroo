@@ -172,7 +172,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogContent className={cn(
-        "fixed top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 sm:max-w-md bg-white dark:bg-gray-800 text-center p-6 relative overflow-hidden z-50",
+        "fixed top-[30%] left-[50%] -translate-x-1/2 -translate-y-1/2 sm:max-w-md bg-white dark:bg-gray-800 text-center p-6 relative overflow-hidden z-50",
         isExplodingAnimation && "animate-bomb-shake"
       )}>
         {showFlash && (
