@@ -169,9 +169,11 @@ const AdminQuestManagement = () => {
         submission.xp_reward,
         submission.quest_title,
         submission.team_id,
-        submission.is_predefined // Pass isPredefined
+        submission.is_predefined
       );
-      fetchQuestsAndSubmissions(); // Re-fetch to update UI
+      // Re-fetch submissions immediately after verification to update the list
+      await fetchQuestsAndSubmissions();
+      toast.success(`Quest "${submission.quest_title}" ${status} successfully!`);
     } catch (err: any) {
       console.error("Error during verification:", err);
       toast.error("Failed to process verification.");

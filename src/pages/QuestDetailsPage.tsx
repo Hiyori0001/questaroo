@@ -99,7 +99,7 @@ const QuestDetailsPage = () => {
       .from('user_quest_progress')
       .select('*')
       .eq('user_id', userId)
-      .eq(filterColumn, questId)
+      .or(`${filterColumn}.eq.${questId}`)
       .single();
 
     if (error && error.code !== 'PGRST116') {
@@ -140,6 +140,40 @@ const QuestDetailsPage = () => {
       }
     }
   }, [id, navigate, profile, user, allQuests, canHeadAdminBypassCreatorRestriction, fetchUserQuestProgress]);
+
+  // NEW useEffect for real-time updates on user's quest progress
+  useEffect(() => {
+    if (!user || !quest) return;
+
+    const filterColumn = quest.is_predefined ? 'predefined_quest_id' : 'user_quest_id';
+
+    const channel = supabase
+      .channel(`user_quest_progress_${user.id}_${quest.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_quest_progress',
+          filter: `user_id=eq.${user.id}&${filterColumn}=eq.${quest.id}`
+        },
+        (payload) => {
+          console.log("Real-time update received for user quest progress:", payload.new);
+          setUserQuestProgress(payload.new as UserQuestProgress);
+          if (payload.new.status === 'completed') {
+            toast.success(`Your quest "${quest.title}" has been approved!`);
+          } else if (payload.new.status === 'failed') {
+            toast.error(`Your quest "${quest.title}" submission was rejected.`);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, quest]); // Depend on user and quest to re-subscribe if they change
+
 
   const questStarted = userQuestProgress?.status === 'started';
   const questCompleted = userQuestProgress?.status === 'completed';
@@ -492,33 +526,6 @@ const QuestDetailsPage = () => {
                   </Button>
                 )}
               </>
-            )}
-
-            {questStarted && !questCompleted && !questFailed && showCompletionInput && quest.completionTask && (isCreator ? canHeadAdminBypassCreatorRestriction : true) && (
-              <div className="mt-6 space-y-4">
-                <p className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-                  Completion Task: {quest.completionTask.question}
-                </p>
-                <Input
-                  type="text"
-                  placeholder="Enter your answer here"
-                  value={completionAnswer}
-                  onChange={(e) => setCompletionAnswer(e.target.value)}
-                  className="text-center text-lg"
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleQuestionAnswerSubmit();
-                    }
-                  }}
-                />
-                <Button
-                  onClick={handleQuestionAnswerSubmit}
-                  className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-lg py-3"
-                  disabled={completionAnswer.trim() === "" || (isCreator && !canHeadAdminBypassCreatorRestriction)}
-                >
-                  <CheckCircle2 className="h-5 w-5 mr-2" /> Submit Answer & Complete Quest
-                </Button>
-              </div>
             )}
 
             {questCompleted && (
