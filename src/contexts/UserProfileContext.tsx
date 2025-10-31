@@ -66,10 +66,10 @@ interface UserProfileContextType {
   updateAvatar: () => Promise<void>; // Function to update avatar with a random one
   uploadAvatar: (file: File) => Promise<void>; // New: Function to upload a custom avatar
   getAchievementIcon: (iconName: string) => LucideIcon | undefined;
-  startQuest: (questId: string) => Promise<void>; // New: Mark quest as started
-  completeQuest: (questId: string) => Promise<void>; // New: Mark quest as completed (now only updates status)
-  submitImageForVerification: (questId: string, imageFile: File) => Promise<void>; // New: Submit image for review
-  verifyQuestCompletion: (userId: string, questId: string, status: 'approved' | 'rejected', xpReward: number, questTitle: string, teamId?: string) => Promise<void>; // New: Creator/Admin verification
+  startQuest: (questId: string, isPredefined: boolean) => Promise<void>; // Modified: Added isPredefined
+  completeQuest: (questId: string, isPredefined: boolean) => Promise<void>; // Modified: Added isPredefined
+  submitImageForVerification: (questId: string, imageFile: File, isPredefined: boolean) => Promise<void>; // Modified: Added isPredefined
+  verifyQuestCompletion: (userId: string, questId: string, status: 'approved' | 'rejected', xpReward: number, questTitle: string, teamId: string | null, isPredefined: boolean) => Promise<void>; // Modified: Added isPredefined
   grantChallengeReward: (userId: string, challengeId: string, status: 'completed' | 'failed', rewardType: string, xpAmount: number, challengeName: string, teamId: string | null) => Promise<void>; // New: Grant challenge rewards
   submitChallengeCompletion: (challengeId: string, details: string, imageFile: File | null) => Promise<void>; // New: Submit challenge completion
 }
@@ -497,17 +497,26 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [user, profile]);
 
-  const startQuest = useCallback(async (questId: string) => {
+  const startQuest = useCallback(async (questId: string, isPredefined: boolean) => {
     if (!user) {
       toast.error("You must be logged in to start a quest.");
       return;
     }
 
+    const insertData = {
+      user_id: user.id,
+      status: 'started',
+      started_at: new Date().toISOString(),
+      last_updated_at: new Date().toISOString(),
+      verification_status: 'not_applicable',
+      ...(isPredefined ? { predefined_quest_id: questId, user_quest_id: null } : { user_quest_id: questId, predefined_quest_id: null }),
+    };
+
     const { error } = await supabase
       .from('user_quest_progress')
       .upsert(
-        { user_id: user.id, quest_id: questId, status: 'started', started_at: new Date().toISOString(), last_updated_at: new Date().toISOString(), verification_status: 'not_applicable' }, // Default for non-image quests
-        { onConflict: 'user_id, quest_id' } // Update if already exists
+        insertData,
+        { onConflict: 'user_id, user_quest_id, predefined_quest_id' } // Update if already exists
       );
 
     if (error) {
@@ -519,17 +528,19 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [user]);
 
   // This function now only updates the status to 'completed' without granting rewards
-  const completeQuest = useCallback(async (questId: string) => {
+  const completeQuest = useCallback(async (questId: string, isPredefined: boolean) => {
     if (!user) {
       toast.error("You must be logged in to complete a quest.");
       return;
     }
 
+    const filterColumn = isPredefined ? 'predefined_quest_id' : 'user_quest_id';
+
     const { error } = await supabase
       .from('user_quest_progress')
       .update({ status: 'completed', completed_at: new Date().toISOString(), last_updated_at: new Date().toISOString() })
       .eq('user_id', user.id)
-      .eq('quest_id', questId);
+      .eq(filterColumn, questId);
 
     if (error) {
       console.error("Error completing quest:", error);
@@ -540,7 +551,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     }
   }, [user]);
 
-  const submitImageForVerification = useCallback(async (questId: string, imageFile: File) => {
+  const submitImageForVerification = useCallback(async (questId: string, imageFile: File, isPredefined: boolean) => {
     if (!user) {
       throw new Error("User not authenticated.");
     }
@@ -567,6 +578,8 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       throw new Error("Failed to get public URL for uploaded image.");
     }
 
+    const filterColumn = isPredefined ? 'predefined_quest_id' : 'user_quest_id';
+
     const { error: updateError } = await supabase
       .from('user_quest_progress')
       .update({
@@ -576,7 +589,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         last_updated_at: new Date().toISOString(),
       })
       .eq('user_id', user.id)
-      .eq('quest_id', questId);
+      .eq(filterColumn, questId);
 
     if (updateError) {
       throw updateError;
@@ -589,12 +602,15 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
     status: 'approved' | 'rejected',
     xpReward: number,
     questTitle: string,
-    teamId?: string
+    teamId: string | null,
+    isPredefined: boolean // Added isPredefined
   ) => {
     if (!user || !profile?.isAdmin) { // Only admins can verify
       toast.error("You do not have permission to verify quests.");
       return;
     }
+
+    const filterColumn = isPredefined ? 'predefined_quest_id' : 'user_quest_id';
 
     const { error: updateError } = await supabase
       .from('user_quest_progress')
@@ -605,7 +621,7 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         last_updated_at: new Date().toISOString(),
       })
       .eq('user_id', targetUserId)
-      .eq('quest_id', questId);
+      .eq(filterColumn, questId);
 
     if (updateError) {
       console.error("Error updating quest verification status:", updateError);

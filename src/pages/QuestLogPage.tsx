@@ -14,7 +14,8 @@ import { useAllQuests } from "@/contexts/AllQuestsContext"; // Updated import
 import { Badge } from "@/components/ui/badge";
 
 interface UserQuestProgress {
-  quest_id: string;
+  user_quest_id: string | null; // Changed from quest_id
+  predefined_quest_id: string | null; // New
   status: 'started' | 'completed' | 'failed';
   started_at: string;
   completed_at: string | null;
@@ -49,7 +50,7 @@ const QuestLogPage = () => {
 
       const { data, error: fetchError } = await supabase
         .from('user_quest_progress')
-        .select('*')
+        .select('user_quest_id, predefined_quest_id, status, started_at, completed_at') // Select new columns
         .eq('user_id', user.id);
 
       if (fetchError) {
@@ -60,7 +61,8 @@ const QuestLogPage = () => {
       } else {
         // Use allQuests from context directly
         const logEntries: QuestLogEntry[] = data.map((progress: UserQuestProgress) => {
-          const questDetails = allQuests.find(q => q.id === progress.quest_id);
+          const questId = progress.user_quest_id || progress.predefined_quest_id;
+          const questDetails = allQuests.find(q => q.id === questId);
           if (questDetails) {
             return {
               ...questDetails,
@@ -71,7 +73,7 @@ const QuestLogPage = () => {
           }
           // Fallback for quests that might have been deleted or are no longer available
           return {
-            id: progress.quest_id,
+            id: questId || "unknown", // Use the available ID or "unknown"
             title: "Unknown Quest",
             description: "This quest is no longer available.",
             location: "N/A",

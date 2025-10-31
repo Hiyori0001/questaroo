@@ -48,7 +48,8 @@ const getXpForDifficulty = (difficulty: Quest["difficulty"]) => {
 };
 
 interface UserQuestProgress {
-  quest_id: string;
+  user_quest_id: string | null; // Changed from quest_id
+  predefined_quest_id: string | null; // New
   status: 'started' | 'completed' | 'failed';
   verification_status: 'pending' | 'approved' | 'rejected' | 'not_applicable';
   completion_image_url: string | null;
@@ -92,12 +93,13 @@ const QuestDetailsPage = () => {
     }
   };
 
-  const fetchUserQuestProgress = useCallback(async (userId: string, questId: string) => {
+  const fetchUserQuestProgress = useCallback(async (userId: string, questId: string, isPredefined: boolean) => {
+    const filterColumn = isPredefined ? 'predefined_quest_id' : 'user_quest_id';
     const { data, error } = await supabase
       .from('user_quest_progress')
       .select('*')
       .eq('user_id', userId)
-      .eq('quest_id', questId)
+      .eq(filterColumn, questId)
       .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
@@ -131,7 +133,7 @@ const QuestDetailsPage = () => {
         }
 
         if (user) {
-          fetchUserQuestProgress(user.id, foundQuest.id);
+          fetchUserQuestProgress(user.id, foundQuest.id, foundQuest.is_predefined || false);
         }
       } else {
         toast.error("Quest not found!");
@@ -166,14 +168,14 @@ const QuestDetailsPage = () => {
       iconName: "Trophy",
       color: "bg-green-500",
     });
-    await completeQuest(quest.id); // This now only updates status to 'completed'
+    await completeQuest(quest.id, quest.is_predefined || false); // Pass is_predefined
 
     if (userTeam) {
       await addTeamScore(userTeam.id, xpForDifficulty);
     }
 
     // Re-fetch progress to update UI
-    if (user) fetchUserQuestProgress(user.id, quest.id);
+    if (user) fetchUserQuestProgress(user.id, quest.id, quest.is_predefined || false);
 
     setShowCompletionInput(false);
     setShowQrScanner(false);
@@ -196,9 +198,9 @@ const QuestDetailsPage = () => {
       toast.error(`You need ${requiredXpToUnlock} XP to start this quest.`);
       return;
     }
-    await startQuest(quest.id);
+    await startQuest(quest.id, quest.is_predefined || false); // Pass is_predefined
     // Re-fetch progress to update UI
-    if (user) fetchUserQuestProgress(user.id, quest.id);
+    if (user) fetchUserQuestProgress(user.id, quest.id, quest.is_predefined || false);
     setShowCompletionInput(false);
     setShowQrScanner(false);
     setShowImageUploader(false);

@@ -31,7 +31,8 @@ interface AdminQuest extends Quest {
 interface PendingImageSubmission {
   id: string; // user_quest_progress ID
   user_id: string;
-  quest_id: string;
+  quest_id: string; // This will be the actual quest ID (either user_quest_id or predefined_quest_id)
+  is_predefined: boolean; // New: To know which table to reference
   completion_image_url: string;
   quest_title: string;
   user_name: string;
@@ -45,11 +46,11 @@ interface PendingImageSubmission {
 const getXpForDifficulty = (difficulty: "Easy" | "Medium" | "Hard"): number => { // Revert to specific types
   switch (difficulty) {
     case "Easy":
-      return 100;
+      return 100; // Example XP reward for Easy
     case "Medium":
-      return 250;
+      return 250; // Example XP reward for Medium
     case "Hard":
-      return 500;
+      return 500; // Example XP reward for Hard
     default:
       // This case should ideally not be reached if difficulty is strictly typed
       console.warn(`Unknown difficulty: ${difficulty}. Defaulting to 0 XP.`);
@@ -83,11 +84,12 @@ const AdminQuestManagement = () => {
         .select(`
           id,
           user_id,
-          quest_id,
+          user_quest_id,
+          predefined_quest_id,
           completion_image_url,
           profiles!user_id(first_name, last_name, avatar_url, team_id),
-          user_quests!quest_id(title, difficulty, creator_reference_image_url),
-          predefined_quests!quest_id(title, difficulty, creator_reference_image_url)
+          user_quests!user_quest_id(title, difficulty, creator_reference_image_url),
+          predefined_quests!predefined_quest_id(title, difficulty, creator_reference_image_url)
         `)
         .eq('verification_status', 'pending');
 
@@ -98,11 +100,15 @@ const AdminQuestManagement = () => {
       const formattedPending: PendingImageSubmission[] = pendingData
         .filter(p => p.completion_image_url && (p.user_quests || p.predefined_quests)) // Ensure image and quest details exist from either table
         .map(p => {
-          const questDetails = p.user_quests || p.predefined_quests; // Get details from whichever is available
+          const isPredefined = p.predefined_quest_id !== null;
+          const questDetails = isPredefined ? p.predefined_quests : p.user_quests;
+          const questId = isPredefined ? p.predefined_quest_id : p.user_quest_id;
+
           return {
             id: p.id,
             user_id: p.user_id,
-            quest_id: p.quest_id,
+            quest_id: questId!, // Use the actual quest ID
+            is_predefined: isPredefined,
             completion_image_url: p.completion_image_url!,
             quest_title: questDetails?.title || "Unknown Quest",
             user_name: `${p.profiles?.first_name || 'Adventure'} ${p.profiles?.last_name || 'Seeker'}`.trim(),
@@ -161,7 +167,8 @@ const AdminQuestManagement = () => {
         status,
         submission.xp_reward,
         submission.quest_title,
-        submission.team_id
+        submission.team_id,
+        submission.is_predefined // Pass isPredefined
       );
       fetchQuestsAndSubmissions(); // Re-fetch to update UI
     } catch (err: any) {

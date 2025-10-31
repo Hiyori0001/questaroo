@@ -118,6 +118,7 @@ export const AllQuestsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         longitude: newQuest.longitude,
         verification_radius: newQuest.verificationRadius,
         creator_reference_image_url: newQuest.creatorReferenceImageUrl,
+        is_predefined: false, // Explicitly set for user-created quests
       })
       .select()
       .single();
