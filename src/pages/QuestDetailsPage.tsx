@@ -562,6 +562,7 @@ const QuestDetailsPage = () => {
           onClose={() => setShowImageUploader(false)}
           questId={quest.id}
           completionImagePrompt={quest.completionImagePrompt}
+          isPredefined={quest.is_predefined || false} {/* Pass is_predefined */}
         />
       )}
     </div>

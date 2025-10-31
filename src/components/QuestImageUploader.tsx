@@ -15,9 +15,10 @@ interface QuestImageUploaderProps {
   onClose: () => void;
   questId: string;
   completionImagePrompt: string;
+  isPredefined: boolean; // New prop
 }
 
-const QuestImageUploader: React.FC<QuestImageUploaderProps> = ({ isOpen, onClose, questId, completionImagePrompt }) => {
+const QuestImageUploader: React.FC<QuestImageUploaderProps> = ({ isOpen, onClose, questId, completionImagePrompt, isPredefined }) => {
   const { user } = useAuth();
   const { submitImageForVerification } = useUserProfile(); // Use new function from context
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -47,7 +48,7 @@ const QuestImageUploader: React.FC<QuestImageUploaderProps> = ({ isOpen, onClose
 
     setIsUploading(true);
     try {
-      await submitImageForVerification(questId, selectedFile);
+      await submitImageForVerification(questId, selectedFile, isPredefined); // Pass isPredefined
       toast.success("Image uploaded! Awaiting quest creator's review.");
       handleClose();
     } catch (error: any) {
