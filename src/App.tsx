@@ -21,7 +21,7 @@ import AuthPage from "./pages/AuthPage";
 import QuestLogPage from "./pages/QuestLogPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ShopPage from "./pages/ShopPage";
-import CuteBackground from "./components/CuteBackground";
+// import CuteBackground from "./components/CuteBackground"; // Removed import
 // import { SparkleProvider } from "@/contexts/SparkleContext"; // Removed import
 
 const queryClient = new QueryClient();
@@ -33,7 +33,7 @@ const App = () => (
         {/* SparkleProvider is now in main.tsx */}
         <div className="relative min-h-screen flex flex-col">
           <Navbar />
-          <CuteBackground />
+          {/* CuteBackground is now rendered inside Index.tsx */}
           <main className="flex-grow pt-16 max-w-full overflow-x-hidden relative z-10">
             <Routes>
               <Route path="/" element={<Index />} />

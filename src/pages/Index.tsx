@@ -6,14 +6,16 @@ import { MapPin, Info, Gamepad2 } from "lucide-react";
 import Chatbot from "@/components/Chatbot";
 import React, { useState, useCallback } from "react"; // Import useState and useCallback
 import InteractiveAnimations from "@/components/InteractiveAnimations"; // New import
+import CuteBackground from "@/components/CuteBackground"; // Import CuteBackground
 
 const Index = () => {
   // Removed isBombGameActive state and related handlers as the BombGame is being removed.
 
   return (
-    <div className="flex flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4 min-h-[calc(100vh-64px)]">
+    <div className="relative flex flex-col items-center p-4 min-h-[calc(100vh-64px)]"> {/* Removed gradient background */}
+      <CuteBackground /> {/* Render CuteBackground here */}
       <InteractiveAnimations /> {/* Render the new component */}
-      <div className="text-center bg-white dark:bg-gray-700 p-10 rounded-lg shadow-xl max-w-2xl mx-auto animate-pop-in">
+      <div className="text-center bg-white dark:bg-gray-700 p-10 rounded-lg shadow-xl max-w-2xl mx-auto animate-pop-in relative z-10"> {/* Added relative z-10 */}
         <h1 className="text-5xl font-extrabold mb-6 text-gray-900 dark:text-white font-heading">Welcome to Questaroo!</h1>
         <p className="text-xl text-gray-700 dark:text-gray-300 mb-8">
           Your adventure begins here. Explore the world, complete quests, and create your own stories!
@@ -38,7 +40,7 @@ const Index = () => {
           </Link>
         </div>
       </div>
-      <div className="chatbot-container"> {/* Added wrapper for click detection */}
+      <div className="chatbot-container relative z-10"> {/* Added relative z-10 */}
         <Chatbot />
       </div>
     </div>
