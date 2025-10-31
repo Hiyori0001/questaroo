@@ -1,15 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { MapPin, Info, Gamepad2 } from "lucide-react";
-// import { useSparkle } from "@/contexts/SparkleContext"; // Removed useSparkle
+import Chatbot from "@/components/Chatbot"; // Import the new Chatbot component
 
 const Index = () => {
-  // const { triggerSparkle } = useSparkle(); // Removed useSparkle hook
-
-  // const handleStartQuestClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-  //   triggerSparkle(event.clientX, event.clientY);
-  // };
-
   return (
     <div className="flex flex-col items-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-800 dark:to-gray-900 p-4">
       <div className="text-center bg-white dark:bg-gray-700 p-10 rounded-lg shadow-xl max-w-2xl mx-auto animate-pop-in">
@@ -18,7 +12,7 @@ const Index = () => {
           Your adventure begins here. Explore the world, complete quests, and create your own stories!
         </p>
         <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link to="/location-quests"> {/* Removed onClick handler */}
+          <Link to="/location-quests">
             <Button size="lg" className="px-8 py-4 text-lg font-semibold bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition-transform hover:scale-105 active:scale-95">
               <MapPin className="h-5 w-5 mr-2" /> Start a Quest
             </Button>
@@ -37,6 +31,7 @@ const Index = () => {
           </Link>
         </div>
       </div>
+      <Chatbot /> {/* Integrate the Chatbot component here */}
     </div>
   );
 };
