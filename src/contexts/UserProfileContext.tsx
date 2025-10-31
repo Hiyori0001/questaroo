@@ -503,24 +503,50 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
       return;
     }
 
-    const insertData = {
+    const filterColumn = isPredefined ? 'predefined_quest_id' : 'user_quest_id';
+    const questIdentifier = isPredefined ? { predefined_quest_id: questId, user_quest_id: null } : { user_quest_id: questId, predefined_quest_id: null };
+
+    // 1. Check if progress already exists
+    const { data: existingProgress, error: selectError } = await supabase
+      .from('user_quest_progress')
+      .select('id')
+      .eq('user_id', user.id)
+      .or(`${filterColumn}.eq.${questId}`) // Use OR to check against the correct column
+      .single();
+
+    if (selectError && selectError.code !== 'PGRST116') { // PGRST116 means no rows found
+      console.error("Error checking existing quest progress:", selectError);
+      toast.error("Failed to check quest progress.");
+      return;
+    }
+
+    const baseData = {
       user_id: user.id,
       status: 'started',
       started_at: new Date().toISOString(),
       last_updated_at: new Date().toISOString(),
       verification_status: 'not_applicable',
-      ...(isPredefined ? { predefined_quest_id: questId, user_quest_id: null } : { user_quest_id: questId, predefined_quest_id: null }),
+      ...questIdentifier,
     };
 
-    const { error } = await supabase
-      .from('user_quest_progress')
-      .upsert(
-        insertData,
-        { onConflict: 'user_id, user_quest_id, predefined_quest_id' } // Update if already exists
-      );
+    let operationError;
+    if (existingProgress) {
+      // 2. If exists, update it
+      const { error } = await supabase
+        .from('user_quest_progress')
+        .update(baseData)
+        .eq('id', existingProgress.id);
+      operationError = error;
+    } else {
+      // 3. If not exists, insert new
+      const { error } = await supabase
+        .from('user_quest_progress')
+        .insert(baseData);
+      operationError = error;
+    }
 
-    if (error) {
-      console.error("Error starting quest:", error);
+    if (operationError) {
+      console.error("Error starting quest:", operationError);
       toast.error("Failed to mark quest as started.");
     } else {
       toast.info("Quest started!");
