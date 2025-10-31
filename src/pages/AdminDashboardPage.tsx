@@ -82,16 +82,16 @@ const AdminDashboardPage = () => {
             </TabsList>
 
             <TabsContent value="users">
-              <AdminUserManagement />
+              <AdminUserManagement key="admin-user-management" />
             </TabsContent>
             <TabsContent value="quests">
-              <AdminQuestManagement />
+              <AdminQuestManagement key={activeTab} />
             </TabsContent>
             <TabsContent value="teams">
-              <AdminTeamManagement />
+              <AdminTeamManagement key="admin-team-management" />
             </TabsContent>
             <TabsContent value="challenges"> {/* New Tab Content */}
-              <AdminCommunityChallengeManagement />
+              <AdminCommunityChallengeManagement key="admin-community-challenge-management" />
             </TabsContent>
           </Tabs>
         </CardContent>
