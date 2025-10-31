@@ -65,6 +65,8 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
     setIsExplodingAnimation(false); // Reset animation state
     setShowFlash(false); // Reset flash state
 
+    console.log("BombGame: Initializing game. Countdown:", GAME_DURATION_SECONDS, "Outcome:", null);
+
     const shuffledColors = [...WIRE_COLORS].sort(() => 0.5 - Math.random());
     const selectedColors = shuffledColors.slice(0, 4); // Use 4 random colors for wires
 
@@ -87,6 +89,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
     }
     countdownRef.current = setInterval(() => {
       setCountdown((prev) => {
+        console.log("BombGame: Countdown tick. Current:", prev);
         if (prev <= 1) {
           clearInterval(countdownRef.current!);
           setOutcome('exploded');
@@ -150,6 +153,8 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
   const handleWireCut = (wireId: string) => {
     if (!canCut || outcome !== null) return;
 
+    console.log("BombGame: Wire cut. ID:", wireId, "Correct:", wireId === correctWireId);
+
     setCanCut(false); // Prevent further cuts
     if (countdownRef.current) {
       clearInterval(countdownRef.current);
@@ -167,6 +172,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
   };
 
   const handleCloseDialog = () => {
+    console.log("BombGame: handleCloseDialog called. Outcome:", outcome);
     if (outcome !== null) { // Only allow closing after game ends
       onClose();
     }
@@ -175,7 +181,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogContent className={cn(
-        "fixed left-[50%] -translate-x-1/2 !top-4 sm:max-w-md bg-white dark:bg-gray-800 text-center p-6 relative overflow-hidden z-50 max-h-[calc(100vh-32px)] overflow-y-auto", // Changed !top-0 to !top-4 and adjusted max-h
+        "fixed left-[50%] -translate-x-1/2 !top-4 !bottom-auto !translate-y-0 sm:max-w-md bg-white dark:bg-gray-800 text-center p-6 relative overflow-hidden z-50 max-h-[calc(100vh-32px)] overflow-y-auto", // Added !bottom-auto, !translate-y-0, and adjusted max-h
         isExplodingAnimation && "animate-bomb-shake"
       )}>
         {showFlash && (
