@@ -22,7 +22,7 @@ import QuestLogPage from "./pages/QuestLogPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ShopPage from "./pages/ShopPage";
 import CuteBackground from "./components/CuteBackground";
-import { SparkleProvider } from "@/contexts/SparkleContext"; // Changed import path to use alias
+// import { SparkleProvider } from "@/contexts/SparkleContext"; // Removed import
 
 const queryClient = new QueryClient();
 
@@ -30,34 +30,33 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
-        <SparkleProvider> {/* Wrap the entire app with SparkleProvider */}
-          <div className="relative min-h-screen flex flex-col">
-            <Navbar />
-            <CuteBackground />
-            <main className="flex-grow pt-16 max-w-full overflow-x-hidden relative z-10">
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/location-quests" element={<LocationQuests />} />
-                <Route path="/location-quests/:id" element={<QuestDetailsPage />} />
-                <Route path="/mini-games" element={<MiniGames />} />
-                <Route path="/profile" element={<ProfilePage />} />
-                <Route path="/leaderboard" element={<LeaderboardPage />} />
-                <Route path="/create-quest" element={<CreateQuestPage />} />
-                <Route path="/teams" element={<TeamsPage />} />
-                <Route path="/social" element={<SocialPage />} />
-                <Route path="/events" element={<EventModePage />} />
-                <Route path="/accessibility" element={<AccessibilityPage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/quest-log" element={<QuestLogPage />} />
-                <Route path="/admin" element={<AdminDashboardPage />} />
-                <Route path="/shop" element={<ShopPage />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-          </div>
-        </SparkleProvider>
+        {/* SparkleProvider is now in main.tsx */}
+        <div className="relative min-h-screen flex flex-col">
+          <Navbar />
+          <CuteBackground />
+          <main className="flex-grow pt-16 max-w-full overflow-x-hidden relative z-10">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/location-quests" element={<LocationQuests />} />
+              <Route path="/location-quests/:id" element={<QuestDetailsPage />} />
+              <Route path="/mini-games" element={<MiniGames />} />
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
+              <Route path="/create-quest" element={<CreateQuestPage />} />
+              <Route path="/teams" element={<TeamsPage />} />
+              <Route path="/social" element={<SocialPage />} />
+              <Route path="/events" element={<EventModePage />} />
+              <Route path="/accessibility" element={<AccessibilityPage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/quest-log" element={<QuestLogPage />} />
+              <Route path="/admin" element={<AdminDashboardPage />} />
+              <Route path="/shop" element={<ShopPage />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </main>
+        </div>
       </BrowserRouter>
     </TooltipProvider>
     {/* Toaster and Sonner are global components and can be rendered outside TooltipProvider */}

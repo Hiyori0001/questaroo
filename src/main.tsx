@@ -4,18 +4,21 @@ import "./globals.css";
 import { ThemeProvider } from "./components/ThemeProvider.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 import { UserProfileProvider } from "@/contexts/UserProfileContext.tsx";
-import { AllQuestsProvider } from "./contexts/AllQuestsContext.tsx"; // Updated import
+import { AllQuestsProvider } from "./contexts/AllQuestsContext.tsx";
 import { TeamProvider } from "./contexts/TeamContext.tsx";
 import { FriendProvider } from "./contexts/FriendContext.tsx";
+import { SparkleProvider } from "@/contexts/SparkleContext.tsx"; // Import SparkleProvider here
 
 createRoot(document.getElementById("root")!).render(
   <ThemeProvider defaultTheme="system" attribute="class">
     <AuthProvider>
       <UserProfileProvider>
-        <AllQuestsProvider> {/* Updated provider name */}
+        <AllQuestsProvider>
           <TeamProvider>
             <FriendProvider>
-              <App />
+              <SparkleProvider> {/* Wrap App with SparkleProvider here */}
+                <App />
+              </SparkleProvider>
             </FriendProvider>
           </TeamProvider>
         </AllQuestsProvider>
