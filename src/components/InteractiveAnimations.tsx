@@ -8,24 +8,12 @@ const InteractiveAnimations: React.FC = () => {
   const { triggerSparkle, triggerLightning, triggerGlobalBurst } = useSparkle();
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [rocketAnimation, setRocketAnimation] = useState<{ x: number; y: number } | null>(null);
-  const lastSparkleTimeRef = useRef(0);
-  const lastLightningTimeRef = useRef(0);
-  const sparkleThrottle = 50; // ms
-  const lightningThrottle = 30; // ms
+  // Removed lastSparkleTimeRef, lastLightningTimeRef, sparkleThrottle, lightningThrottle as they are no longer needed for drag animation.
 
   const handleMouseMove = useCallback((event: MouseEvent) => {
-    if (isMouseDown) {
-      const now = performance.now();
-      if (now - lastSparkleTimeRef.current > sparkleThrottle) {
-        triggerSparkle(event.clientX, event.clientY, 1); // Small number of stars
-        lastSparkleTimeRef.current = now;
-      }
-      if (now - lastLightningTimeRef.current > lightningThrottle) {
-        triggerLightning(event.clientX, event.clientY);
-        lastLightningTimeRef.current = now;
-      }
-    }
-  }, [isMouseDown, triggerSparkle, triggerLightning]);
+    // Removed logic for triggering sparkles and lightning on mouse move while dragging.
+    // The drag animation is now completely removed.
+  }, []); // Dependencies are now empty as no state/props are used inside
 
   const handleMouseDown = useCallback((event: MouseEvent) => {
     if (event.button === 0) { // Left mouse button
