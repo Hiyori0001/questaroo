@@ -15,12 +15,12 @@ interface Sparkle {
   finalOffsetX: number;
   finalOffsetY: number;
   shape: 'square' | 'circle' | 'star'; // Added more shapes
-  type: 'star' | 'lightning' | 'explosion'; // New: type of sparkle
+  type: 'star' | 'lightning'; // Removed 'explosion' type
 }
 
 interface SparkleContextType {
   triggerSparkle: (x: number, y: number, count?: number) => void; // Modified: added count
-  triggerGlobalBurst: () => void; // New: for the "boom" effect
+  // triggerGlobalBurst: () => void; // Removed: for the "boom" effect
   triggerLightning: (x: number, y: number) => void; // New: for lightning trail
 }
 
@@ -50,14 +50,6 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
         finalOffsetX = (Math.random() - 0.5) * 30; // Less spread
         finalOffsetY = Math.random() * 20 + 10; // Slight fall
         shape = 'square'; // Simple square for lightning
-        break;
-      case 'explosion':
-        size = Math.random() * 10 + 10; // Larger: 10-20 pixels (increased from 5-10)
-        color = baseColors[Math.floor(Math.random() * baseColors.length)];
-        animationDuration = Math.random() * 2 + 3; // Longer duration: 3-5s (changed from 2-4s)
-        finalOffsetX = (Math.random() - 0.5) * 200; // Wide spread
-        finalOffsetY = (Math.random() - 0.5) * 200; // Wide spread
-        shape = Math.random() > 0.5 ? 'star' : 'circle'; // Stars and circles for explosion
         break;
       case 'star':
       default:
@@ -93,20 +85,7 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
     setSparkles((prevSparkles) => [...prevSparkles, ...newSparkles]);
   }, [generateSparkle]);
 
-  const triggerGlobalBurst = useCallback(() => {
-    const numBursts = 10;
-    const sparklesPerBurst = Math.floor(Math.random() * 20) + 30;
-    const newSparkles: Sparkle[] = [];
-
-    for (let i = 0; i < numBursts; i++) {
-      const randomX = Math.random() * window.innerWidth;
-      const randomY = Math.random() * window.innerHeight;
-      for (let j = 0; j < sparklesPerBurst; j++) {
-        newSparkles.push(generateSparkle(randomX, randomY, 'explosion')); // Use 'explosion' type
-      }
-    }
-    setSparkles((prevSparkles) => [...prevSparkles, ...newSparkles]);
-  }, [generateSparkle]);
+  // Removed triggerGlobalBurst
 
   const triggerLightning = useCallback((x: number, y: number) => {
     const numLightning = Math.floor(Math.random() * 3) + 2; // 2-4 lightning pieces
@@ -127,7 +106,7 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [sparkles]);
 
   return (
-    <SparkleContext.Provider value={{ triggerSparkle, triggerGlobalBurst, triggerLightning }}>
+    <SparkleContext.Provider value={{ triggerSparkle, triggerLightning }}>
       <React.Fragment>
         {children}
         <div className="fixed inset-0 pointer-events-none z-[9999]">
@@ -146,9 +125,8 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
                 '--sparkle-rotation-start': `${s.rotationStart}deg`,
                 '--sparkle-rotation-end': `${s.rotationEnd}deg`,
                 animation: `confetti-fall ${s.animationDuration}s ease-out forwards`,
-                // Conditionally apply filter and boxShadow for non-explosion types
-                filter: s.type === 'explosion' ? 'none' : 'blur(0.2px)',
-                boxShadow: s.type === 'explosion' ? 'none' : `0 0 ${s.size / 2}px ${s.color}`,
+                filter: 'blur(0.2px)', // Apply blur to all remaining sparkle types
+                boxShadow: `0 0 ${s.size / 2}px ${s.color}`, // Apply box-shadow to all remaining sparkle types
                 borderRadius: s.shape === 'circle' ? '50%' : '0%', // Circle or square
                 clipPath: s.shape === 'star' ? 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' : 'none', // Star shape
                 transform: `translate(-50%, -50%) rotate(${s.rotationStart}deg)`,

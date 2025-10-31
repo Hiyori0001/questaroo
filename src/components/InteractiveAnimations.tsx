@@ -5,7 +5,7 @@ import { useSparkle } from '@/contexts/SparkleContext';
 import SkyrocketAnimation from './SkyrocketAnimation';
 
 const InteractiveAnimations: React.FC = () => {
-  const { triggerSparkle, triggerLightning, triggerGlobalBurst } = useSparkle();
+  const { triggerSparkle, triggerLightning } = useSparkle(); // Removed triggerGlobalBurst
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [rocketAnimation, setRocketAnimation] = useState<{ x: number; y: number } | null>(null);
   // Removed lastSparkleTimeRef, lastLightningTimeRef, sparkleThrottle, lightningThrottle as they are no longer needed for drag animation.
@@ -29,12 +29,7 @@ const InteractiveAnimations: React.FC = () => {
     }
   }, [isMouseDown]);
 
-  const handleRocketBoom = useCallback((x: number, y: number) => {
-    // Trigger a localized explosion at the rocket's boom point
-    triggerSparkle(x, y, 50); // Many stars for a localized boom
-    // Then trigger the global burst for the "whole screen" effect
-    triggerGlobalBurst();
-  }, [triggerSparkle, triggerGlobalBurst]);
+  // Removed handleRocketBoom as it's no longer used.
 
   const handleRocketAnimationEnd = useCallback(() => {
     setRocketAnimation(null);
@@ -58,7 +53,6 @@ const InteractiveAnimations: React.FC = () => {
         <SkyrocketAnimation
           startX={rocketAnimation.x}
           startY={rocketAnimation.y}
-          onBoom={handleRocketBoom}
           onAnimationEnd={handleRocketAnimationEnd}
         />
       )}
