@@ -208,13 +208,12 @@ const AdminChallengeParticipantsDialog: React.FC<AdminChallengeParticipantsDialo
                                 <MessageSquareText className="h-3 w-3 text-blue-500" /> {participant.completion_details}
                               </p>
                             )}
-                            {participant.completion_evidence_url && (
-                              <a href={participant.completion_evidence_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline text-sm flex items-center gap-1">
-                                <Image className="h-3 w-3" /> View Evidence
+                            {participant.completion_evidence_url ? (
+                              <a href={participant.completion_evidence_url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16 overflow-hidden rounded-md border dark:border-gray-700 mt-1">
+                                <img src={participant.completion_evidence_url} alt="Evidence" className="w-full h-full object-cover" />
                               </a>
-                            )}
-                            {!participant.completion_details && !participant.completion_evidence_url && (
-                              <span className="text-sm italic text-gray-500">No details provided.</span>
+                            ) : (
+                              <span className="text-sm italic text-gray-500">No evidence.</span>
                             )}
                           </div>
                         ) : (

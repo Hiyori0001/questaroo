@@ -544,8 +544,8 @@ const AdminCommunityChallengeManagement = () => {
                 <TableCell className="text-gray-700 dark:text-gray-300 line-clamp-2 max-w-xs">{challenge.completion_criteria || "N/A"}</TableCell>
                 <TableCell className="text-center">
                   {challenge.creator_reference_image_url ? (
-                    <a href={challenge.creator_reference_image_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                      <ImageIcon className="h-5 w-5 mx-auto" />
+                    <a href={challenge.creator_reference_image_url} target="_blank" rel="noopener noreferrer" className="block w-16 h-16 mx-auto overflow-hidden rounded-md border dark:border-gray-700">
+                      <img src={challenge.creator_reference_image_url} alt="Reference" className="w-full h-full object-cover" />
                     </a>
                   ) : (
                     <span className="text-gray-500 dark:text-gray-400 text-sm">N/A</span>
