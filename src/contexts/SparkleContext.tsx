@@ -18,7 +18,7 @@ interface Sparkle {
 }
 
 interface SparkleContextType {
-  triggerSparkle: (x: number, y: number) => void;
+  triggerSparkle: (x?: number, y?: number, isGlobalBurst?: boolean) => void;
 }
 
 const SparkleContext = createContext<SparkleContextType | undefined>(undefined);
@@ -47,12 +47,30 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, [theme]);
 
-  const triggerSparkle = useCallback((x: number, y: number) => {
-    const numSparkles = Math.floor(Math.random() * 13) + 14; // Doubled to 14-26 sparkles per trigger
-    const newSparkles = Array.from({ length: numSparkles }).map(() =>
-      generateSparkle(x, y)
-    );
-    setSparkles((prevSparkles) => [...prevSparkles, ...newSparkles]);
+  const triggerSparkle = useCallback((x?: number, y?: number, isGlobalBurst: boolean = false) => {
+    if (isGlobalBurst) {
+      const numBursts = 5; // Number of bursts across the screen
+      const sparklesPerBurst = Math.floor(Math.random() * 10) + 15; // 15-24 sparkles per burst
+      const newSparkles: Sparkle[] = [];
+
+      for (let i = 0; i < numBursts; i++) {
+        const randomX = Math.random() * window.innerWidth;
+        const randomY = Math.random() * window.innerHeight;
+        for (let j = 0; j < sparklesPerBurst; j++) {
+          newSparkles.push(generateSparkle(randomX, randomY));
+        }
+      }
+      setSparkles((prevSparkles) => [...prevSparkles, ...newSparkles]);
+    } else {
+      // Default behavior for single-point trigger (e.g., button clicks)
+      const clickX = x ?? window.innerWidth / 2;
+      const clickY = y ?? window.innerHeight / 2;
+      const numSparkles = Math.floor(Math.random() * 13) + 14; // 14-26 sparkles per trigger
+      const newSparkles = Array.from({ length: numSparkles }).map(() =>
+        generateSparkle(clickX, clickY)
+      );
+      setSparkles((prevSparkles) => [...prevSparkles, ...newSparkles]);
+    }
   }, [generateSparkle]);
 
   // Clean up sparkles after their animation
@@ -67,7 +85,7 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   return (
     <SparkleContext.Provider value={{ triggerSparkle }}>
-      <React.Fragment> {/* Wrapped children and the div in a React.Fragment */}
+      <React.Fragment>
         {children}
         <div className="fixed inset-0 pointer-events-none z-[9999]">
           {sparkles.map((s) => (

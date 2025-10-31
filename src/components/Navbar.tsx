@@ -34,7 +34,7 @@ const Navbar = () => {
   const { triggerSparkle } = useSparkle(); // Use the sparkle hook
 
   const handleSparkleClick = (event: React.MouseEvent) => {
-    triggerSparkle(event.clientX, event.clientY);
+    triggerSparkle(event.clientX, event.clientY); // Trigger sparkle on click
   };
 
   const handleSignOut = async (event: React.MouseEvent) => {

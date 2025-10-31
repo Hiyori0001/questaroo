@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Timer, Bomb, Scissors, CheckCircle2, XCircle, Lightbulb } from "lucide-react";
+import { useSparkle } from "@/contexts/SparkleContext"; // Import useSparkle
 
 interface Wire {
   id: string;
@@ -52,6 +53,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
   const [showFlash, setShowFlash] = useState(false); // New state for flash effect
 
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const { triggerSparkle } = useSparkle(); // Use the sparkle hook
 
   const initializeGame = useCallback(() => {
     setCountdown(GAME_DURATION_SECONDS);
@@ -136,8 +138,11 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
         clearTimeout(shakeTimeout);
         clearTimeout(flashTimeout);
       };
+    } else if (outcome === 'defused') {
+      // Trigger global sparkle burst on defuse
+      triggerSparkle(undefined, undefined, true); // Global burst, no specific coordinates
     }
-  }, [outcome]);
+  }, [outcome, triggerSparkle]);
 
   const handleWireCut = (wireId: string) => {
     if (!canCut || outcome !== null) return;
@@ -167,7 +172,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogContent className={cn(
-        "sm:max-w-[450px] bg-white dark:bg-gray-800 text-center p-6 relative overflow-hidden", // Added relative and overflow-hidden
+        "sm:max-w-[450px] bg-white dark:bg-gray-800 text-center p-6 relative overflow-hidden z-50", // Added z-50
         isExplodingAnimation && "animate-bomb-shake" // Apply shake animation
       )}>
         {showFlash && (
