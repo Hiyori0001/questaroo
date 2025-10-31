@@ -54,7 +54,7 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
       case 'explosion':
         size = Math.random() * 5 + 5; // Larger: 5-10 pixels
         color = baseColors[Math.floor(Math.random() * baseColors.length)];
-        animationDuration = Math.random() * 2 + 2; // Longer duration: 2-4s (changed from 1.5-3s)
+        animationDuration = Math.random() * 2 + 3; // Longer duration: 3-5s (changed from 2-4s)
         finalOffsetX = (Math.random() - 0.5) * 200; // Wide spread
         finalOffsetY = (Math.random() - 0.5) * 200; // Wide spread
         shape = Math.random() > 0.5 ? 'star' : 'circle'; // Stars and circles for explosion
