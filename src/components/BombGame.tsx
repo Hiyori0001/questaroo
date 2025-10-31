@@ -172,13 +172,13 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
   return (
     <Dialog open={isOpen} onOpenChange={handleCloseDialog}>
       <DialogContent className={cn(
-        "fixed left-[50%] -translate-x-1/2 top-[5%] translate-y-0 sm:max-w-md bg-white dark:bg-gray-800 text-center p-6 relative overflow-hidden z-50 max-h-[90vh] overflow-y-auto",
+        "fixed left-[50%] -translate-x-1/2 top-[0%] translate-y-0 bg-transparent text-center p-6 relative overflow-hidden z-50 max-h-[100vh] overflow-y-auto",
         isExplodingAnimation && "animate-bomb-shake"
       )}>
         {showFlash && (
           <div className="absolute inset-0 z-50 animate-flash-red pointer-events-none"></div>
         )}
-        <DialogHeader className="flex flex-col items-center">
+        <DialogHeader className="flex flex-col items-center bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4">
           {outcome === 'defused' ? (
             <CheckCircle2 className="h-20 w-20 text-green-500 mb-4 animate-pop-in" />
           ) : outcome === 'exploded' ? (
@@ -195,7 +195,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
         </DialogHeader>
 
         {outcome === null && (
-          <div className="my-6 space-y-4">
+          <div className="my-6 space-y-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
             <div className="flex items-center justify-center gap-2 text-2xl font-bold text-red-600 dark:text-red-400">
               <Timer className="h-6 w-6" />
               <span>Time Left: {countdown}s</span>
@@ -223,7 +223,7 @@ const BombGame: React.FC<BombGameProps> = ({ isOpen, onClose, onDefuse, onExplod
           </div>
         )}
 
-        <DialogFooter className="mt-6">
+        <DialogFooter className="mt-6 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
           <Button
             onClick={handleCloseDialog}
             className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
