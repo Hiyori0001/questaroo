@@ -36,21 +36,22 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
       id: Math.random().toString(36).substring(2, 9),
       x: x,
       y: y,
-      size: Math.random() * 2 + 2, // Smaller size between 2 and 4 pixels
+      size: Math.random() * 4 + 4, // Increased size: between 4 and 8 pixels
       color: colors[Math.floor(Math.random() * colors.length)],
-      animationDuration: Math.random() * 0.5 + 0.5, // Shorter duration between 0.5s and 1s
+      animationDuration: Math.random() * 1 + 1, // Increased duration: between 1s and 2s
       rotationStart: Math.random() * 360,
       rotationEnd: Math.random() * 720 + 360,
-      finalOffsetX: (Math.random() - 0.5) * 50, // Reduced spread horizontally -25 to 25 pixels
-      finalOffsetY: Math.random() * 30 + 20, // Reduced fall downwards 20 to 50 pixels
+      finalOffsetX: (Math.random() - 0.5) * 100, // Increased spread horizontally -50 to 50 pixels
+      finalOffsetY: Math.random() * 50 + 50, // Increased fall downwards 50 to 100 pixels
       shape: 'square',
     };
   }, [theme]);
 
   const triggerSparkle = useCallback((x?: number, y?: number, isGlobalBurst: boolean = false) => {
+    console.log("SparkleContext: triggerSparkle called", { x, y, isGlobalBurst });
     if (isGlobalBurst) {
-      const numBursts = 5; // Number of bursts across the screen
-      const sparklesPerBurst = Math.floor(Math.random() * 10) + 15; // 15-24 sparkles per burst
+      const numBursts = 10; // Increased number of bursts across the screen
+      const sparklesPerBurst = Math.floor(Math.random() * 20) + 30; // Increased to 30-49 sparkles per burst
       const newSparkles: Sparkle[] = [];
 
       for (let i = 0; i < numBursts; i++) {
@@ -65,7 +66,7 @@ export const SparkleProvider: React.FC<{ children: React.ReactNode }> = ({ child
       // Default behavior for single-point trigger (e.g., button clicks)
       const clickX = x ?? window.innerWidth / 2;
       const clickY = y ?? window.innerHeight / 2;
-      const numSparkles = Math.floor(Math.random() * 13) + 14; // 14-26 sparkles per trigger
+      const numSparkles = Math.floor(Math.random() * 20) + 20; // Increased to 20-39 sparkles per trigger
       const newSparkles = Array.from({ length: numSparkles }).map(() =>
         generateSparkle(clickX, clickY)
       );
