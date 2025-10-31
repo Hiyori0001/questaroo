@@ -638,7 +638,15 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
     const filterColumn = isPredefined ? 'predefined_quest_id' : 'user_quest_id';
 
-    const { error: updateError } = await supabase
+    console.log("Attempting to update user_quest_progress:", {
+      targetUserId,
+      questId,
+      isPredefined,
+      status,
+      filterColumn
+    });
+
+    const { data: updatedData, error: updateError } = await supabase
       .from('user_quest_progress')
       .update({
         verification_status: status,
@@ -647,13 +655,17 @@ export const UserProfileProvider: React.FC<{ children: React.ReactNode }> = ({ c
         last_updated_at: new Date().toISOString(),
       })
       .eq('user_id', targetUserId)
-      .eq(filterColumn, questId);
+      .eq(filterColumn, questId)
+      .select(); // Add .select() to get the updated row
 
     if (updateError) {
       console.error("Error updating quest verification status:", updateError);
       toast.error("Failed to update quest verification status.");
       return;
     }
+
+    console.log("Update result:", { updatedData, updateError });
+
 
     if (status === 'approved') {
       // Grant XP and achievement to the target user
